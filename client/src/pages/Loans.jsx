@@ -29,10 +29,7 @@ export default function Loans() {
 
   const fetchLoans = useCallback(async () => {
     setLoading(true);
-    const [l, c] = await Promise.all([
-      api.get('/loans'),
-      api.get('/customers'),
-    ]);
+    const [l, c] = await Promise.all([api.get('/loans'), api.get('/customers')]);
     setLoans(l.data);
     setCustomers(c.data);
     setLoading(false);
@@ -44,40 +41,29 @@ export default function Loans() {
     const amount = parseFloat(f.loan_amount);
     const rate   = parseFloat(f.interest_rate);
     if (!amount || isNaN(rate)) return null;
-    const interest = amount * rate / 100;
-    const total    = amount + interest;
-    return { interest: interest.toFixed(2), total: total.toFixed(2) };
+    return { interest: (amount * rate / 100).toFixed(2), total: (amount + amount * rate / 100).toFixed(2) };
   }
 
   function handleFormChange(e) {
     const { name, value } = e.target;
-    setForm(f => {
-      const updated = { ...f, [name]: value };
-      setPreview(calcPreview(updated));
-      return updated;
-    });
+    setForm(f => { const u = { ...f, [name]: value }; setPreview(calcPreview(u)); return u; });
   }
 
   function openAdd() {
     setForm({ ...EMPTY_FORM, start_date: new Date().toISOString().slice(0, 10) });
-    setPreview(null);
-    setError('');
-    setModal(true);
+    setPreview(null); setError(''); setModal(true);
   }
 
   async function handleSave(e) {
     e.preventDefault();
-    setSaving(true);
-    setError('');
+    setSaving(true); setError('');
     try {
       await api.post('/loans', form);
       setModal(false);
       fetchLoans();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create loan');
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   }
 
   const filtered = filter === 'all' ? loans : loans.filter(l => l.status === filter);
@@ -86,21 +72,18 @@ export default function Loans() {
     <div className="page">
       <div className="page-toolbar">
         <div className="filter-tabs">
-          {['all', 'active', 'pending', 'paid', 'overdue'].map(s => (
-            <button
-              key={s}
+          {['all','active','pending','paid','overdue'].map(s => (
+            <button key={s}
               className={`filter-tab${filter === s ? ' filter-tab--active' : ''}`}
-              onClick={() => setFilter(s)}
-            >{s}</button>
+              onClick={() => setFilter(s)}>{s}</button>
           ))}
         </div>
         <button className="btn btn--primary" onClick={openAdd}>+ New Loan</button>
       </div>
 
-      {loading
-        ? <Spinner />
-        : (
-          <div className="card">
+      {loading ? <Spinner /> : (
+        <div className="card">
+          <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
@@ -115,18 +98,20 @@ export default function Loans() {
                   : filtered.map((l, i) => (
                     <tr key={l.id}>
                       <td>{i + 1}</td>
-                      <td><strong>{l.customer_name}</strong><br /><small>{l.customer_phone}</small></td>
-                      <td>MWK {fmt(l.loan_amount)}</td>
+                      <td>
+                        <strong>{l.customer_name}</strong>
+                        <br /><small>{l.customer_phone}</small>
+                      </td>
+                      <td>TZS {fmt(l.loan_amount)}</td>
                       <td>{l.interest_rate}%</td>
-                      <td>MWK {fmt(l.total_payable)}</td>
-                      <td>MWK {fmt(l.amount_paid)}</td>
-                      <td><strong>MWK {fmt(l.balance)}</strong></td>
+                      <td>TZS {fmt(l.total_payable)}</td>
+                      <td>TZS {fmt(l.amount_paid)}</td>
+                      <td><strong>TZS {fmt(l.balance)}</strong></td>
                       <td>{l.due_date?.slice(0, 10) || '—'}</td>
                       <td><StatusBadge status={l.status} /></td>
                       <td>
-                        <button className="btn-sm btn-sm--edit" onClick={() => navigate(`/loans/${l.id}`)}>
-                          View
-                        </button>
+                        <button className="btn-sm btn-sm--edit"
+                          onClick={() => navigate(`/loans/${l.id}`)}>View</button>
                       </td>
                     </tr>
                   ))
@@ -134,8 +119,8 @@ export default function Loans() {
               </tbody>
             </table>
           </div>
-        )
-      }
+        </div>
+      )}
 
       {modal && (
         <div className="modal-overlay">
@@ -148,7 +133,8 @@ export default function Loans() {
             <form onSubmit={handleSave} className="modal-form">
               <div className="form-group">
                 <label>Customer *</label>
-                <select required name="customer_id" value={form.customer_id} onChange={handleFormChange}>
+                <select required name="customer_id" value={form.customer_id}
+                  onChange={handleFormChange}>
                   <option value="">— Select Customer —</option>
                   {customers.map(c => (
                     <option key={c.id} value={c.id}>{c.full_name} ({c.phone})</option>
@@ -157,7 +143,7 @@ export default function Loans() {
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Loan Amount (MWK) *</label>
+                  <label>Loan Amount (TZS) *</label>
                   <input type="number" min="1" step="0.01" required
                     name="loan_amount" value={form.loan_amount} onChange={handleFormChange} />
                 </div>
@@ -171,10 +157,12 @@ export default function Loans() {
               {preview && (
                 <div className="loan-preview">
                   <div className="loan-preview-item">
-                    <span>Interest</span><strong>MWK {fmt(preview.interest)}</strong>
+                    <span>Interest</span>
+                    <strong>TZS {fmt(preview.interest)}</strong>
                   </div>
                   <div className="loan-preview-item loan-preview-total">
-                    <span>Total Payable</span><strong>MWK {fmt(preview.total)}</strong>
+                    <span>Total Payable</span>
+                    <strong>TZS {fmt(preview.total)}</strong>
                   </div>
                 </div>
               )}
@@ -203,7 +191,8 @@ export default function Loans() {
                 <textarea rows={2} name="purpose" value={form.purpose} onChange={handleFormChange} />
               </div>
               <div className="modal-actions">
-                <button type="button" className="btn btn--ghost" onClick={() => setModal(false)}>Cancel</button>
+                <button type="button" className="btn btn--ghost"
+                  onClick={() => setModal(false)}>Cancel</button>
                 <button type="submit" className="btn btn--primary" disabled={saving}>
                   {saving ? 'Creating…' : 'Create Loan'}
                 </button>

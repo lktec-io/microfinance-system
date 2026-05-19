@@ -2,16 +2,31 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   MdPeople, MdAccountBalance, MdPayments,
-  MdWarning, MdTrendingUp,
+  MdWarning, MdTrendingUp, MdDashboard,
 } from 'react-icons/md';
 import api        from '../api';
 import { fmt }    from '../utils/format';
+import { useAuth } from '../context/AuthContext';
 import StatCard    from '../components/common/StatCard';
 import StatusBadge from '../components/common/StatusBadge';
 import Spinner     from '../components/common/Spinner';
 
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good Morning';
+  if (h < 17) return 'Good Afternoon';
+  return 'Good Evening';
+}
+
+function todayLabel() {
+  return new Date().toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  });
+}
+
 export default function Dashboard() {
-  const navigate = useNavigate();
+  const navigate     = useNavigate();
+  const { user }     = useAuth();
   const [summary, setSummary] = useState(null);
   const [recent,  setRecent]  = useState({ repayments: [], customers: [], loans: [] });
   const [overdue, setOverdue] = useState([]);
@@ -34,9 +49,21 @@ export default function Dashboard() {
   return (
     <div className="page">
 
+      {/* ── Welcome Banner ── */}
+      <div className="welcome-banner">
+        <div className="welcome-text">
+          <h2>{greeting()}, <span>{user?.name || 'Admin'}</span> 👋</h2>
+          <p>Today is {todayLabel()}</p>
+        </div>
+        <div className="welcome-icon">
+          <MdDashboard size={72} />
+        </div>
+      </div>
+
       {/* ── Overdue Alert Banner ── */}
       {summary.overdue_loans > 0 && (
-        <div className="alert-banner alert-banner--warning" onClick={() => navigate('/loans?filter=overdue')}>
+        <div className="alert-banner alert-banner--warning"
+          onClick={() => navigate('/loans?filter=overdue')}>
           <MdWarning size={20} />
           <span>
             <strong>{summary.overdue_loans} loan{summary.overdue_loans > 1 ? 's' : ''} overdue</strong>
@@ -58,20 +85,20 @@ export default function Dashboard() {
         <StatCard
           label="Active Loans" color="green"
           value={summary.active_loans}
-          sub={`MWK ${fmt(summary.loans_amount)} total issued`}
+          sub={`TZS ${fmt(summary.loans_amount)} issued`}
           Icon={MdAccountBalance}
           to="/loans"
         />
         <StatCard
           label="Total Collected" color="teal"
-          value={`MWK ${fmt(summary.collected)}`}
-          sub={`${summary.repayments} payments received`}
+          value={`TZS ${fmt(summary.collected)}`}
+          sub={`${summary.repayments} payments`}
           Icon={MdPayments}
           to="/repayments"
         />
         <StatCard
           label="Outstanding" color="red"
-          value={`MWK ${fmt(summary.outstanding)}`}
+          value={`TZS ${fmt(summary.outstanding)}`}
           sub={`${summary.overdue_loans} overdue`}
           Icon={MdTrendingUp}
         />
@@ -98,30 +125,32 @@ export default function Dashboard() {
         {/* Recent Repayments */}
         <section className="card">
           <div className="card-header">
-            <h2 className="card-title">
-              <MdPayments size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-              Recent Payments
+            <h2 className="card-title" style={{ marginBottom: 0 }}>
+              <MdPayments size={18} /> Recent Payments
             </h2>
             <button className="link-btn" onClick={() => navigate('/repayments')}>View all →</button>
           </div>
           {recent.repayments.length === 0
             ? <p className="empty-msg">No payments recorded yet</p>
             : (
-              <table className="table">
-                <thead>
-                  <tr><th>Customer</th><th>Amount</th><th>Date</th><th>Receipt</th></tr>
-                </thead>
-                <tbody>
-                  {recent.repayments.map(r => (
-                    <tr key={r.id} className="tr-link" onClick={() => navigate(`/loans/${r.loan_id}`)}>
-                      <td><strong>{r.customer_name}</strong></td>
-                      <td className="text-green"><strong>MWK {fmt(r.amount)}</strong></td>
-                      <td>{r.payment_date?.slice(0, 10)}</td>
-                      <td><code>{r.receipt_number}</code></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr><th>Customer</th><th>Amount</th><th>Date</th><th>Receipt</th></tr>
+                  </thead>
+                  <tbody>
+                    {recent.repayments.map(r => (
+                      <tr key={r.id} className="tr-link"
+                        onClick={() => navigate(`/loans/${r.loan_id}`)}>
+                        <td><strong>{r.customer_name}</strong></td>
+                        <td className="text-green"><strong>TZS {fmt(r.amount)}</strong></td>
+                        <td>{r.payment_date?.slice(0, 10)}</td>
+                        <td><code>{r.receipt_number}</code></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )
           }
         </section>
@@ -129,34 +158,34 @@ export default function Dashboard() {
         {/* Overdue Loans */}
         <section className="card">
           <div className="card-header">
-            <h2 className="card-title">
-              <MdWarning size={18} style={{ marginRight: 6, verticalAlign: 'middle', color: 'var(--red)' }} />
-              Overdue Loans
+            <h2 className="card-title" style={{ marginBottom: 0 }}>
+              <MdWarning size={18} style={{ color: 'var(--red)' }} /> Overdue Loans
             </h2>
-            {overdue.length > 0 && (
-              <span className="badge badge--red">{overdue.length}</span>
-            )}
+            {overdue.length > 0 && <span className="badge badge--red">{overdue.length}</span>}
           </div>
           {overdue.length === 0
             ? <p className="empty-msg" style={{ color: 'var(--green)' }}>✓ No overdue loans</p>
             : (
-              <table className="table">
-                <thead>
-                  <tr><th>Customer</th><th>Due Date</th><th>Balance</th></tr>
-                </thead>
-                <tbody>
-                  {overdue.map(l => (
-                    <tr key={l.id} className="tr-link" onClick={() => navigate(`/loans/${l.id}`)}>
-                      <td>
-                        <strong>{l.customer_name}</strong><br />
-                        <small>{l.customer_phone}</small>
-                      </td>
-                      <td><span className="badge badge--red">{l.due_date?.slice(0, 10)}</span></td>
-                      <td><strong className="text-red">MWK {fmt(l.balance)}</strong></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr><th>Customer</th><th>Due Date</th><th>Balance</th></tr>
+                  </thead>
+                  <tbody>
+                    {overdue.map(l => (
+                      <tr key={l.id} className="tr-link"
+                        onClick={() => navigate(`/loans/${l.id}`)}>
+                        <td>
+                          <strong>{l.customer_name}</strong><br />
+                          <small>{l.customer_phone}</small>
+                        </td>
+                        <td><span className="badge badge--red">{l.due_date?.slice(0, 10)}</span></td>
+                        <td><strong className="text-red">TZS {fmt(l.balance)}</strong></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )
           }
         </section>
@@ -164,30 +193,32 @@ export default function Dashboard() {
         {/* Recent Customers */}
         <section className="card">
           <div className="card-header">
-            <h2 className="card-title">
-              <MdPeople size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-              Recent Customers
+            <h2 className="card-title" style={{ marginBottom: 0 }}>
+              <MdPeople size={18} /> Recent Customers
             </h2>
             <button className="link-btn" onClick={() => navigate('/customers')}>View all →</button>
           </div>
           {recent.customers.length === 0
             ? <p className="empty-msg">No customers yet</p>
             : (
-              <table className="table">
-                <thead>
-                  <tr><th>Name</th><th>Phone</th><th>Loans</th><th>Joined</th></tr>
-                </thead>
-                <tbody>
-                  {recent.customers.map(c => (
-                    <tr key={c.id} className="tr-link" onClick={() => navigate('/customers')}>
-                      <td><strong>{c.full_name}</strong></td>
-                      <td>{c.phone}</td>
-                      <td><span className="badge badge--blue">{c.loan_count}</span></td>
-                      <td>{c.registration_date?.slice(0, 10)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr><th>Name</th><th>Phone</th><th>Loans</th><th>Joined</th></tr>
+                  </thead>
+                  <tbody>
+                    {recent.customers.map(c => (
+                      <tr key={c.id} className="tr-link"
+                        onClick={() => navigate('/customers')}>
+                        <td><strong>{c.full_name}</strong></td>
+                        <td>{c.phone}</td>
+                        <td><span className="badge badge--blue">{c.loan_count}</span></td>
+                        <td>{c.registration_date?.slice(0, 10)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )
           }
         </section>
@@ -195,30 +226,32 @@ export default function Dashboard() {
         {/* Recent Loans */}
         <section className="card">
           <div className="card-header">
-            <h2 className="card-title">
-              <MdAccountBalance size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-              Recent Loans
+            <h2 className="card-title" style={{ marginBottom: 0 }}>
+              <MdAccountBalance size={18} /> Recent Loans
             </h2>
             <button className="link-btn" onClick={() => navigate('/loans')}>View all →</button>
           </div>
           {recent.loans.length === 0
             ? <p className="empty-msg">No loans yet</p>
             : (
-              <table className="table">
-                <thead>
-                  <tr><th>Customer</th><th>Amount</th><th>Balance</th><th>Status</th></tr>
-                </thead>
-                <tbody>
-                  {recent.loans.map(l => (
-                    <tr key={l.id} className="tr-link" onClick={() => navigate(`/loans/${l.id}`)}>
-                      <td><strong>{l.customer_name}</strong></td>
-                      <td>MWK {fmt(l.loan_amount)}</td>
-                      <td>MWK {fmt(l.balance)}</td>
-                      <td><StatusBadge status={l.status} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr><th>Customer</th><th>Amount</th><th>Balance</th><th>Status</th></tr>
+                  </thead>
+                  <tbody>
+                    {recent.loans.map(l => (
+                      <tr key={l.id} className="tr-link"
+                        onClick={() => navigate(`/loans/${l.id}`)}>
+                        <td><strong>{l.customer_name}</strong></td>
+                        <td>TZS {fmt(l.loan_amount)}</td>
+                        <td>TZS {fmt(l.balance)}</td>
+                        <td><StatusBadge status={l.status} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )
           }
         </section>

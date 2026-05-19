@@ -2,10 +2,10 @@
 --  Microfinance Management System — MySQL Schema
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS microfinance_db
+CREATE DATABASE IF NOT EXISTS microfinance
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-USE microfinance_db;
+USE microfinance;
 
 -- ------------------------------------------------------------
 -- users

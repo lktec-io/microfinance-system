@@ -1,11 +1,11 @@
-/* ── Base Elements ───────────────────────────────────────────── */
+/* ── Base Elements ──────────────────────────────────────────────── */
 html { font-size: 15px; -webkit-text-size-adjust: 100%; }
 
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
   background: var(--surface-2);
   color: var(--gray-900);
-  line-height: 1.55;
+  line-height: 1.6;
   min-height: 100vh;
 }
 
@@ -17,24 +17,32 @@ input, select, textarea {
   width: 100%;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: .55rem .8rem;
+  padding: .6rem .9rem;
   background: var(--surface);
   color: var(--gray-900);
   transition: border-color var(--transition), box-shadow var(--transition);
   outline: none;
+  font-size: .88rem;
 }
 input:focus, select:focus, textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(21,101,192,.12);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.12);
 }
 input::placeholder { color: var(--gray-400); }
-textarea { resize: vertical; min-height: 70px; }
+textarea { resize: vertical; min-height: 76px; }
 
 code {
   font-family: 'Consolas', 'Fira Code', monospace;
-  font-size: .8rem;
-  background: var(--gray-100);
-  padding: .15rem .4rem;
-  border-radius: 4px;
-  color: var(--primary);
+  font-size: .78rem;
+  background: var(--primary-lt);
+  padding: .18rem .45rem;
+  border-radius: 5px;
+  color: var(--primary-dk);
+  letter-spacing: .01em;
 }
+
+/* ── Scrollbar ──────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }

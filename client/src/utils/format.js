@@ -9,6 +9,10 @@ export function fmtDate(str) {
   return str ? String(str).slice(0, 10) : '—';
 }
 
-export function fmtCurrency(n, currency = 'MWK') {
+export function fmtCurrency(n, currency = 'TZS') {
   return `${currency} ${fmt(n)}`;
+}
+
+export function cur(n) {
+  return `TZS ${fmt(n)}`;
 }
