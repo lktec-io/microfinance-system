@@ -1,0 +1,52 @@
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Design Tokens ──────────────────────────────────────────── */
+:root {
+  /* Brand */
+  --primary:      #1565c0;
+  --primary-dk:   #0d47a1;
+  --primary-lt:   #e3f2fd;
+  --primary-mid:  #90caf9;
+
+  /* Semantic */
+  --green:        #2e7d32;
+  --green-lt:     #e8f5e9;
+  --teal:         #00695c;
+  --teal-lt:      #e0f2f1;
+  --red:          #c62828;
+  --red-lt:       #ffebee;
+  --yellow:       #f57f17;
+  --yellow-lt:    #fff8e1;
+  --orange:       #e65100;
+
+  /* Grays */
+  --gray-50:      #fafafa;
+  --gray-100:     #f5f5f5;
+  --gray-200:     #eeeeee;
+  --gray-300:     #e0e0e0;
+  --gray-400:     #bdbdbd;
+  --gray-500:     #9e9e9e;
+  --gray-600:     #757575;
+  --gray-700:     #616161;
+  --gray-800:     #424242;
+  --gray-900:     #212121;
+
+  /* Layout */
+  --sidebar-w:    250px;
+  --header-h:     64px;
+
+  /* Surfaces */
+  --surface:      #ffffff;
+  --surface-2:    #f8f9fc;
+  --border:       #e8eaed;
+
+  /* Tokens */
+  --radius-sm:    6px;
+  --radius:       10px;
+  --radius-lg:    14px;
+  --shadow-sm:    0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow:       0 4px 12px rgba(0,0,0,.10);
+  --shadow-lg:    0 12px 40px rgba(0,0,0,.16);
+  --transition:   0.18s ease;
+}

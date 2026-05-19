@@ -1,0 +1,185 @@
+/* ── App Shell ────────────────────────────────────────────────── */
+.app-shell { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ──────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: #0a1929;
+  color: #b0bec5;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 200;
+  transition: transform var(--transition);
+  overflow: hidden;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: 1.15rem 1.2rem;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+}
+.sidebar-logo {
+  width: 38px; height: 38px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 800; font-size: .9rem;
+  flex-shrink: 0;
+  letter-spacing: -.5px;
+}
+.sidebar-title { font-weight: 700; font-size: .95rem; color: #eceff1; letter-spacing: -.01em; }
+.sidebar-close {
+  display: none;
+  margin-left: auto;
+  color: #78909c;
+  padding: .2rem;
+  border-radius: 4px;
+  transition: color var(--transition);
+}
+.sidebar-close:hover { color: #eceff1; }
+
+.sidebar-section-label {
+  padding: 1.1rem 1.2rem .4rem;
+  font-size: .68rem;
+  font-weight: 700;
+  color: #546e7a;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.sidebar-nav { flex: 1; padding: .5rem 0; overflow-y: auto; }
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem 1.2rem;
+  color: #90a4ae;
+  font-size: .9rem;
+  font-weight: 500;
+  transition: background var(--transition), color var(--transition);
+  border-left: 3px solid transparent;
+  margin: 1px 0;
+}
+.sidebar-link:hover {
+  background: rgba(255,255,255,.05);
+  color: #eceff1;
+}
+.sidebar-link--active {
+  background: rgba(21,101,192,.2);
+  color: #90caf9;
+  border-left-color: #42a5f5;
+}
+.sidebar-icon { display: flex; align-items: center; flex-shrink: 0; }
+
+.sidebar-footer {
+  padding: 1rem 1.2rem;
+  border-top: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+}
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin-bottom: .8rem;
+}
+.sidebar-avatar {
+  width: 36px; height: 36px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: .9rem;
+  flex-shrink: 0;
+}
+.sidebar-user-name { display: block; font-size: .88rem; color: #eceff1; font-weight: 600; }
+.sidebar-user-role {
+  display: block;
+  font-size: .73rem;
+  color: #78909c;
+  text-transform: capitalize;
+}
+
+.btn-logout {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  width: 100%;
+  padding: .45rem .75rem;
+  border-radius: var(--radius-sm);
+  background: rgba(198,40,40,.12);
+  color: #ef9a9a;
+  font-size: .84rem;
+  font-weight: 600;
+  transition: background var(--transition);
+}
+.btn-logout:hover { background: rgba(198,40,40,.22); }
+
+.sidebar-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 199;
+  backdrop-filter: blur(2px);
+}
+
+/* ── Header ───────────────────────────────────────────────────── */
+.header {
+  height: var(--header-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+
+.header-menu-btn {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  padding: .35rem;
+  border-radius: var(--radius-sm);
+}
+.header-menu-btn:hover { background: var(--gray-100); }
+.header-menu-btn span {
+  display: block;
+  width: 21px; height: 2px;
+  background: var(--gray-700);
+  border-radius: 2px;
+  transition: background var(--transition);
+}
+
+.header-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+/* ── Main Area ────────────────────────────────────────────────── */
+.main-area {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0;
+}
+.page-content { flex: 1; }
+
+.page {
+  padding: 1.5rem;
+  max-width: 1440px;
+}

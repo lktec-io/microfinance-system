@@ -1,0 +1,56 @@
+require('dotenv').config();
+
+const express    = require('express');
+const cors       = require('cors');
+const { testConnection }    = require('./config/database');
+const { sanitizeBody }      = require('./middleware/validate');
+const { globalErrorHandler } = require('./middleware/errorHandler');
+const logger                = require('./utils/logger');
+const overdueJob            = require('./cron/overdueJob');
+
+const app  = express();
+const PORT = process.env.PORT || 8004;
+
+// ── Trust proxy (for rate-limiter IP detection behind Nginx) ─
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
+
+// ── CORS ─────────────────────────────────────────────────────
+app.use(cors({
+  origin:  process.env.CLIENT_URL || 'https://microfinance.nardio.online',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+}));
+
+// ── Body parsing + input sanitization ────────────────────────
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(sanitizeBody);
+
+// ── API Routes ────────────────────────────────────────────────
+app.use('/api/auth',       require('./routes/auth'));
+app.use('/api/customers',  require('./routes/customers'));
+app.use('/api/loans',      require('./routes/loans'));
+app.use('/api/repayments', require('./routes/repayments'));
+app.use('/api/reports',    require('./routes/reports'));
+
+// ── Health ────────────────────────────────────────────────────
+app.get('/api/health', (_req, res) =>
+  res.json({ status: 'ok', env: process.env.NODE_ENV || 'development', uptime: process.uptime() })
+);
+
+// ── 404 ───────────────────────────────────────────────────────
+app.use((_req, res) => res.status(404).json({ message: 'Route not found' }));
+
+// ── Global error handler ──────────────────────────────────────
+app.use(globalErrorHandler);
+
+// ── Start ─────────────────────────────────────────────────────
+testConnection().then(() => {
+  overdueJob.start();
+  app.listen(PORT, () =>
+    logger.success(`Server running → https://microfinance.nardio.online:${PORT} [${process.env.NODE_ENV || 'development'}]`)
+  );
+});
+
+module.exports = app; // for testing

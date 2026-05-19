@@ -1,0 +1,222 @@
+/* ── Loan Detail Grid ─────────────────────────────────────────── */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* ── Info Sections ────────────────────────────────────────────── */
+.info-section {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.info-section:last-of-type { border-bottom: none; margin-bottom: 0; }
+.info-section-title {
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--gray-500);
+  margin-bottom: .5rem;
+}
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: .35rem 0;
+  font-size: .875rem;
+}
+.info-row-label {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--gray-600);
+  flex-shrink: 0;
+  width: 45%;
+}
+.info-row-value {
+  text-align: right;
+  font-weight: 600;
+  word-break: break-word;
+  max-width: 55%;
+}
+
+/* ── Progress Bar ─────────────────────────────────────────────── */
+.progress-section { margin-top: 1rem; }
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: .82rem;
+  color: var(--gray-600);
+  margin-bottom: .4rem;
+}
+.progress-pct { font-weight: 700; color: var(--gray-800); }
+.progress-bar {
+  height: 10px;
+  background: var(--gray-200);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--green));
+  border-radius: 5px;
+  transition: width .5s ease;
+}
+.progress-fill--red { background: linear-gradient(90deg, var(--yellow), var(--red)); }
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: .78rem;
+  color: var(--gray-500);
+  margin-top: .35rem;
+}
+
+/* ── Repayment List ───────────────────────────────────────────── */
+.repayment-list { display: flex; flex-direction: column; gap: .6rem; }
+.repayment-item {
+  display: flex;
+  gap: .75rem;
+  align-items: flex-start;
+  padding: .75rem;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.repayment-item-num {
+  width: 26px; height: 26px;
+  background: var(--primary-lt);
+  color: var(--primary);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: .75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.repayment-item-body { flex: 1; min-width: 0; }
+.repayment-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .25rem;
+}
+.repayment-item-top strong { font-size: .95rem; }
+.repayment-item-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: .8rem;
+  color: var(--gray-500);
+}
+.repayment-item-note {
+  margin-top: .25rem;
+  font-size: .8rem;
+  color: var(--gray-600);
+  font-style: italic;
+}
+
+/* ── Loan Summary Box ─────────────────────────────────────────── */
+.loan-summary-box { background: var(--surface-2); }
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: .45rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .875rem;
+}
+.summary-row:last-child { border-bottom: none; }
+.summary-row--total {
+  font-weight: 700;
+  font-size: .95rem;
+  padding: .6rem 0;
+  border-top: 2px solid var(--border);
+  border-bottom: 2px solid var(--border);
+}
+.summary-row--balance { font-size: 1rem; padding: .6rem 0; }
+
+/* ── Fully Paid ───────────────────────────────────────────────── */
+.fully-paid-badge {
+  margin-top: 1.25rem;
+  padding: .75rem;
+  background: var(--green-lt);
+  color: var(--green);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  font-weight: 700;
+  font-size: .95rem;
+  border: 1px solid #a5d6a7;
+}
+
+/* ── Responsive — Tablet ──────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .stat-grid       { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-grid  { grid-template-columns: 1fr; }
+  .detail-grid     { grid-template-columns: 1fr; }
+}
+
+/* ── Responsive — Mobile ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 0px; --header-h: 58px; }
+
+  .sidebar {
+    width: 270px;
+    transform: translateX(-270px);
+  }
+  .sidebar--open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-lg);
+  }
+  .sidebar-close { display: flex; }
+  .header-menu-btn { display: flex; }
+  .main-area { margin-left: 0; }
+
+  .page { padding: 1rem; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .stat-value { font-size: 1.35rem; }
+
+  .page-toolbar { flex-direction: column; align-items: stretch; }
+  .search-wrap  { max-width: 100%; }
+  .search-input { max-width: 100%; }
+
+  .form-row { grid-template-columns: 1fr; gap: 0; }
+  .table { font-size: .8rem; }
+  .table th, .table td { padding: .5rem .6rem; }
+
+  .modal { padding: 1.25rem; border-radius: var(--radius); }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .btn { width: 100%; justify-content: center; }
+
+  .detail-grid     { grid-template-columns: 1fr; }
+  .filter-tabs     { gap: .25rem; }
+  .filter-tab      { font-size: .78rem; padding: .32rem .65rem; }
+
+  .loan-preview    { flex-direction: column; gap: .5rem; }
+  .payment-preview { flex-direction: column; gap: .4rem; }
+
+  .page-top-bar { flex-wrap: wrap; gap: .5rem; }
+}
+
+@media (max-width: 480px) {
+  .stat-grid      { grid-template-columns: 1fr; }
+  .toast-container { max-width: calc(100% - 1.5rem); right: .75rem; top: .75rem; }
+  .loan-status-row { gap: .5rem; }
+  .status-chip    { min-width: 70px; padding: .5rem .9rem; }
+}
+
+/* ── Print Receipt ────────────────────────────────────────────── */
+@media print {
+  body > * { visibility: hidden; }
+  #receipt-print, #receipt-print * { visibility: visible; }
+  #receipt-print {
+    position: fixed; inset: 0;
+    background: #fff;
+    padding: 2rem;
+    max-width: none;
+    box-shadow: none;
+    border: none;
+  }
+  .no-print { display: none !important; }
+  .modal-overlay { background: transparent; backdrop-filter: none; }
+}
