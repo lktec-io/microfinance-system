@@ -232,6 +232,14 @@
   box-shadow: 0 8px 24px rgba(5,150,105,.4);
   letter-spacing: -.5px;
 }
+.login-logo-img {
+  width: 72px; height: 72px;
+  object-fit: contain;
+  border-radius: 16px;
+  margin: 0 auto .85rem;
+  display: block;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
 .login-title { font-size: 1.4rem; font-weight: 800; color: var(--gray-900); letter-spacing: -.02em; }
 .login-sub   { color: var(--gray-500); font-size: .88rem; margin-top: .35rem; }
 .login-form  { margin-bottom: 1.25rem; }

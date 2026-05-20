@@ -3,6 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { MdVisibility, MdVisibilityOff, MdEmail, MdLock } from 'react-icons/md';
 import { useAuth } from '../context/AuthContext';
 
+function LoginLogoMark() {
+  const [imgErr, setImgErr] = useState(false);
+  if (!imgErr) {
+    return (
+      <img
+        src="/logo.png"
+        alt="Company Logo"
+        className="login-logo-img"
+        onError={() => setImgErr(true)}
+      />
+    );
+  }
+  return <div className="login-logo">MF</div>;
+}
+
 export default function Login() {
   const { login }   = useAuth();
   const navigate    = useNavigate();
@@ -33,7 +48,7 @@ export default function Login() {
 
       <div className="login-card">
         <div className="login-brand">
-          <div className="login-logo">MF</div>
+          <LoginLogoMark />
           <h1 className="login-title">MicroFinance Manager</h1>
           <p className="login-sub">Sign in to your account to continue</p>
         </div>

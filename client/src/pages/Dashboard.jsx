@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   MdPeople, MdAccountBalance, MdPayments,
   MdWarning, MdTrendingUp, MdDashboard,
+  MdRefresh, MdCalendarToday,
 } from 'react-icons/md';
 import api        from '../api';
 import { fmt }    from '../utils/format';
@@ -27,26 +28,37 @@ function todayLabel() {
 export default function Dashboard() {
   const navigate     = useNavigate();
   const { user }     = useAuth();
-  const [summary, setSummary] = useState(null);
-  const [recent,  setRecent]  = useState({ repayments: [], customers: [], loans: [] });
-  const [overdue, setOverdue] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [summary, setSummary]     = useState(null);
+  const [recent,  setRecent]      = useState({ repayments: [], customers: [], loans: [] });
+  const [overdue, setOverdue]     = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    Promise.all([
+  const loadData = useCallback(async () => {
+    const [s, r, o] = await Promise.all([
       api.get('/reports/summary'),
       api.get('/reports/recent'),
       api.get('/reports/overdue'),
-    ]).then(([s, r, o]) => {
-      setSummary(s.data);
-      setRecent(r.data);
-      setOverdue(o.data.slice(0, 5));
-    }).finally(() => setLoading(false));
+    ]);
+    setSummary(s.data);
+    setRecent(r.data);
+    setOverdue(o.data.slice(0, 5));
   }, []);
+
+  useEffect(() => {
+    loadData().finally(() => setLoading(false));
+  }, [loadData]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await loadData(); } finally { setRefreshing(false); }
+  }
+
+  const firstName = user?.name?.split(' ')[0] || 'Admin';
 
   if (loading) return (
     <div className="page">
-      <div className="welcome-banner" style={{ marginBottom: '1.75rem', minHeight: '94px' }}>
+      <div className="welcome-banner" style={{ marginBottom: '1.75rem', minHeight: '100px' }}>
         <div className="welcome-shimmer" />
       </div>
       <SkeletonStats count={4} />
@@ -60,11 +72,23 @@ export default function Dashboard() {
       <div className="welcome-banner">
         <span className="welcome-shimmer" />
         <div className="welcome-text">
-          <h2>{greeting()}, <span>{user?.name || 'Admin'}</span> 👋</h2>
-          <p>Today is {todayLabel()}</p>
+          <h2>{greeting()}, <span>{firstName}</span>!</h2>
+          <p className="welcome-date">
+            <MdCalendarToday size={13} /> {todayLabel()}
+          </p>
         </div>
-        <div className="welcome-icon">
-          <MdDashboard size={72} />
+        <div className="welcome-actions">
+          <button
+            className={`welcome-refresh${refreshing ? ' refreshing' : ''}`}
+            onClick={handleRefresh}
+            title="Refresh dashboard"
+            disabled={refreshing}
+          >
+            <MdRefresh size={20} />
+          </button>
+          <div className="welcome-icon">
+            <MdDashboard size={60} />
+          </div>
         </div>
       </div>
 
@@ -75,7 +99,7 @@ export default function Dashboard() {
           <MdWarning size={20} />
           <span>
             <strong>{summary.overdue_loans} loan{summary.overdue_loans > 1 ? 's' : ''} overdue</strong>
-            — click to review
+            {' '}— click to review
           </span>
           <span className="alert-banner-arrow">→</span>
         </div>
@@ -172,7 +196,7 @@ export default function Dashboard() {
             {overdue.length > 0 && <span className="badge badge--red">{overdue.length}</span>}
           </div>
           {overdue.length === 0
-            ? <p className="empty-msg" style={{ color: 'var(--green)' }}>✓ No overdue loans</p>
+            ? <p className="empty-msg" style={{ color: 'var(--primary)' }}>✓ No overdue loans</p>
             : (
               <div className="table-wrap">
                 <table className="table">

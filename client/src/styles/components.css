@@ -493,3 +493,25 @@
   transition: color var(--transition);
 }
 .login-pw-toggle:hover { color: var(--primary); }
+
+/* ── Icon Action Buttons ─────────────────────────────────────────── */
+.icon-btn {
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition), color var(--transition);
+  flex-shrink: 0;
+}
+.icon-btn:hover  { transform: translateY(-1px); }
+.icon-btn:active { transform: translateY(0) scale(.94); }
+.icon-btn--view  { background: var(--blue-lt);    color: var(--blue); }
+.icon-btn--view:hover  { background: var(--blue-mid); }
+.icon-btn--edit  { background: var(--primary-lt); color: var(--primary); }
+.icon-btn--edit:hover  { background: var(--primary-mid); color: var(--primary-dk); }
+.icon-btn--del   { background: var(--red-lt);     color: var(--red); }
+.icon-btn--del:hover   { background: #fecaca; }
+.icon-btn--print { background: var(--gray-100);   color: var(--gray-600); }
+.icon-btn--print:hover { background: var(--gray-200); }
+.icon-btns { display: flex; gap: .35rem; align-items: center; }

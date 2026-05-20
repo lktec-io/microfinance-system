@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -15,6 +16,21 @@ const links = [
   { to: '/users',      label: 'Users',      Icon: MdAdminPanelSettings,  adminOnly: true  },
 ];
 
+function BrandLogo() {
+  const [imgErr, setImgErr] = useState(false);
+  if (!imgErr) {
+    return (
+      <img
+        src="/logo.png"
+        alt="Logo"
+        className="sidebar-logo-img"
+        onError={() => setImgErr(true)}
+      />
+    );
+  }
+  return <span className="sidebar-logo">MF</span>;
+}
+
 export default function Sidebar({ open, onClose }) {
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -30,7 +46,7 @@ export default function Sidebar({ open, onClose }) {
       <aside className={`sidebar${open ? ' sidebar--open' : ''}`}>
 
         <div className="sidebar-brand">
-          <span className="sidebar-logo">MF</span>
+          <BrandLogo />
           <span className="sidebar-title">MicroFinance</span>
           <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
             <MdClose size={20} />
@@ -48,7 +64,7 @@ export default function Sidebar({ open, onClose }) {
               className={({ isActive }) => `sidebar-link${isActive ? ' sidebar-link--active' : ''}`}
               onClick={onClose}
             >
-              <Icon size={18} className="sidebar-icon" />
+              <span className="sidebar-icon"><Icon size={18} /></span>
               <span>{label}</span>
             </NavLink>
           ))}
@@ -63,7 +79,7 @@ export default function Sidebar({ open, onClose }) {
             </div>
           </div>
           <button className="btn-logout" onClick={handleLogout}>
-            <MdLogout size={15} /> Logout
+            <MdLogout size={15} /> Sign Out
           </button>
         </div>
 

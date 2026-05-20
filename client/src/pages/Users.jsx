@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   MdPeopleAlt, MdPersonAdd, MdAdminPanelSettings, MdPerson,
   MdGridView, MdViewList, MdVisibility, MdVisibilityOff,
+  MdEdit, MdDelete,
 } from 'react-icons/md';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -132,9 +133,13 @@ export default function Users() {
                     Joined {u.created_at?.slice(0, 10)}
                   </div>
                   <div className="user-card-actions">
-                    <button className="btn-sm btn-sm--edit" onClick={() => openEdit(u)}>Edit</button>
+                    <button className="icon-btn icon-btn--edit" onClick={() => openEdit(u)} title="Edit user">
+                      <MdEdit size={16} />
+                    </button>
                     {u.id !== me?.id && (
-                      <button className="btn-sm btn-sm--del" onClick={() => setDelId(u.id)}>Delete</button>
+                      <button className="icon-btn icon-btn--del" onClick={() => setDelId(u.id)} title="Delete user">
+                        <MdDelete size={16} />
+                      </button>
                     )}
                   </div>
                 </div>
@@ -184,10 +189,16 @@ export default function Users() {
                       </td>
                       <td style={{ color: 'var(--gray-500)', fontSize: '.85rem' }}>{u.created_at?.slice(0, 10)}</td>
                       <td>
-                        <button className="btn-sm btn-sm--edit" onClick={() => openEdit(u)}>Edit</button>
-                        {u.id !== me?.id && (
-                          <button className="btn-sm btn-sm--del" onClick={() => setDelId(u.id)}>Delete</button>
-                        )}
+                        <div className="icon-btns">
+                          <button className="icon-btn icon-btn--edit" onClick={() => openEdit(u)} title="Edit user">
+                            <MdEdit size={15} />
+                          </button>
+                          {u.id !== me?.id && (
+                            <button className="icon-btn icon-btn--del" onClick={() => setDelId(u.id)} title="Delete user">
+                              <MdDelete size={15} />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))

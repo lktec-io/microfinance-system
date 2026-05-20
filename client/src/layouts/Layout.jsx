@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header  from './Header';
-import { useLocation } from 'react-router-dom';
 
 const titles = {
   '/':           'Dashboard',
@@ -15,9 +15,21 @@ const titles = {
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+
   const title = Object.entries(titles).find(([k]) =>
     location.pathname.startsWith(k) && (k === '/' ? location.pathname === '/' : true)
   )?.[1] || 'MicroFinance';
+
+  /* Lock body scroll while mobile sidebar is open */
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [sidebarOpen]);
+
+  /* Close sidebar on route change */
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
   return (
     <div className="app-shell">

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { MdSearch, MdPersonAdd, MdGridView, MdViewList } from 'react-icons/md';
+import { MdSearch, MdPersonAdd, MdGridView, MdViewList, MdEdit, MdDelete } from 'react-icons/md';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
 import Skeleton from '../components/common/Skeleton';
@@ -129,8 +129,12 @@ export default function Customers() {
                     {c.loan_count} loan{c.loan_count !== 1 ? 's' : ''}
                   </span>
                   <div className="customer-card-actions">
-                    <button className="btn-sm btn-sm--edit" onClick={() => openEdit(c)}>Edit</button>
-                    <button className="btn-sm btn-sm--del" onClick={() => setDelId(c.id)}>Delete</button>
+                    <button className="icon-btn icon-btn--edit" onClick={() => openEdit(c)} title="Edit customer">
+                      <MdEdit size={16} />
+                    </button>
+                    <button className="icon-btn icon-btn--del" onClick={() => setDelId(c.id)} title="Delete customer">
+                      <MdDelete size={16} />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -163,8 +167,14 @@ export default function Customers() {
                       <td>{c.registration_date?.slice(0, 10)}</td>
                       <td><span className="badge badge--blue">{c.loan_count}</span></td>
                       <td>
-                        <button className="btn-sm btn-sm--edit" onClick={() => openEdit(c)}>Edit</button>
-                        <button className="btn-sm btn-sm--del" onClick={() => setDelId(c.id)}>Delete</button>
+                        <div className="icon-btns">
+                          <button className="icon-btn icon-btn--edit" onClick={() => openEdit(c)} title="Edit customer">
+                            <MdEdit size={15} />
+                          </button>
+                          <button className="icon-btn icon-btn--del" onClick={() => setDelId(c.id)} title="Delete customer">
+                            <MdDelete size={15} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

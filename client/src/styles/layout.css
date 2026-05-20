@@ -43,6 +43,12 @@
   letter-spacing: -.5px;
   box-shadow: 0 3px 10px rgba(29,78,216,.4);
 }
+.sidebar-logo-img {
+  width: 38px; height: 38px;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  flex-shrink: 0;
+}
 .sidebar-title {
   font-weight: 700;
   font-size: .9rem;
@@ -229,6 +235,7 @@
   flex-shrink: 0;
 }
 
+.header-icon-btn,
 .header-theme-btn {
   width: 36px; height: 36px;
   border-radius: 50%;
@@ -238,11 +245,13 @@
   transition: background var(--transition), color var(--transition), transform var(--transition);
   flex-shrink: 0;
 }
+.header-icon-btn:hover { background: var(--gray-100); color: var(--gray-700); }
 .header-theme-btn:hover {
   background: var(--gray-100);
   color: var(--primary);
   transform: rotate(20deg);
 }
+[data-theme="dark"] .header-icon-btn:hover  { background: var(--gray-200); }
 [data-theme="dark"] .header-theme-btn:hover { background: var(--gray-200); }
 
 .header-user {

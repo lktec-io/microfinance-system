@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MdAdd, MdOpenInNew } from 'react-icons/md';
 import api        from '../api';
 import { fmt }    from '../utils/format';
 import StatusBadge from '../components/common/StatusBadge';
@@ -78,7 +79,9 @@ export default function Loans() {
               onClick={() => setFilter(s)}>{s}</button>
           ))}
         </div>
-        <button className="btn btn--primary" onClick={openAdd}>+ New Loan</button>
+        <button className="btn btn--primary" onClick={openAdd}>
+          <MdAdd size={18} /> New Loan
+        </button>
       </div>
 
       {loading ? (
@@ -112,8 +115,11 @@ export default function Loans() {
                       <td>{l.due_date?.slice(0, 10) || '—'}</td>
                       <td><StatusBadge status={l.status} /></td>
                       <td>
-                        <button className="btn-sm btn-sm--edit"
-                          onClick={() => navigate(`/loans/${l.id}`)}>View</button>
+                        <button className="icon-btn icon-btn--view"
+                          onClick={() => navigate(`/loans/${l.id}`)}
+                          title="View loan details">
+                          <MdOpenInNew size={15} />
+                        </button>
                       </td>
                     </tr>
                   ))

@@ -197,9 +197,11 @@
   .page { padding: 1rem; }
 
   /* Welcome banner compact */
-  .welcome-banner { padding: 1.1rem 1.3rem; }
-  .welcome-text h2 { font-size: 1.1rem; }
+  .welcome-banner { padding: 1.25rem 1.3rem; gap: .75rem; }
+  .welcome-text h2 { font-size: 1.15rem; }
   .welcome-icon { display: none; }
+  .welcome-refresh { display: inline-flex; }
+  .welcome-actions { flex-direction: row; align-items: center; }
 
   /* Stat grid: 2 columns on mobile */
   .stat-grid { grid-template-columns: 1fr 1fr; gap: .75rem; }
