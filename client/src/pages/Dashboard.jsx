@@ -9,7 +9,7 @@ import { fmt }    from '../utils/format';
 import { useAuth } from '../context/AuthContext';
 import StatCard    from '../components/common/StatCard';
 import StatusBadge from '../components/common/StatusBadge';
-import Spinner     from '../components/common/Spinner';
+import { SkeletonStats } from '../components/common/Skeleton';
 
 function greeting() {
   const h = new Date().getHours();
@@ -44,13 +44,21 @@ export default function Dashboard() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <Spinner text="Loading dashboard…" />;
+  if (loading) return (
+    <div className="page">
+      <div className="welcome-banner" style={{ marginBottom: '1.75rem', minHeight: '94px' }}>
+        <div className="welcome-shimmer" />
+      </div>
+      <SkeletonStats count={4} />
+    </div>
+  );
 
   return (
     <div className="page">
 
       {/* ── Welcome Banner ── */}
       <div className="welcome-banner">
+        <span className="welcome-shimmer" />
         <div className="welcome-text">
           <h2>{greeting()}, <span>{user?.name || 'Admin'}</span> 👋</h2>
           <p>Today is {todayLabel()}</p>

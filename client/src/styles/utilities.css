@@ -170,6 +170,12 @@
   .page { padding: 1.4rem; }
 }
 
+/* ── Responsive — Tablet (1024px) ───────────────────────────────── */
+@media (max-width: 1024px) {
+  .page { padding: 1.4rem; }
+  .header-user-info { display: none; }
+}
+
 /* ── Responsive — Mobile ────────────────────────────────────────── */
 @media (max-width: 768px) {
   :root { --sidebar-w: 0px; --header-h: 60px; }
@@ -186,6 +192,7 @@
   .sidebar-close { display: flex; }
   .header-menu-btn { display: flex; }
   .main-area { margin-left: 0; }
+  .header-user { display: none; }
 
   .page { padding: 1rem; }
 
@@ -205,9 +212,9 @@
   .status-chip-val { font-size: 1.2rem; }
 
   /* Tables: horizontal scroll */
-  .card { overflow-x: auto; padding: 0; }
+  .card { padding: 0; }
   .card .card-header { padding: 1rem 1rem .5rem; }
-  .table-wrap { padding: 0; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .table { min-width: 560px; }
   .table th, .table td { padding: .6rem .75rem; }
 

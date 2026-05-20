@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api        from '../api';
 import { fmt }    from '../utils/format';
 import StatusBadge from '../components/common/StatusBadge';
-import Spinner     from '../components/common/Spinner';
+import Skeleton    from '../components/common/Skeleton';
 
 const EMPTY_FORM = {
   customer_id:    '',
@@ -81,7 +81,9 @@ export default function Loans() {
         <button className="btn btn--primary" onClick={openAdd}>+ New Loan</button>
       </div>
 
-      {loading ? <Spinner /> : (
+      {loading ? (
+        <div className="card"><Skeleton rows={6} cols={7} /></div>
+      ) : (
         <div className="card">
           <div className="table-wrap">
             <table className="table">

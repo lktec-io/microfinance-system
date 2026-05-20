@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
-import { MdSearch, MdPersonAdd } from 'react-icons/md';
+import { MdSearch, MdPersonAdd, MdGridView, MdViewList } from 'react-icons/md';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
+import Skeleton from '../components/common/Skeleton';
 
 const EMPTY = { full_name: '', phone: '', address: '', id_number: '', registration_date: '' };
 
@@ -16,6 +17,7 @@ export default function Customers() {
   const [saving,    setSaving]    = useState(false);
   const [error,     setError]     = useState('');
   const [delId,     setDelId]     = useState(null);
+  const [viewMode,  setViewMode]  = useState('list');
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
@@ -82,13 +84,58 @@ export default function Customers() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <button className="btn btn--primary" onClick={openAdd}>
-          <MdPersonAdd size={16} /> Add Customer
-        </button>
+        <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}>
+          <div className="view-toggle">
+            <button
+              className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}
+              onClick={() => setViewMode('list')} title="List view"
+            >
+              <MdViewList size={19} />
+            </button>
+            <button
+              className={`view-toggle-btn${viewMode === 'grid' ? ' active' : ''}`}
+              onClick={() => setViewMode('grid')} title="Grid view"
+            >
+              <MdGridView size={19} />
+            </button>
+          </div>
+          <button className="btn btn--primary" onClick={openAdd}>
+            <MdPersonAdd size={16} /> Add Customer
+          </button>
+        </div>
       </div>
 
       {loading ? (
-        <div className="page-loader"><div className="spinner" /><span>Loading…</span></div>
+        <div className="card"><Skeleton rows={6} cols={5} /></div>
+      ) : viewMode === 'grid' ? (
+        customers.length === 0
+          ? <div className="card"><p className="empty-msg text-center">No customers found</p></div>
+          : (
+            <div className="customer-grid">
+              {customers.map(c => (
+                <div key={c.id} className="customer-card">
+                  <div className="customer-card-avatar">
+                    {c.full_name?.[0]?.toUpperCase()}
+                  </div>
+                  <div className="customer-card-name">{c.full_name}</div>
+                  <div className="customer-card-phone">{c.phone}</div>
+                  {c.id_number && (
+                    <div style={{ fontSize: '.76rem', color: 'var(--gray-400)' }}>
+                      ID: {c.id_number}
+                    </div>
+                  )}
+                  <div className="customer-card-address">{c.address}</div>
+                  <span className="badge badge--blue" style={{ marginTop: '.2rem' }}>
+                    {c.loan_count} loan{c.loan_count !== 1 ? 's' : ''}
+                  </span>
+                  <div className="customer-card-actions">
+                    <button className="btn-sm btn-sm--edit" onClick={() => openEdit(c)}>Edit</button>
+                    <button className="btn-sm btn-sm--del" onClick={() => setDelId(c.id)}>Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
       ) : (
         <div className="card">
           <div className="table-wrap">
@@ -104,15 +151,20 @@ export default function Customers() {
                   ? <tr><td colSpan={7} className="text-center">No customers found</td></tr>
                   : customers.map((c, i) => (
                     <tr key={c.id}>
-                      <td>{i + 1}</td>
-                      <td><strong>{c.full_name}</strong></td>
+                      <td style={{ color: 'var(--gray-400)', fontSize: '.8rem' }}>{i + 1}</td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '.6rem' }}>
+                          <div className="table-avatar">{c.full_name?.[0]?.toUpperCase()}</div>
+                          <strong>{c.full_name}</strong>
+                        </div>
+                      </td>
                       <td>{c.phone}</td>
                       <td>{c.id_number || '—'}</td>
                       <td>{c.registration_date?.slice(0, 10)}</td>
                       <td><span className="badge badge--blue">{c.loan_count}</span></td>
                       <td>
                         <button className="btn-sm btn-sm--edit" onClick={() => openEdit(c)}>Edit</button>
-                        <button className="btn-sm btn-sm--del"  onClick={() => setDelId(c.id)}>Delete</button>
+                        <button className="btn-sm btn-sm--del" onClick={() => setDelId(c.id)}>Delete</button>
                       </td>
                     </tr>
                   ))

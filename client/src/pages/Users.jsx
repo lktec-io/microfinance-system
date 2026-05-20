@@ -1,23 +1,28 @@
 import { useEffect, useState, useCallback } from 'react';
-import { MdPeopleAlt, MdPersonAdd, MdAdminPanelSettings, MdPerson } from 'react-icons/md';
+import {
+  MdPeopleAlt, MdPersonAdd, MdAdminPanelSettings, MdPerson,
+  MdGridView, MdViewList, MdVisibility, MdVisibilityOff,
+} from 'react-icons/md';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import Spinner from '../components/common/Spinner';
+import Skeleton from '../components/common/Skeleton';
 
 const EMPTY = { name: '', email: '', password: '', role: 'staff', is_active: 1 };
 
 export default function Users() {
   const { user: me } = useAuth();
   const { showToast } = useToast();
-  const [users,  setUsers]  = useState([]);
-  const [loading,setLoading]= useState(true);
-  const [modal,  setModal]  = useState(null);
-  const [form,   setForm]   = useState(EMPTY);
-  const [editId, setEditId] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [error,  setError]  = useState('');
-  const [delId,  setDelId]  = useState(null);
+  const [users,    setUsers]    = useState([]);
+  const [loading,  setLoading]  = useState(true);
+  const [modal,    setModal]    = useState(null);
+  const [form,     setForm]     = useState(EMPTY);
+  const [editId,   setEditId]   = useState(null);
+  const [saving,   setSaving]   = useState(false);
+  const [error,    setError]    = useState('');
+  const [delId,    setDelId]    = useState(null);
+  const [viewMode, setViewMode] = useState('list');
+  const [showPw,   setShowPw]   = useState(false);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -29,23 +34,17 @@ export default function Users() {
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   function openAdd() {
-    setForm(EMPTY);
-    setEditId(null);
-    setError('');
-    setModal('add');
+    setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('add');
   }
 
   function openEdit(u) {
     setForm({ name: u.name, email: u.email, password: '', role: u.role, is_active: u.is_active });
-    setEditId(u.id);
-    setError('');
-    setModal('edit');
+    setEditId(u.id); setError(''); setShowPw(false); setModal('edit');
   }
 
   async function handleSave(e) {
     e.preventDefault();
-    setSaving(true);
-    setError('');
+    setSaving(true); setError('');
     try {
       if (modal === 'add') {
         await api.post('/auth/register', form);
@@ -58,9 +57,7 @@ export default function Users() {
       fetchUsers();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save');
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   }
 
   async function handleDelete() {
@@ -82,12 +79,69 @@ export default function Users() {
           <MdPeopleAlt size={22} style={{ color: 'var(--primary)' }} />
           <h2 className="page-section-title" style={{ margin: 0 }}>Staff Accounts</h2>
         </div>
-        <button className="btn btn--primary" onClick={openAdd}>
-          <MdPersonAdd size={16} /> Add User
-        </button>
+        <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}>
+          <div className="view-toggle">
+            <button
+              className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}
+              onClick={() => setViewMode('list')} title="List view"
+            >
+              <MdViewList size={19} />
+            </button>
+            <button
+              className={`view-toggle-btn${viewMode === 'grid' ? ' active' : ''}`}
+              onClick={() => setViewMode('grid')} title="Grid view"
+            >
+              <MdGridView size={19} />
+            </button>
+          </div>
+          <button className="btn btn--primary" onClick={openAdd}>
+            <MdPersonAdd size={16} /> Add User
+          </button>
+        </div>
       </div>
 
-      {loading ? <Spinner /> : (
+      {loading ? (
+        <div className="card"><Skeleton rows={4} cols={5} /></div>
+      ) : viewMode === 'grid' ? (
+        users.length === 0
+          ? <div className="card"><p className="empty-msg text-center">No users found</p></div>
+          : (
+            <div className="users-grid">
+              {users.map(u => (
+                <div key={u.id} className="user-card">
+                  <div className="user-card-avatar">
+                    {u.role === 'admin'
+                      ? <MdAdminPanelSettings size={22} />
+                      : <MdPerson size={22} />
+                    }
+                  </div>
+                  <div className="user-card-name">
+                    {u.name}
+                    {u.id === me?.id && (
+                      <span style={{ marginLeft: '.35rem', fontSize: '.7rem', color: 'var(--primary)', fontWeight: 700 }}>you</span>
+                    )}
+                  </div>
+                  <div className="user-card-email">{u.email}</div>
+                  <div className="user-card-badges">
+                    <span className={`badge badge--${u.role === 'admin' ? 'blue' : 'gray'}`}>{u.role}</span>
+                    <span className={`badge badge--${u.is_active ? 'green' : 'red'}`}>
+                      {u.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '.74rem', color: 'var(--gray-400)', marginTop: '.1rem' }}>
+                    Joined {u.created_at?.slice(0, 10)}
+                  </div>
+                  <div className="user-card-actions">
+                    <button className="btn-sm btn-sm--edit" onClick={() => openEdit(u)}>Edit</button>
+                    {u.id !== me?.id && (
+                      <button className="btn-sm btn-sm--del" onClick={() => setDelId(u.id)}>Delete</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+      ) : (
         <div className="card">
           <div className="table-wrap">
             <table className="table">
@@ -114,30 +168,21 @@ export default function Users() {
                           <div>
                             <strong>{u.name}</strong>
                             {u.id === me?.id && (
-                              <span style={{
-                                marginLeft: '.4rem',
-                                fontSize: '.72rem',
-                                color: 'var(--primary)',
-                                fontWeight: 600,
-                              }}>you</span>
+                              <span style={{ marginLeft: '.4rem', fontSize: '.72rem', color: 'var(--primary)', fontWeight: 600 }}>you</span>
                             )}
                           </div>
                         </div>
                       </td>
                       <td style={{ color: 'var(--gray-600)' }}>{u.email}</td>
                       <td>
-                        <span className={`badge badge--${u.role === 'admin' ? 'blue' : 'gray'}`}>
-                          {u.role}
-                        </span>
+                        <span className={`badge badge--${u.role === 'admin' ? 'blue' : 'gray'}`}>{u.role}</span>
                       </td>
                       <td>
                         <span className={`badge badge--${u.is_active ? 'green' : 'red'}`}>
                           {u.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td style={{ color: 'var(--gray-500)', fontSize: '.85rem' }}>
-                        {u.created_at?.slice(0, 10)}
-                      </td>
+                      <td style={{ color: 'var(--gray-500)', fontSize: '.85rem' }}>{u.created_at?.slice(0, 10)}</td>
                       <td>
                         <button className="btn-sm btn-sm--edit" onClick={() => openEdit(u)}>Edit</button>
                         {u.id !== me?.id && (
@@ -174,8 +219,17 @@ export default function Users() {
               </div>
               <div className="form-group">
                 <label>{modal === 'add' ? 'Password *' : 'New Password (leave blank to keep)'}</label>
-                <input type="password" required={modal === 'add'} value={form.password}
-                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
+                <div className="pw-wrap">
+                  <input
+                    type={showPw ? 'text' : 'password'}
+                    required={modal === 'add'}
+                    value={form.password}
+                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                  />
+                  <button type="button" className="pw-toggle" onClick={() => setShowPw(v => !v)} tabIndex={-1}>
+                    {showPw ? <MdVisibilityOff size={18} /> : <MdVisibility size={18} />}
+                  </button>
+                </div>
               </div>
               <div className="form-row">
                 <div className="form-group">

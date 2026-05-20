@@ -1,8 +1,9 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdSearch, MdFilterList, MdReceipt } from 'react-icons/md';
-import api     from '../api';
-import { fmt } from '../utils/format';
+import api      from '../api';
+import { fmt }  from '../utils/format';
+import Skeleton from '../components/common/Skeleton';
 
 export default function Repayments() {
   const navigate = useNavigate();
@@ -94,7 +95,7 @@ export default function Repayments() {
       )}
 
       {loading ? (
-        <div className="page-loader"><div className="spinner" /><span>Loading payments…</span></div>
+        <div className="card"><Skeleton rows={6} cols={6} /></div>
       ) : (
         <div className="card">
           <div className="table-wrap">
