@@ -1,10 +1,10 @@
-import { MdDarkMode, MdLightMode, MdNotificationsNone } from 'react-icons/md';
+import { MdDarkMode, MdLightMode, MdNotificationsNone, MdSettings } from 'react-icons/md';
 import { useAuth }  from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Header({ title, onMenuClick }) {
-  const { user }                   = useAuth();
-  const { theme, toggleTheme }     = useTheme();
+  const { user }               = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const initials = user?.name
     ? user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -25,6 +25,14 @@ export default function Header({ title, onMenuClick }) {
           title="Notifications"
         >
           <MdNotificationsNone size={20} />
+        </button>
+
+        <button
+          className="header-icon-btn header-settings-btn"
+          aria-label="Settings"
+          title="Settings"
+        >
+          <MdSettings size={19} />
         </button>
 
         <button

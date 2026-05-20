@@ -4,6 +4,7 @@ import {
   MdArrowBack, MdPrint, MdPayment,
   MdPerson, MdPhone, MdHome,
   MdCalendarToday, MdAttachMoney, MdPercent, MdAccessTime,
+  MdDelete, MdClose,
 } from 'react-icons/md';
 import api        from '../api';
 import { useToast } from '../context/ToastContext';
@@ -115,7 +116,7 @@ export default function LoanDetail() {
         <div style={{ display: 'flex', gap: '.5rem' }}>
           {loan.status !== 'paid' && loan.repayments?.length === 0 && (
             <button className="btn btn--ghost btn--danger-ghost" onClick={() => setDelModal(true)}>
-              Delete Loan
+              <MdDelete size={16} /> Delete Loan
             </button>
           )}
         </div>
@@ -298,7 +299,7 @@ export default function LoanDetail() {
           <div className="modal">
             <div className="modal-header">
               <h2>Record Payment — Loan #{id}</h2>
-              <button className="modal-close" onClick={() => setPayModal(false)}>✕</button>
+              <button className="modal-close" onClick={() => setPayModal(false)} aria-label="Close"><MdClose size={18} /></button>
             </div>
 
             <div className="alert alert--info" style={{ marginBottom: '1rem' }}>

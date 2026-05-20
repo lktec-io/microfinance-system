@@ -54,10 +54,10 @@
 .welcome-text { position: relative; z-index: 2; flex: 1; min-width: 0; }
 .welcome-text h2 {
   font-size: 1.4rem;
-  font-weight: 800;
+  font-weight: 700;
   margin-bottom: .4rem;
   line-height: 1.25;
-  letter-spacing: -.02em;
+  letter-spacing: -.015em;
 }
 .welcome-text h2 span { color: #93c5fd; }
 .welcome-date {
@@ -141,7 +141,7 @@
 .stat-card--red   { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); box-shadow: 0 4px 20px rgba(220,38,38,.3); }
 
 .stat-card-inner { display: flex; align-items: flex-start; justify-content: space-between; }
-.stat-value  { font-size: 1.7rem; font-weight: 800; line-height: 1.1; letter-spacing: -.02em; }
+.stat-value  { font-size: 1.65rem; font-weight: 700; line-height: 1.1; letter-spacing: -.015em; }
 .stat-label  { font-size: .74rem; opacity: .85; margin-top: .35rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
 .stat-sub    { font-size: .76rem; opacity: .7; margin-top: .2rem; }
 .stat-icon-wrap { opacity: .25; margin-top: -.25rem; }

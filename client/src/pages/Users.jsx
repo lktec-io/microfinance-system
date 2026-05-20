@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   MdPeopleAlt, MdPersonAdd, MdAdminPanelSettings, MdPerson,
   MdGridView, MdViewList, MdVisibility, MdVisibilityOff,
-  MdEdit, MdDelete,
+  MdEdit, MdDelete, MdClose,
 } from 'react-icons/md';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -214,7 +214,7 @@ export default function Users() {
           <div className="modal">
             <div className="modal-header">
               <h2>{modal === 'add' ? 'Add User' : 'Edit User'}</h2>
-              <button className="modal-close" onClick={() => setModal(null)}>✕</button>
+              <button className="modal-close" onClick={() => setModal(null)} aria-label="Close"><MdClose size={18} /></button>
             </div>
             {error && <div className="alert alert--error">{error}</div>}
             <form onSubmit={handleSave} className="modal-form">

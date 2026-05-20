@@ -230,7 +230,7 @@
 .header-actions {
   display: flex;
   align-items: center;
-  gap: .6rem;
+  gap: .45rem;
   margin-left: auto;
   flex-shrink: 0;
 }

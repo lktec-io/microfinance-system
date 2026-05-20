@@ -17,11 +17,11 @@
   border-bottom: 2px solid var(--primary-lt);
   padding: .7rem .9rem;
   text-align: left;
-  font-weight: 700;
-  color: var(--gray-600);
-  font-size: .72rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  font-size: .71rem;
   text-transform: uppercase;
-  letter-spacing: .07em;
+  letter-spacing: .05em;
   white-space: nowrap;
 }
 .table td {

@@ -193,15 +193,28 @@
   .header-menu-btn { display: flex; }
   .main-area { margin-left: 0; }
   .header-user { display: none; }
+  .header-settings-btn { display: none; }
 
   .page { padding: 1rem; }
 
-  /* Welcome banner compact */
-  .welcome-banner { padding: 1.25rem 1.3rem; gap: .75rem; }
-  .welcome-text h2 { font-size: 1.15rem; }
+  /* Welcome banner — hero section on mobile */
+  .welcome-banner {
+    padding: 2.1rem 1.5rem;
+    min-height: 164px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: .9rem;
+    border-radius: var(--radius);
+  }
+  .welcome-text h2 {
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .welcome-date { font-size: .875rem; opacity: .85; margin-top: .2rem; }
   .welcome-icon { display: none; }
-  .welcome-refresh { display: inline-flex; }
-  .welcome-actions { flex-direction: row; align-items: center; }
+  .welcome-actions { flex-direction: row; align-items: center; gap: .6rem; }
+  .welcome-refresh { width: 40px; height: 40px; }
 
   /* Stat grid: 2 columns on mobile */
   .stat-grid { grid-template-columns: 1fr 1fr; gap: .75rem; }
@@ -261,8 +274,9 @@
   .stat-grid       { grid-template-columns: 1fr; }
   .toast-container { max-width: calc(100% - 1.5rem); right: .75rem; top: .75rem; }
   .status-chip     { min-width: 60px; }
-  .welcome-text h2 { font-size: 1rem; }
-  .page { padding: .85rem; }
+  .welcome-banner  { padding: 1.85rem 1.25rem; min-height: 148px; }
+  .welcome-text h2 { font-size: 1.45rem; }
+  .page { padding: .9rem; }
 }
 
 /* ── Print — Reports & Receipts ─────────────────────────────────── */

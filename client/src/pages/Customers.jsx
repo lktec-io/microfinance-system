@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { MdSearch, MdPersonAdd, MdGridView, MdViewList, MdEdit, MdDelete } from 'react-icons/md';
+import { MdSearch, MdPersonAdd, MdGridView, MdViewList, MdEdit, MdDelete, MdClose } from 'react-icons/md';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
 import Skeleton from '../components/common/Skeleton';
@@ -190,7 +190,7 @@ export default function Customers() {
           <div className="modal">
             <div className="modal-header">
               <h2>{modal === 'add' ? 'Add Customer' : 'Edit Customer'}</h2>
-              <button className="modal-close" onClick={() => setModal(null)}>✕</button>
+              <button className="modal-close" onClick={() => setModal(null)} aria-label="Close"><MdClose size={18} /></button>
             </div>
             {error && <div className="alert alert--error">{error}</div>}
             <form onSubmit={handleSave} className="modal-form">
