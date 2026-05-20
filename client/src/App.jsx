@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider }  from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute    from './components/ProtectedRoute';
@@ -23,22 +24,24 @@ function Protected({ children, adminOnly = false }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login"        element={<Login />} />
-            <Route path="/"             element={<Protected><Dashboard /></Protected>} />
-            <Route path="/customers"    element={<Protected><Customers /></Protected>} />
-            <Route path="/loans"        element={<Protected><Loans /></Protected>} />
-            <Route path="/loans/:id"    element={<Protected><LoanDetail /></Protected>} />
-            <Route path="/repayments"   element={<Protected><Repayments /></Protected>} />
-            <Route path="/reports"      element={<Protected><Reports /></Protected>} />
-            <Route path="/users"        element={<Protected adminOnly><Users /></Protected>} />
-            <Route path="*"             element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </ToastProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <BrowserRouter>
+              <Routes>
+                <Route path="/login"        element={<Login />} />
+                <Route path="/"             element={<Protected><Dashboard /></Protected>} />
+                <Route path="/customers"    element={<Protected><Customers /></Protected>} />
+                <Route path="/loans"        element={<Protected><Loans /></Protected>} />
+                <Route path="/loans/:id"    element={<Protected><LoanDetail /></Protected>} />
+                <Route path="/repayments"   element={<Protected><Repayments /></Protected>} />
+                <Route path="/reports"      element={<Protected><Reports /></Protected>} />
+                <Route path="/users"        element={<Protected adminOnly><Users /></Protected>} />
+                <Route path="*"             element={<Navigate to="/" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </ToastProvider>
+        </AuthProvider>
+      </ThemeProvider>
   );
 }

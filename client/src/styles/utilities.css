@@ -124,7 +124,7 @@
 
 /* ── Loan Summary Box ───────────────────────────────────────────── */
 .loan-summary-box {
-  background: linear-gradient(135deg, var(--surface) 0%, #f0f4ff 100%);
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
   border: 1px solid var(--primary-lt);
 }
 .summary-row {

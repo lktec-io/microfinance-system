@@ -37,6 +37,8 @@ export default function Sidebar({ open, onClose }) {
           </button>
         </div>
 
+        <div className="sidebar-section-label">Main</div>
+
         <nav className="sidebar-nav">
           {links.filter(l => !l.adminOnly || isAdmin).map(({ to, label, Icon }) => (
             <NavLink

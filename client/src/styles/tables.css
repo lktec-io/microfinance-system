@@ -31,7 +31,7 @@
 }
 .table tr:last-child td { border-bottom: none; }
 .table tbody tr { transition: background var(--transition); }
-.table tbody tr:hover td { background: #f0f4ff; }
+.table tbody tr:hover td { background: var(--primary-pale); }
 .tr-link { cursor: pointer; }
 .tr-link:hover td { background: var(--primary-lt) !important; }
 .table small { color: var(--gray-500); font-size: .78rem; }
@@ -42,7 +42,7 @@
 .text-red    { color: var(--red); }
 .text-green  { color: var(--green-dk); }
 .text-orange { color: var(--orange); }
-.text-blue   { color: var(--primary); }
+.text-blue   { color: var(--blue); }
 .amount-cell { font-weight: 700; color: var(--green-dk); font-size: .88rem; }
 
 /* ── Results Summary ────────────────────────────────────────────── */

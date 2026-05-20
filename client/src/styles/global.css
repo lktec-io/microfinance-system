@@ -1,5 +1,9 @@
 /* ── Base Elements ──────────────────────────────────────────────── */
-html { font-size: 15px; -webkit-text-size-adjust: 100%; }
+html {
+  font-size: 15px;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
 
 body {
   font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
@@ -7,11 +11,14 @@ body {
   color: var(--gray-900);
   line-height: 1.6;
   min-height: 100vh;
+  overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.2s ease;
 }
 
 a { color: inherit; text-decoration: none; }
 button { cursor: pointer; border: none; background: none; font: inherit; }
 
+/* ── Form Elements ──────────────────────────────────────────────── */
 input, select, textarea {
   font: inherit;
   width: 100%;
@@ -20,24 +27,42 @@ input, select, textarea {
   padding: .6rem .9rem;
   background: var(--surface);
   color: var(--gray-900);
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition),
+    background-color 0.25s ease;
   outline: none;
   font-size: .88rem;
 }
 input:focus, select:focus, textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+  box-shadow: 0 0 0 3px rgba(5,150,105,.14);
+}
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+  box-shadow: 0 0 0 3px rgba(16,185,129,.18);
 }
 input::placeholder { color: var(--gray-400); }
 textarea { resize: vertical; min-height: 76px; }
 
+select {
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .8rem center;
+  padding-right: 2.2rem;
+}
+
 code {
   font-family: 'Consolas', 'Fira Code', monospace;
   font-size: .78rem;
-  background: var(--primary-lt);
+  background: var(--gray-100);
   padding: .18rem .45rem;
   border-radius: 5px;
-  color: var(--primary-dk);
+  color: var(--primary);
   letter-spacing: .01em;
 }
 
@@ -63,4 +88,14 @@ code {
 @keyframes skeletonShimmer {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+/* ── Smooth theme transition ────────────────────────────────────── */
+body.theme-switching,
+body.theme-switching * {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease !important;
 }

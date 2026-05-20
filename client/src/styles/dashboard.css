@@ -170,5 +170,5 @@
   background: var(--primary-lt);
   color: var(--primary);
   border-color: var(--primary-mid);
-  box-shadow: 0 0 0 2px rgba(37,99,235,.1);
+  box-shadow: 0 0 0 2px rgba(5,150,105,.12);
 }

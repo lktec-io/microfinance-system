@@ -1,28 +1,31 @@
 /* ── Reset ──────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Design Tokens — MicroFinance Professional Dark-Blue Theme ──── */
+/* ═══════════════════════════════════════════════════════════════════
+   LIGHT THEME  (default)
+   Primary = Cool Green (Emerald)  |  Secondary = Soft Dark Blue
+   ═══════════════════════════════════════════════════════════════════ */
 :root {
-  /* Primary — Professional Deep Blue (not too bright) */
-  --primary:      #1d4ed8;   /* Blue 700 — mature, professional */
-  --primary-dk:   #1e3a8a;   /* Blue 900 — very deep */
-  --primary-lt:   #dbeafe;   /* Blue 100 — soft tint */
-  --primary-mid:  #93c5fd;   /* Blue 300 — mid accent */
-  --primary-pale: #eff6ff;   /* Blue 50  — near-white tint */
+  /* ── Primary — Cool Green (Emerald) ─────────────────────────────── */
+  --primary:      #059669;   /* Emerald 600 */
+  --primary-dk:   #047857;   /* Emerald 700 */
+  --primary-lt:   #d1fae5;   /* Emerald 100 */
+  --primary-mid:  #6ee7b7;   /* Emerald 300 */
+  --primary-pale: #ecfdf5;   /* Emerald 50  */
 
-  /* Secondary — Emerald Green */
-  --green:        #059669;   /* Emerald 600 */
-  --green-dk:     #047857;   /* Emerald 700 */
-  --green-lt:     #d1fae5;   /* Emerald 100 */
-  --green-mid:    #6ee7b7;   /* Emerald 300 */
-  --green-pale:   #ecfdf5;   /* Emerald 50 */
+  /* ── Secondary — Soft Dark Blue ─────────────────────────────────── */
+  --blue:         #1d4ed8;   /* Blue 700 */
+  --blue-dk:      #1e3a8a;   /* Blue 900 */
+  --blue-lt:      #dbeafe;   /* Blue 100 */
+  --blue-mid:     #93c5fd;   /* Blue 300 */
+  --blue-pale:    #eff6ff;   /* Blue 50  */
 
-  /* Teal accent */
+  /* ── Teal accent ────────────────────────────────────────────────── */
   --teal:         #0891b2;   /* Cyan 600 */
   --teal-dk:      #0e7490;   /* Cyan 700 */
   --teal-lt:      #e0f2fe;   /* Cyan 100 */
 
-  /* Semantic */
+  /* ── Semantic ───────────────────────────────────────────────────── */
   --red:          #dc2626;
   --red-dk:       #b91c1c;
   --red-lt:       #fee2e2;
@@ -30,7 +33,7 @@
   --yellow-lt:    #fef3c7;
   --orange:       #ea580c;
 
-  /* Neutral Grays — Slate scale */
+  /* ── Neutral — Slate scale ──────────────────────────────────────── */
   --gray-50:      #f8fafc;
   --gray-100:     #f1f5f9;
   --gray-200:     #e2e8f0;
@@ -42,29 +45,103 @@
   --gray-800:     #1e293b;
   --gray-900:     #0f172a;
 
-  /* Layout */
+  /* ── Layout ─────────────────────────────────────────────────────── */
   --sidebar-w:    260px;
   --header-h:     64px;
 
-  /* Surfaces */
+  /* ── Surfaces ───────────────────────────────────────────────────── */
   --surface:      #ffffff;
-  --surface-2:    #f1f5f9;   /* Slate 100 — clean neutral background */
-  --border:       #e2e8f0;   /* Slate 200 */
+  --surface-2:    #f8fafc;
+  --surface-3:    #f1f5f9;
+  --border:       #e2e8f0;
   --border-focus: var(--primary);
 
-  /* Radius */
-  --radius-sm:    8px;
-  --radius:       12px;
-  --radius-lg:    16px;
-  --radius-xl:    24px;
-
-  /* Shadows */
+  /* ── Shadows ────────────────────────────────────────────────────── */
   --shadow-sm:    0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
   --shadow:       0 4px 16px rgba(0,0,0,.07);
   --shadow-md:    0 8px 24px rgba(0,0,0,.10);
   --shadow-lg:    0 16px 48px rgba(0,0,0,.13);
   --shadow-blue:  0 4px 20px rgba(29,78,216,.20);
-  --shadow-green: 0 4px 20px rgba(5,150,105,.18);
+  --shadow-green: 0 4px 20px rgba(5,150,105,.22);
+
+  /* ── Radius ─────────────────────────────────────────────────────── */
+  --radius-sm:    8px;
+  --radius:       12px;
+  --radius-lg:    16px;
+  --radius-xl:    24px;
 
   --transition:   0.18s ease;
+
+  /* ── Backward-compat aliases (--green → --primary) ─────────────── */
+  --green:        var(--primary);
+  --green-dk:     var(--primary-dk);
+  --green-lt:     var(--primary-lt);
+  --green-mid:    var(--primary-mid);
+  --green-pale:   var(--primary-pale);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DARK THEME
+   ═══════════════════════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  /* ── Primary — Cool Green (brighter for dark bg) ─────────────────── */
+  --primary:      #10b981;   /* Emerald 500 */
+  --primary-dk:   #059669;   /* Emerald 600 */
+  --primary-lt:   rgba(16,185,129,.16);
+  --primary-mid:  rgba(16,185,129,.36);
+  --primary-pale: rgba(16,185,129,.07);
+
+  /* ── Secondary — Blue (lighter for dark bg) ──────────────────────── */
+  --blue:         #3b82f6;   /* Blue 500 */
+  --blue-dk:      #2563eb;   /* Blue 600 */
+  --blue-lt:      rgba(59,130,246,.16);
+  --blue-mid:     rgba(59,130,246,.36);
+  --blue-pale:    rgba(59,130,246,.07);
+
+  /* ── Teal ─────────────────────────────────────────────────────────── */
+  --teal:         #22d3ee;
+  --teal-dk:      #06b6d4;
+  --teal-lt:      rgba(34,211,238,.16);
+
+  /* ── Semantic ─────────────────────────────────────────────────────── */
+  --red:          #f87171;
+  --red-dk:       #ef4444;
+  --red-lt:       rgba(248,113,113,.16);
+  --yellow:       #fbbf24;
+  --yellow-lt:    rgba(251,191,36,.16);
+  --orange:       #fb923c;
+
+  /* ── Neutral — Inverted Slate (mirror for automatic dark theming) ─── */
+  --gray-50:      #1e293b;
+  --gray-100:     #243347;
+  --gray-200:     #334155;
+  --gray-300:     #475569;
+  --gray-400:     #64748b;
+  --gray-500:     #94a3b8;
+  --gray-600:     #cbd5e1;
+  --gray-700:     #e2e8f0;
+  --gray-800:     #f1f5f9;
+  --gray-900:     #f8fafc;
+
+  /* ── Surfaces ─────────────────────────────────────────────────────── */
+  --surface:      #1e293b;   /* Slate 800 */
+  --surface-2:    #0f172a;   /* Slate 900 */
+  --surface-3:    #0a1120;
+  --border:       #334155;   /* Slate 700 */
+  --border-focus: var(--primary);
+
+  /* ── Shadows (stronger in dark) ───────────────────────────────────── */
+  --shadow-sm:    0 1px 4px rgba(0,0,0,.35);
+  --shadow:       0 4px 20px rgba(0,0,0,.45);
+  --shadow-md:    0 8px 28px rgba(0,0,0,.55);
+  --shadow-lg:    0 16px 52px rgba(0,0,0,.65);
+  --shadow-blue:  0 4px 20px rgba(59,130,246,.25);
+  --shadow-green: 0 4px 20px rgba(16,185,129,.25);
+
+  /* ── Backward-compat aliases ──────────────────────────────────────── */
+  --green:        var(--primary);
+  --green-dk:     var(--primary-dk);
+  --green-lt:     var(--primary-lt);
+  --green-mid:    var(--primary-mid);
+  --green-pale:   var(--primary-pale);
 }
