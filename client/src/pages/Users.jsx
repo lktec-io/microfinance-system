@@ -1,11 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
+import { MdPeopleAlt, MdPersonAdd, MdAdminPanelSettings, MdPerson } from 'react-icons/md';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import Spinner from '../components/common/Spinner';
 
 const EMPTY = { name: '', email: '', password: '', role: 'staff', is_active: 1 };
 
 export default function Users() {
   const { user: me } = useAuth();
+  const { showToast } = useToast();
   const [users,  setUsers]  = useState([]);
   const [loading,setLoading]= useState(true);
   const [modal,  setModal]  = useState(null);
@@ -45,8 +49,10 @@ export default function Users() {
     try {
       if (modal === 'add') {
         await api.post('/auth/register', form);
+        showToast('User created successfully', 'success');
       } else {
         await api.put(`/auth/users/${editId}`, form);
+        showToast('User updated', 'success');
       }
       setModal(null);
       fetchUsers();
@@ -61,55 +67,91 @@ export default function Users() {
     try {
       await api.delete(`/auth/users/${delId}`);
       setDelId(null);
+      showToast('User deleted', 'info');
       fetchUsers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Delete failed');
+      showToast(err.response?.data?.message || 'Delete failed', 'error');
+      setDelId(null);
     }
   }
 
   return (
     <div className="page">
       <div className="page-toolbar">
-        <h2 className="page-section-title">Staff Accounts</h2>
-        <button className="btn btn--primary" onClick={openAdd}>+ Add User</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
+          <MdPeopleAlt size={22} style={{ color: 'var(--primary)' }} />
+          <h2 className="page-section-title" style={{ margin: 0 }}>Staff Accounts</h2>
+        </div>
+        <button className="btn btn--primary" onClick={openAdd}>
+          <MdPersonAdd size={16} /> Add User
+        </button>
       </div>
 
-      {loading
-        ? <div className="page-loader">Loading…</div>
-        : (
-          <div className="card">
+      {loading ? <Spinner /> : (
+        <div className="card">
+          <div className="table-wrap">
             <table className="table">
               <thead>
-                <tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
+                <tr>
+                  <th>#</th><th>Name</th><th>Email</th>
+                  <th>Role</th><th>Status</th><th>Joined</th><th>Actions</th>
+                </tr>
               </thead>
               <tbody>
-                {users.map((u, i) => (
-                  <tr key={u.id}>
-                    <td>{i + 1}</td>
-                    <td><strong>{u.name}</strong>{u.id === me?.id ? ' (you)' : ''}</td>
-                    <td>{u.email}</td>
-                    <td>
-                      <span className={`badge badge--${u.role === 'admin' ? 'blue' : 'gray'}`}>{u.role}</span>
-                    </td>
-                    <td>
-                      <span className={`badge badge--${u.is_active ? 'green' : 'red'}`}>
-                        {u.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td>{u.created_at?.slice(0,10)}</td>
-                    <td>
-                      <button className="btn-sm btn-sm--edit" onClick={() => openEdit(u)}>Edit</button>
-                      {u.id !== me?.id && (
-                        <button className="btn-sm btn-sm--del" onClick={() => setDelId(u.id)}>Delete</button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {users.length === 0
+                  ? <tr><td colSpan={7} className="text-center">No users found</td></tr>
+                  : users.map((u, i) => (
+                    <tr key={u.id}>
+                      <td style={{ color: 'var(--gray-400)', fontSize: '.8rem' }}>{i + 1}</td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
+                          <span className="user-avatar-sm">
+                            {u.role === 'admin'
+                              ? <MdAdminPanelSettings size={14} />
+                              : <MdPerson size={14} />
+                            }
+                          </span>
+                          <div>
+                            <strong>{u.name}</strong>
+                            {u.id === me?.id && (
+                              <span style={{
+                                marginLeft: '.4rem',
+                                fontSize: '.72rem',
+                                color: 'var(--primary)',
+                                fontWeight: 600,
+                              }}>you</span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ color: 'var(--gray-600)' }}>{u.email}</td>
+                      <td>
+                        <span className={`badge badge--${u.role === 'admin' ? 'blue' : 'gray'}`}>
+                          {u.role}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`badge badge--${u.is_active ? 'green' : 'red'}`}>
+                          {u.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td style={{ color: 'var(--gray-500)', fontSize: '.85rem' }}>
+                        {u.created_at?.slice(0, 10)}
+                      </td>
+                      <td>
+                        <button className="btn-sm btn-sm--edit" onClick={() => openEdit(u)}>Edit</button>
+                        {u.id !== me?.id && (
+                          <button className="btn-sm btn-sm--del" onClick={() => setDelId(u.id)}>Delete</button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                }
               </tbody>
             </table>
           </div>
-        )
-      }
+        </div>
+      )}
 
       {modal && (
         <div className="modal-overlay">
@@ -155,7 +197,7 @@ export default function Users() {
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn btn--ghost" onClick={() => setModal(null)}>Cancel</button>
-                <button type="submit"  className="btn btn--primary" disabled={saving}>
+                <button type="submit" className="btn btn--primary" disabled={saving}>
                   {saving ? 'Saving…' : 'Save'}
                 </button>
               </div>
@@ -168,7 +210,9 @@ export default function Users() {
         <div className="modal-overlay">
           <div className="modal modal--sm">
             <h2>Delete User?</h2>
-            <p>This will permanently remove the account.</p>
+            <p style={{ margin: '1rem 0', color: 'var(--gray-600)' }}>
+              This will permanently remove the account.
+            </p>
             <div className="modal-actions">
               <button className="btn btn--ghost" onClick={() => setDelId(null)}>Cancel</button>
               <button className="btn btn--danger" onClick={handleDelete}>Delete</button>

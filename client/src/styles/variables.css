@@ -1,25 +1,26 @@
 /* ── Reset ──────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Design Tokens — MicroFinance Fintech Theme ─────────────────── */
+/* ── Design Tokens — MicroFinance Professional Dark-Blue Theme ──── */
 :root {
-  /* Primary — Vivid Blue */
-  --primary:      #2563eb;
-  --primary-dk:   #1d4ed8;
-  --primary-900:  #1e3a8a;
-  --primary-lt:   #dbeafe;
-  --primary-mid:  #93c5fd;
+  /* Primary — Professional Deep Blue (not too bright) */
+  --primary:      #1d4ed8;   /* Blue 700 — mature, professional */
+  --primary-dk:   #1e3a8a;   /* Blue 900 — very deep */
+  --primary-lt:   #dbeafe;   /* Blue 100 — soft tint */
+  --primary-mid:  #93c5fd;   /* Blue 300 — mid accent */
+  --primary-pale: #eff6ff;   /* Blue 50  — near-white tint */
 
   /* Secondary — Emerald Green */
-  --green:        #059669;
-  --green-dk:     #047857;
-  --green-lt:     #d1fae5;
-  --green-mid:    #6ee7b7;
+  --green:        #059669;   /* Emerald 600 */
+  --green-dk:     #047857;   /* Emerald 700 */
+  --green-lt:     #d1fae5;   /* Emerald 100 */
+  --green-mid:    #6ee7b7;   /* Emerald 300 */
+  --green-pale:   #ecfdf5;   /* Emerald 50 */
 
   /* Teal accent */
-  --teal:         #0891b2;
-  --teal-dk:      #0e7490;
-  --teal-lt:      #e0f2fe;
+  --teal:         #0891b2;   /* Cyan 600 */
+  --teal-dk:      #0e7490;   /* Cyan 700 */
+  --teal-lt:      #e0f2fe;   /* Cyan 100 */
 
   /* Semantic */
   --red:          #dc2626;
@@ -29,26 +30,26 @@
   --yellow-lt:    #fef3c7;
   --orange:       #ea580c;
 
-  /* Neutral Grays — slightly warm */
-  --gray-50:      #f9fafb;
-  --gray-100:     #f3f4f6;
-  --gray-200:     #e5e7eb;
-  --gray-300:     #d1d5db;
-  --gray-400:     #9ca3af;
-  --gray-500:     #6b7280;
-  --gray-600:     #4b5563;
-  --gray-700:     #374151;
-  --gray-800:     #1f2937;
-  --gray-900:     #111827;
+  /* Neutral Grays — Slate scale */
+  --gray-50:      #f8fafc;
+  --gray-100:     #f1f5f9;
+  --gray-200:     #e2e8f0;
+  --gray-300:     #cbd5e1;
+  --gray-400:     #94a3b8;
+  --gray-500:     #64748b;
+  --gray-600:     #475569;
+  --gray-700:     #334155;
+  --gray-800:     #1e293b;
+  --gray-900:     #0f172a;
 
   /* Layout */
   --sidebar-w:    260px;
-  --header-h:     68px;
+  --header-h:     64px;
 
   /* Surfaces */
   --surface:      #ffffff;
-  --surface-2:    #f0f4ff;
-  --border:       #e2e8f0;
+  --surface-2:    #f1f5f9;   /* Slate 100 — clean neutral background */
+  --border:       #e2e8f0;   /* Slate 200 */
   --border-focus: var(--primary);
 
   /* Radius */
@@ -58,11 +59,12 @@
   --radius-xl:    24px;
 
   /* Shadows */
-  --shadow-sm:    0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
-  --shadow:       0 4px 16px rgba(0,0,0,.08);
-  --shadow-lg:    0 12px 40px rgba(0,0,0,.14);
-  --shadow-blue:  0 4px 20px rgba(37,99,235,.22);
-  --shadow-green: 0 4px 20px rgba(5,150,105,.22);
+  --shadow-sm:    0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow:       0 4px 16px rgba(0,0,0,.07);
+  --shadow-md:    0 8px 24px rgba(0,0,0,.10);
+  --shadow-lg:    0 16px 48px rgba(0,0,0,.13);
+  --shadow-blue:  0 4px 20px rgba(29,78,216,.20);
+  --shadow-green: 0 4px 20px rgba(5,150,105,.18);
 
   --transition:   0.18s ease;
 }

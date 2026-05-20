@@ -276,6 +276,17 @@
 .payment-preview span { color: var(--gray-600); font-weight: 500; }
 .payment-preview strong { font-size: 1rem; font-weight: 700; }
 
+/* ── User avatar (small, in table rows) ────────────────────────── */
+.user-avatar-sm {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--primary-lt), var(--primary-mid));
+  color: var(--primary);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
 /* ── Receipt ────────────────────────────────────────────────────── */
 .receipt-modal { max-width: 460px; }
 .receipt-header {

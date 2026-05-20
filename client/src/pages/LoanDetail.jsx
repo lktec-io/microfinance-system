@@ -63,7 +63,7 @@ export default function LoanDetail() {
       return;
     }
     if (parseFloat(form.amount) > parseFloat(loan.balance)) {
-      setError(`Amount cannot exceed balance of MWK ${fmt(loan.balance)}`);
+      setError(`Amount cannot exceed balance of TZS ${fmt(loan.balance)}`);
       return;
     }
     setSaving(true);
@@ -155,15 +155,15 @@ export default function LoanDetail() {
             {/* Loan Amounts */}
             <div className="info-section">
               <div className="info-section-title">Financials</div>
-              <InfoRow Icon={MdAttachMoney} label="Principal"     value={`MWK ${fmt(loan.loan_amount)}`} />
+              <InfoRow Icon={MdAttachMoney} label="Principal"     value={`TZS ${fmt(loan.loan_amount)}`} />
               <InfoRow Icon={MdPercent}     label="Interest Rate" value={`${loan.interest_rate}%`} />
-              <InfoRow Icon={MdAttachMoney} label="Total Payable" value={`MWK ${fmt(loan.total_payable)}`} />
+              <InfoRow Icon={MdAttachMoney} label="Total Payable" value={`TZS ${fmt(loan.total_payable)}`} />
               <InfoRow Icon={MdPayment}     label="Amount Paid"
-                value={`MWK ${fmt(loan.amount_paid)}`}
+                value={`TZS ${fmt(loan.amount_paid)}`}
                 valueClass="text-green"
               />
               <InfoRow Icon={MdAttachMoney} label="Balance"
-                value={`MWK ${fmt(loan.balance)}`}
+                value={`TZS ${fmt(loan.balance)}`}
                 valueClass={loan.balance > 0 ? 'text-red' : 'text-green'}
               />
             </div>
@@ -203,8 +203,8 @@ export default function LoanDetail() {
                 />
               </div>
               <div className="progress-meta">
-                <span>MWK {fmt(loan.amount_paid)} paid</span>
-                <span>MWK {fmt(loan.balance)} remaining</span>
+                <span>TZS {fmt(loan.amount_paid)} paid</span>
+                <span>TZS {fmt(loan.balance)} remaining</span>
               </div>
             </div>
 
@@ -249,7 +249,7 @@ export default function LoanDetail() {
                       <div className="repayment-item-num">{loan.repayments.length - i}</div>
                       <div className="repayment-item-body">
                         <div className="repayment-item-top">
-                          <strong>MWK {fmt(r.amount)}</strong>
+                          <strong>TZS {fmt(r.amount)}</strong>
                           <span className="badge badge--green" style={{ fontSize: '.72rem' }}>paid</span>
                         </div>
                         <div className="repayment-item-meta">
@@ -270,23 +270,23 @@ export default function LoanDetail() {
             <h3 className="card-title" style={{ marginBottom: '.75rem' }}>Loan Summary</h3>
             <div className="summary-row">
               <span>Principal</span>
-              <span>MWK {fmt(loan.loan_amount)}</span>
+              <span>TZS {fmt(loan.loan_amount)}</span>
             </div>
             <div className="summary-row">
               <span>Interest ({loan.interest_rate}%)</span>
-              <span>MWK {fmt(loan.total_payable - loan.loan_amount)}</span>
+              <span>TZS {fmt(loan.total_payable - loan.loan_amount)}</span>
             </div>
             <div className="summary-row summary-row--total">
               <span>Total Payable</span>
-              <span>MWK {fmt(loan.total_payable)}</span>
+              <span>TZS {fmt(loan.total_payable)}</span>
             </div>
             <div className="summary-row text-green">
               <span>Paid</span>
-              <span>MWK {fmt(loan.amount_paid)}</span>
+              <span>TZS {fmt(loan.amount_paid)}</span>
             </div>
             <div className={`summary-row summary-row--balance ${loan.balance > 0 ? 'text-red' : 'text-green'}`}>
               <span>Balance</span>
-              <span><strong>MWK {fmt(loan.balance)}</strong></span>
+              <span><strong>TZS {fmt(loan.balance)}</strong></span>
             </div>
           </section>
         </div>
@@ -302,7 +302,7 @@ export default function LoanDetail() {
             </div>
 
             <div className="alert alert--info" style={{ marginBottom: '1rem' }}>
-              Outstanding Balance: <strong>MWK {fmt(loan.balance)}</strong>
+              Outstanding Balance: <strong>TZS {fmt(loan.balance)}</strong>
             </div>
 
             {error && <div className="alert alert--error">{error}</div>}
@@ -310,7 +310,7 @@ export default function LoanDetail() {
             <form onSubmit={handlePayment} className="modal-form">
               <div className="form-row">
                 <div className="form-group">
-                  <label>Amount (MWK) *</label>
+                  <label>Amount (TZS) *</label>
                   <input
                     type="number" min="1" step="0.01" required
                     max={loan.balance}
@@ -336,12 +336,12 @@ export default function LoanDetail() {
                 <div className="payment-preview">
                   <div>
                     <span>Paying:</span>
-                    <strong>MWK {fmt(form.amount)}</strong>
+                    <strong>TZS {fmt(form.amount)}</strong>
                   </div>
                   <div>
                     <span>New balance:</span>
                     <strong className={Math.max(0, loan.balance - form.amount) > 0 ? 'text-red' : 'text-green'}>
-                      MWK {fmt(Math.max(0, parseFloat(loan.balance) - parseFloat(form.amount || 0)))}
+                      TZS {fmt(Math.max(0, parseFloat(loan.balance) - parseFloat(form.amount || 0)))}
                     </strong>
                   </div>
                 </div>
@@ -409,7 +409,7 @@ export default function LoanDetail() {
               </div>
               <div className="receipt-row">
                 <span>Loan Amount</span>
-                <strong>MWK {fmt(loan.loan_amount)}</strong>
+                <strong>TZS {fmt(loan.loan_amount)}</strong>
               </div>
             </div>
 
@@ -417,7 +417,7 @@ export default function LoanDetail() {
 
             <div className="receipt-amount-box">
               <span>AMOUNT PAID</span>
-              <strong>MWK {fmt(receipt.amount)}</strong>
+              <strong>TZS {fmt(receipt.amount)}</strong>
             </div>
 
             <div className="receipt-divider">— — — — — — — — — — — — — —</div>
@@ -426,7 +426,7 @@ export default function LoanDetail() {
               <div className="receipt-row">
                 <span>Remaining Balance</span>
                 <strong className={receipt.new_balance > 0 ? 'text-red' : 'text-green'}>
-                  MWK {fmt(receipt.new_balance)}
+                  TZS {fmt(receipt.new_balance)}
                 </strong>
               </div>
               <div className="receipt-row">
