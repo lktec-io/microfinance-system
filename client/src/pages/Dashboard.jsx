@@ -9,7 +9,6 @@ import api        from '../api';
 import { fmt }    from '../utils/format';
 import { useAuth } from '../context/AuthContext';
 import StatCard    from '../components/common/StatCard';
-import StatusBadge from '../components/common/StatusBadge';
 import { SkeletonStats } from '../components/common/Skeleton';
 
 function greeting() {
@@ -25,24 +24,57 @@ function todayLabel() {
   });
 }
 
+/* ── SVG Donut Chart ─────────────────────────────────────────────── */
+function DonutChart({ data }) {
+  const total = data.reduce((s, d) => s + (d.value || 0), 0);
+  const R = 64, circ = 2 * Math.PI * R;
+  let accum = 0;
+  return (
+    <svg viewBox="0 0 200 200" style={{ width: '100%', maxWidth: '200px', display: 'block', margin: '0 auto' }}>
+      {/* Track */}
+      <circle cx="100" cy="100" r={R} fill="none" stroke="var(--gray-100)" strokeWidth="22" />
+      {/* Segments */}
+      {total > 0 && data.map(d => {
+        if (!d.value) return null;
+        const dash   = (d.value / total) * circ - 2;
+        const offset = circ * 0.25 - (accum / total) * circ;
+        accum += d.value;
+        return (
+          <circle key={d.label} cx="100" cy="100" r={R}
+            fill="none" stroke={d.color} strokeWidth="22"
+            strokeDasharray={`${dash} ${circ}`}
+            strokeDashoffset={offset}
+            strokeLinecap="butt" />
+        );
+      })}
+      {/* Center */}
+      <text x="100" y="95" textAnchor="middle" fill="var(--gray-800)"
+        style={{ fontSize: '1.55rem', fontWeight: 700, fontFamily: 'Poppins, sans-serif' }}>
+        {total}
+      </text>
+      <text x="100" y="114" textAnchor="middle" fill="var(--gray-400)"
+        style={{ fontSize: '.62rem', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', letterSpacing: '.07em' }}>
+        Total Loans
+      </text>
+    </svg>
+  );
+}
+
 export default function Dashboard() {
-  const navigate       = useNavigate();
-  const { user }       = useAuth();
+  const navigate         = useNavigate();
+  const { user }         = useAuth();
   const [summary, setSummary]     = useState(null);
-  const [recent,  setRecent]      = useState({ repayments: [], customers: [], loans: [] });
-  const [overdue, setOverdue]     = useState([]);
+  const [recent,  setRecent]      = useState({ repayments: [] });
   const [loading, setLoading]     = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
-    const [s, r, o] = await Promise.all([
+    const [s, r] = await Promise.all([
       api.get('/reports/summary'),
       api.get('/reports/recent'),
-      api.get('/reports/overdue'),
     ]);
     setSummary(s.data);
     setRecent(r.data);
-    setOverdue(o.data.slice(0, 5));
   }, []);
 
   useEffect(() => {
@@ -58,12 +90,19 @@ export default function Dashboard() {
 
   if (loading) return (
     <div className="page">
-      <div className="welcome-banner" style={{ marginBottom: '1.75rem', minHeight: '100px' }}>
+      <div className="welcome-banner" style={{ marginBottom: '2rem', minHeight: '120px' }}>
         <div className="welcome-shimmer" />
       </div>
       <SkeletonStats count={4} />
     </div>
   );
+
+  const chartData = [
+    { label: 'Active',  value: summary.loan_status.active  || 0, color: '#059669' },
+    { label: 'Pending', value: summary.loan_status.pending || 0, color: '#d97706' },
+    { label: 'Paid',    value: summary.loan_status.paid    || 0, color: '#3b82f6' },
+    { label: 'Overdue', value: summary.loan_status.overdue || 0, color: '#ef4444' },
+  ];
 
   return (
     <div className="page">
@@ -79,14 +118,19 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="welcome-actions">
-          <button
-            className={`welcome-refresh${refreshing ? ' refreshing' : ''}`}
-            onClick={handleRefresh}
-            title="Refresh dashboard"
-            disabled={refreshing}
-          >
-            <FiRefreshCw size={17} />
-          </button>
+          <div className="welcome-btns">
+            <button
+              className={`welcome-refresh${refreshing ? ' refreshing' : ''}`}
+              onClick={handleRefresh}
+              title="Refresh dashboard"
+              disabled={refreshing}
+            >
+              <FiRefreshCw size={17} />
+            </button>
+            <button className="welcome-view-btn" onClick={() => navigate('/loans')}>
+              <FiDollarSign size={14} /> Loans
+            </button>
+          </div>
           <div className="welcome-icon">
             <FiHome size={56} />
           </div>
@@ -152,10 +196,31 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* ── Main Grid ── */}
-      <div className="dashboard-grid">
+      {/* ── Overview Grid ── */}
+      <div className="overview-grid">
 
-        {/* Recent Repayments */}
+        {/* Loan Distribution */}
+        <section className="card">
+          <div className="card-header">
+            <h2 className="card-title" style={{ marginBottom: 0 }}>
+              <FiTrendingUp size={16} /> Loan Distribution
+            </h2>
+          </div>
+          <div className="donut-wrap">
+            <DonutChart data={chartData} />
+            <div className="donut-legend">
+              {chartData.map(d => (
+                <div key={d.label} className="donut-legend-item">
+                  <span className="donut-dot" style={{ background: d.color }} />
+                  <span className="donut-legend-label">{d.label}</span>
+                  <span className="donut-legend-val">{d.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Recent Payments */}
         <section className="card">
           <div className="card-header">
             <h2 className="card-title" style={{ marginBottom: 0 }}>
@@ -179,107 +244,6 @@ export default function Dashboard() {
                         <td className="text-green"><strong>TZS {fmt(r.amount)}</strong></td>
                         <td>{r.payment_date?.slice(0, 10)}</td>
                         <td><code>{r.receipt_number}</code></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-          }
-        </section>
-
-        {/* Overdue Loans */}
-        <section className="card">
-          <div className="card-header">
-            <h2 className="card-title" style={{ marginBottom: 0 }}>
-              <FiAlertTriangle size={16} style={{ color: 'var(--red)' }} /> Overdue Loans
-            </h2>
-            {overdue.length > 0 && <span className="badge badge--red">{overdue.length}</span>}
-          </div>
-          {overdue.length === 0
-            ? <p className="empty-msg" style={{ color: 'var(--primary)' }}>✓ No overdue loans</p>
-            : (
-              <div className="table-wrap">
-                <table className="table">
-                  <thead>
-                    <tr><th>Customer</th><th>Due Date</th><th>Balance</th></tr>
-                  </thead>
-                  <tbody>
-                    {overdue.map(l => (
-                      <tr key={l.id} className="tr-link"
-                        onClick={() => navigate(`/loans/${l.id}`)}>
-                        <td>
-                          <strong>{l.customer_name}</strong><br />
-                          <small>{l.customer_phone}</small>
-                        </td>
-                        <td><span className="badge badge--red">{l.due_date?.slice(0, 10)}</span></td>
-                        <td><strong className="text-red">TZS {fmt(l.balance)}</strong></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-          }
-        </section>
-
-        {/* Recent Customers */}
-        <section className="card">
-          <div className="card-header">
-            <h2 className="card-title" style={{ marginBottom: 0 }}>
-              <FiUsers size={16} /> Recent Customers
-            </h2>
-            <button className="link-btn" onClick={() => navigate('/customers')}>View all →</button>
-          </div>
-          {recent.customers.length === 0
-            ? <p className="empty-msg">No customers yet</p>
-            : (
-              <div className="table-wrap">
-                <table className="table">
-                  <thead>
-                    <tr><th>Name</th><th>Phone</th><th>Loans</th><th>Joined</th></tr>
-                  </thead>
-                  <tbody>
-                    {recent.customers.map(c => (
-                      <tr key={c.id} className="tr-link"
-                        onClick={() => navigate('/customers')}>
-                        <td><strong>{c.full_name}</strong></td>
-                        <td>{c.phone}</td>
-                        <td><span className="badge badge--blue">{c.loan_count}</span></td>
-                        <td>{c.registration_date?.slice(0, 10)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-          }
-        </section>
-
-        {/* Recent Loans */}
-        <section className="card">
-          <div className="card-header">
-            <h2 className="card-title" style={{ marginBottom: 0 }}>
-              <FiDollarSign size={16} /> Recent Loans
-            </h2>
-            <button className="link-btn" onClick={() => navigate('/loans')}>View all →</button>
-          </div>
-          {recent.loans.length === 0
-            ? <p className="empty-msg">No loans yet</p>
-            : (
-              <div className="table-wrap">
-                <table className="table">
-                  <thead>
-                    <tr><th>Customer</th><th>Amount</th><th>Balance</th><th>Status</th></tr>
-                  </thead>
-                  <tbody>
-                    {recent.loans.map(l => (
-                      <tr key={l.id} className="tr-link"
-                        onClick={() => navigate(`/loans/${l.id}`)}>
-                        <td><strong>{l.customer_name}</strong></td>
-                        <td>TZS {fmt(l.loan_amount)}</td>
-                        <td>TZS {fmt(l.balance)}</td>
-                        <td><StatusBadge status={l.status} /></td>
                       </tr>
                     ))}
                   </tbody>

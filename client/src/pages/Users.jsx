@@ -84,15 +84,15 @@ export default function Users() {
           <div className="view-toggle">
             <button
               className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}
-              onClick={() => setViewMode('list')} title="List view"
+              onClick={() => setViewMode('list')}
             >
-              <FiList size={19} />
+              List <FiList size={15} />
             </button>
             <button
               className={`view-toggle-btn${viewMode === 'grid' ? ' active' : ''}`}
-              onClick={() => setViewMode('grid')} title="Grid view"
+              onClick={() => setViewMode('grid')}
             >
-              <FiGrid size={19} />
+              Grid <FiGrid size={15} />
             </button>
           </div>
           <button className="btn btn--primary" onClick={openAdd}>
