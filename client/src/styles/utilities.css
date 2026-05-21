@@ -2,14 +2,14 @@
 .detail-grid {
   display: grid;
   grid-template-columns: 420px 1fr;
-  gap: 1.4rem;
+  gap: 1.75rem;
   align-items: start;
 }
 
 /* ── Info Sections ──────────────────────────────────────────────── */
 .info-section {
-  margin-bottom: 1.1rem;
-  padding-bottom: 1.1rem;
+  margin-bottom: 1.4rem;
+  padding-bottom: 1.4rem;
   border-bottom: 1px solid var(--border);
 }
 .info-section:last-of-type { border-bottom: none; margin-bottom: 0; }
@@ -25,7 +25,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: .38rem 0;
+  padding: .5rem 0;
   font-size: .875rem;
 }
 .info-row-label {
@@ -46,7 +46,7 @@
 }
 
 /* ── Progress Bar ───────────────────────────────────────────────── */
-.progress-section { margin-top: 1.1rem; }
+.progress-section { margin-top: 1.4rem; }
 .progress-header {
   display: flex;
   justify-content: space-between;
@@ -78,12 +78,12 @@
 }
 
 /* ── Repayment List ─────────────────────────────────────────────── */
-.repayment-list { display: flex; flex-direction: column; gap: .65rem; }
+.repayment-list { display: flex; flex-direction: column; gap: .8rem; }
 .repayment-item {
   display: flex;
   gap: .8rem;
   align-items: flex-start;
-  padding: .8rem .95rem;
+  padding: 1rem 1.1rem;
   background: var(--surface-2);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
@@ -167,10 +167,6 @@
   .detail-grid     { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 1024px) {
-  .page { padding: 1.4rem; }
-}
-
 /* ── Responsive — Tablet (1024px) ───────────────────────────────── */
 @media (max-width: 1024px) {
   .page { padding: 1.4rem; }
@@ -233,11 +229,10 @@
   .status-chip-val { font-size: 1.2rem; }
 
   /* Tables: horizontal scroll */
-  .card { padding: 0; }
-  .card .card-header { padding: 1rem 1rem .5rem; }
+  .card { padding: 1.1rem; }
   .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .table { min-width: 560px; }
-  .table th, .table td { padding: .6rem .75rem; }
+  .table th, .table td { padding: .65rem .8rem; }
 
   /* Page toolbar stacks */
   .page-toolbar { flex-direction: column; align-items: stretch; }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FiDownload, FiPrinter, FiBarChart2, FiGrid } from 'react-icons/fi';
+import { FiDownload, FiPrinter, FiBarChart2, FiGrid, FiCreditCard, FiAlertTriangle, FiTrendingUp } from 'react-icons/fi';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import api     from '../api';
@@ -275,7 +275,7 @@ export default function Reports() {
       {tab === 'monthly' && (
         <div className="dashboard-grid">
           <div className="card">
-            <h3 className="card-title">Loans Issued — Monthly</h3>
+            <h3 className="card-title"><FiTrendingUp size={15} /> Loans Issued — Monthly</h3>
             <div className="table-wrap">
               <table className="table">
                 <thead><tr><th>Month</th><th>Count</th><th>Amount (TZS)</th></tr></thead>
@@ -295,7 +295,7 @@ export default function Reports() {
             </div>
           </div>
           <div className="card">
-            <h3 className="card-title">Repayments — Monthly</h3>
+            <h3 className="card-title"><FiCreditCard size={15} /> Repayments — Monthly</h3>
             <div className="table-wrap">
               <table className="table">
                 <thead><tr><th>Month</th><th>Count</th><th>Collected (TZS)</th></tr></thead>
@@ -320,7 +320,7 @@ export default function Reports() {
       {tab === 'daily' && (
         <div className="dashboard-grid">
           <div className="card">
-            <h3 className="card-title">Loans — Last 30 Days</h3>
+            <h3 className="card-title"><FiTrendingUp size={15} /> Loans — Last 30 Days</h3>
             <div className="table-wrap">
               <table className="table">
                 <thead><tr><th>Date</th><th>Count</th><th>Amount (TZS)</th></tr></thead>
@@ -340,7 +340,7 @@ export default function Reports() {
             </div>
           </div>
           <div className="card">
-            <h3 className="card-title">Repayments — Last 30 Days</h3>
+            <h3 className="card-title"><FiCreditCard size={15} /> Repayments — Last 30 Days</h3>
             <div className="table-wrap">
               <table className="table">
                 <thead><tr><th>Date</th><th>Count</th><th>Collected (TZS)</th></tr></thead>
@@ -364,7 +364,7 @@ export default function Reports() {
 
       {tab === 'overdue' && (
         <div className="card">
-          <h3 className="card-title">Overdue Loans</h3>
+          <h3 className="card-title"><FiAlertTriangle size={15} /> Overdue Loans</h3>
           <div className="table-wrap">
             <table className="table">
               <thead>
