@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
-  MdPeopleAlt, MdPersonAdd, MdAdminPanelSettings, MdPerson,
-  MdGridView, MdViewList, MdVisibility, MdVisibilityOff,
-  MdEdit, MdDelete, MdClose,
-} from 'react-icons/md';
+  FiUsers, FiUserPlus, FiShield, FiUser,
+  FiGrid, FiList, FiEye, FiEyeOff,
+  FiEdit2, FiTrash2, FiX,
+} from 'react-icons/fi';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -77,7 +77,7 @@ export default function Users() {
     <div className="page">
       <div className="page-toolbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
-          <MdPeopleAlt size={22} style={{ color: 'var(--primary)' }} />
+          <FiUsers size={22} style={{ color: 'var(--primary)' }} />
           <h2 className="page-section-title" style={{ margin: 0 }}>Staff Accounts</h2>
         </div>
         <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}>
@@ -86,17 +86,17 @@ export default function Users() {
               className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}
               onClick={() => setViewMode('list')} title="List view"
             >
-              <MdViewList size={19} />
+              <FiList size={19} />
             </button>
             <button
               className={`view-toggle-btn${viewMode === 'grid' ? ' active' : ''}`}
               onClick={() => setViewMode('grid')} title="Grid view"
             >
-              <MdGridView size={19} />
+              <FiGrid size={19} />
             </button>
           </div>
           <button className="btn btn--primary" onClick={openAdd}>
-            <MdPersonAdd size={16} /> Add User
+            <FiUserPlus size={16} /> Add User
           </button>
         </div>
       </div>
@@ -112,8 +112,8 @@ export default function Users() {
                 <div key={u.id} className="user-card">
                   <div className="user-card-avatar">
                     {u.role === 'admin'
-                      ? <MdAdminPanelSettings size={22} />
-                      : <MdPerson size={22} />
+                      ? <FiShield size={22} />
+                      : <FiUser size={22} />
                     }
                   </div>
                   <div className="user-card-name">
@@ -134,11 +134,11 @@ export default function Users() {
                   </div>
                   <div className="user-card-actions">
                     <button className="icon-btn icon-btn--edit" onClick={() => openEdit(u)} title="Edit user">
-                      <MdEdit size={16} />
+                      <FiEdit2 size={16} />
                     </button>
                     {u.id !== me?.id && (
                       <button className="icon-btn icon-btn--del" onClick={() => setDelId(u.id)} title="Delete user">
-                        <MdDelete size={16} />
+                        <FiTrash2 size={16} />
                       </button>
                     )}
                   </div>
@@ -166,8 +166,8 @@ export default function Users() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
                           <span className="user-avatar-sm">
                             {u.role === 'admin'
-                              ? <MdAdminPanelSettings size={14} />
-                              : <MdPerson size={14} />
+                              ? <FiShield size={14} />
+                              : <FiUser size={14} />
                             }
                           </span>
                           <div>
@@ -191,11 +191,11 @@ export default function Users() {
                       <td>
                         <div className="icon-btns">
                           <button className="icon-btn icon-btn--edit" onClick={() => openEdit(u)} title="Edit user">
-                            <MdEdit size={15} />
+                            <FiEdit2 size={15} />
                           </button>
                           {u.id !== me?.id && (
                             <button className="icon-btn icon-btn--del" onClick={() => setDelId(u.id)} title="Delete user">
-                              <MdDelete size={15} />
+                              <FiTrash2 size={15} />
                             </button>
                           )}
                         </div>
@@ -214,7 +214,7 @@ export default function Users() {
           <div className="modal">
             <div className="modal-header">
               <h2>{modal === 'add' ? 'Add User' : 'Edit User'}</h2>
-              <button className="modal-close" onClick={() => setModal(null)} aria-label="Close"><MdClose size={18} /></button>
+              <button className="modal-close" onClick={() => setModal(null)} aria-label="Close"><FiX size={18} /></button>
             </div>
             {error && <div className="alert alert--error">{error}</div>}
             <form onSubmit={handleSave} className="modal-form">
@@ -238,7 +238,7 @@ export default function Users() {
                     onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                   />
                   <button type="button" className="pw-toggle" onClick={() => setShowPw(v => !v)} tabIndex={-1}>
-                    {showPw ? <MdVisibilityOff size={18} /> : <MdVisibility size={18} />}
+                    {showPw ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                   </button>
                 </div>
               </div>

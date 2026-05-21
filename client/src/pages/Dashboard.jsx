@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  MdPeople, MdAccountBalance, MdPayments,
-  MdWarning, MdTrendingUp, MdDashboard,
-  MdRefresh, MdCalendarToday,
-} from 'react-icons/md';
+  FiUsers, FiDollarSign, FiCreditCard,
+  FiAlertTriangle, FiTrendingUp, FiHome,
+  FiRefreshCw, FiCalendar,
+} from 'react-icons/fi';
 import api        from '../api';
 import { fmt }    from '../utils/format';
 import { useAuth } from '../context/AuthContext';
@@ -26,8 +26,8 @@ function todayLabel() {
 }
 
 export default function Dashboard() {
-  const navigate     = useNavigate();
-  const { user }     = useAuth();
+  const navigate       = useNavigate();
+  const { user }       = useAuth();
   const [summary, setSummary]     = useState(null);
   const [recent,  setRecent]      = useState({ repayments: [], customers: [], loans: [] });
   const [overdue, setOverdue]     = useState([]);
@@ -72,9 +72,10 @@ export default function Dashboard() {
       <div className="welcome-banner">
         <span className="welcome-shimmer" />
         <div className="welcome-text">
-          <h2>{greeting()}, <span>{firstName}</span>!</h2>
+          <p className="welcome-greeting">Welcome Back</p>
+          <h2>{greeting()}, <span>{firstName}</span></h2>
           <p className="welcome-date">
-            <MdCalendarToday size={13} /> {todayLabel()}
+            <FiCalendar size={13} /> {todayLabel()}
           </p>
         </div>
         <div className="welcome-actions">
@@ -84,10 +85,10 @@ export default function Dashboard() {
             title="Refresh dashboard"
             disabled={refreshing}
           >
-            <MdRefresh size={20} />
+            <FiRefreshCw size={17} />
           </button>
           <div className="welcome-icon">
-            <MdDashboard size={60} />
+            <FiHome size={56} />
           </div>
         </div>
       </div>
@@ -96,7 +97,7 @@ export default function Dashboard() {
       {summary.overdue_loans > 0 && (
         <div className="alert-banner alert-banner--warning"
           onClick={() => navigate('/loans?filter=overdue')}>
-          <MdWarning size={20} />
+          <FiAlertTriangle size={18} />
           <span>
             <strong>{summary.overdue_loans} loan{summary.overdue_loans > 1 ? 's' : ''} overdue</strong>
             {' '}— click to review
@@ -111,28 +112,28 @@ export default function Dashboard() {
           label="Total Customers" color="blue"
           value={summary.customers}
           sub="Registered clients"
-          Icon={MdPeople}
+          Icon={FiUsers}
           to="/customers"
         />
         <StatCard
           label="Active Loans" color="green"
           value={summary.active_loans}
           sub={`TZS ${fmt(summary.loans_amount)} issued`}
-          Icon={MdAccountBalance}
+          Icon={FiDollarSign}
           to="/loans"
         />
         <StatCard
           label="Total Collected" color="teal"
           value={`TZS ${fmt(summary.collected)}`}
           sub={`${summary.repayments} payments`}
-          Icon={MdPayments}
+          Icon={FiCreditCard}
           to="/repayments"
         />
         <StatCard
           label="Outstanding" color="red"
           value={`TZS ${fmt(summary.outstanding)}`}
           sub={`${summary.overdue_loans} overdue`}
-          Icon={MdTrendingUp}
+          Icon={FiTrendingUp}
         />
       </div>
 
@@ -158,7 +159,7 @@ export default function Dashboard() {
         <section className="card">
           <div className="card-header">
             <h2 className="card-title" style={{ marginBottom: 0 }}>
-              <MdPayments size={18} /> Recent Payments
+              <FiCreditCard size={16} /> Recent Payments
             </h2>
             <button className="link-btn" onClick={() => navigate('/repayments')}>View all →</button>
           </div>
@@ -191,7 +192,7 @@ export default function Dashboard() {
         <section className="card">
           <div className="card-header">
             <h2 className="card-title" style={{ marginBottom: 0 }}>
-              <MdWarning size={18} style={{ color: 'var(--red)' }} /> Overdue Loans
+              <FiAlertTriangle size={16} style={{ color: 'var(--red)' }} /> Overdue Loans
             </h2>
             {overdue.length > 0 && <span className="badge badge--red">{overdue.length}</span>}
           </div>
@@ -226,7 +227,7 @@ export default function Dashboard() {
         <section className="card">
           <div className="card-header">
             <h2 className="card-title" style={{ marginBottom: 0 }}>
-              <MdPeople size={18} /> Recent Customers
+              <FiUsers size={16} /> Recent Customers
             </h2>
             <button className="link-btn" onClick={() => navigate('/customers')}>View all →</button>
           </div>
@@ -259,7 +260,7 @@ export default function Dashboard() {
         <section className="card">
           <div className="card-header">
             <h2 className="card-title" style={{ marginBottom: 0 }}>
-              <MdAccountBalance size={18} /> Recent Loans
+              <FiDollarSign size={16} /> Recent Loans
             </h2>
             <button className="link-btn" onClick={() => navigate('/loans')}>View all →</button>
           </div>

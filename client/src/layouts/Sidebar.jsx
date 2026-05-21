@@ -2,18 +2,17 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  MdDashboard, MdPeople, MdAccountBalance,
-  MdPayments, MdBarChart, MdAdminPanelSettings,
-  MdLogout, MdClose,
-} from 'react-icons/md';
+  FiHome, FiUsers, FiDollarSign, FiCreditCard,
+  FiBarChart2, FiShield, FiLogOut, FiX,
+} from 'react-icons/fi';
 
 const links = [
-  { to: '/',           label: 'Dashboard',  Icon: MdDashboard,           adminOnly: false },
-  { to: '/customers',  label: 'Customers',  Icon: MdPeople,              adminOnly: false },
-  { to: '/loans',      label: 'Loans',      Icon: MdAccountBalance,      adminOnly: false },
-  { to: '/repayments', label: 'Repayments', Icon: MdPayments,            adminOnly: false },
-  { to: '/reports',    label: 'Reports',    Icon: MdBarChart,            adminOnly: false },
-  { to: '/users',      label: 'Users',      Icon: MdAdminPanelSettings,  adminOnly: true  },
+  { to: '/',           label: 'Dashboard',  Icon: FiHome,       adminOnly: false },
+  { to: '/customers',  label: 'Customers',  Icon: FiUsers,      adminOnly: false },
+  { to: '/loans',      label: 'Loans',      Icon: FiDollarSign, adminOnly: false },
+  { to: '/repayments', label: 'Repayments', Icon: FiCreditCard, adminOnly: false },
+  { to: '/reports',    label: 'Reports',    Icon: FiBarChart2,  adminOnly: false },
+  { to: '/users',      label: 'Users',      Icon: FiShield,     adminOnly: true  },
 ];
 
 function BrandLogo() {
@@ -49,7 +48,7 @@ export default function Sidebar({ open, onClose }) {
           <BrandLogo />
           <span className="sidebar-title">MicroFinance</span>
           <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
-            <MdClose size={20} />
+            <FiX size={19} />
           </button>
         </div>
 
@@ -64,7 +63,7 @@ export default function Sidebar({ open, onClose }) {
               className={({ isActive }) => `sidebar-link${isActive ? ' sidebar-link--active' : ''}`}
               onClick={onClose}
             >
-              <span className="sidebar-icon"><Icon size={18} /></span>
+              <span className="sidebar-icon"><Icon size={17} /></span>
               <span>{label}</span>
             </NavLink>
           ))}
@@ -79,7 +78,7 @@ export default function Sidebar({ open, onClose }) {
             </div>
           </div>
           <button className="btn-logout" onClick={handleLogout}>
-            <MdLogout size={15} /> Sign Out
+            <FiLogOut size={14} /> Sign Out
           </button>
         </div>
 

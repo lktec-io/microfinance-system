@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MdDownload, MdPrint, MdBarChart, MdTableChart } from 'react-icons/md';
+import { FiDownload, FiPrinter, FiBarChart2, FiGrid } from 'react-icons/fi';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import api     from '../api';
@@ -206,20 +206,20 @@ export default function Reports() {
       {/* ── Toolbar ── */}
       <div className="page-toolbar no-print">
         <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
-          <MdBarChart size={22} style={{ color: 'var(--primary)' }} />
+          <FiBarChart2 size={22} style={{ color: 'var(--primary)' }} />
           <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--gray-800)' }}>
             Financial Reports
           </h2>
         </div>
         <div style={{ display: 'flex', gap: '.6rem', flexWrap: 'wrap' }}>
           <button className="btn btn--ghost" onClick={() => window.print()}>
-            <MdPrint size={16} /> Print
+            <FiPrinter size={16} /> Print
           </button>
           <button className="btn btn--ghost" onClick={downloadCSV}>
-            <MdTableChart size={16} /> Export CSV
+            <FiGrid size={16} /> Export CSV
           </button>
           <button className="btn btn--primary" onClick={downloadPDF}>
-            <MdDownload size={16} /> Download PDF
+            <FiDownload size={16} /> Download PDF
           </button>
         </div>
       </div>

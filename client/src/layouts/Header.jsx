@@ -1,4 +1,4 @@
-import { MdDarkMode, MdLightMode, MdNotificationsNone, MdSettings } from 'react-icons/md';
+import { FiMoon, FiSun, FiBell, FiSettings } from 'react-icons/fi';
 import { useAuth }  from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -24,7 +24,7 @@ export default function Header({ title, onMenuClick }) {
           aria-label="Notifications"
           title="Notifications"
         >
-          <MdNotificationsNone size={20} />
+          <FiBell size={18} />
         </button>
 
         <button
@@ -32,7 +32,7 @@ export default function Header({ title, onMenuClick }) {
           aria-label="Settings"
           title="Settings"
         >
-          <MdSettings size={19} />
+          <FiSettings size={17} />
         </button>
 
         <button
@@ -41,7 +41,7 @@ export default function Header({ title, onMenuClick }) {
           aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
           title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
         >
-          {theme === 'light' ? <MdDarkMode size={20} /> : <MdLightMode size={20} />}
+          {theme === 'light' ? <FiMoon size={18} /> : <FiSun size={18} />}
         </button>
 
         {user && (

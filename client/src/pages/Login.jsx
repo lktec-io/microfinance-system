@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MdVisibility, MdVisibilityOff, MdEmail, MdLock } from 'react-icons/md';
+import { FiEye, FiEyeOff, FiMail, FiLock } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 
 function LoginLogoMark() {
@@ -59,7 +59,7 @@ export default function Login() {
           <div className="form-group">
             <label htmlFor="email">Email Address</label>
             <div className="input-icon-wrap">
-              <MdEmail size={16} className="input-icon" />
+              <FiMail size={16} className="input-icon" />
               <input
                 id="email" type="email" required
                 className="input-with-icon"
@@ -73,7 +73,7 @@ export default function Login() {
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <div className="login-pw-wrap">
-              <MdLock size={16} className="login-pw-icon" />
+              <FiLock size={16} className="login-pw-icon" />
               <input
                 id="password"
                 type={showPw ? 'text' : 'password'}
@@ -89,7 +89,7 @@ export default function Login() {
                 onClick={() => setShowPw(v => !v)}
                 tabIndex={-1}
               >
-                {showPw ? <MdVisibilityOff size={18} /> : <MdVisibility size={18} />}
+                {showPw ? <FiEyeOff size={18} /> : <FiEye size={18} />}
               </button>
             </div>
           </div>

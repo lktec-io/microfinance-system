@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MdSearch, MdFilterList, MdReceipt } from 'react-icons/md';
+import { FiSearch, FiFilter, FiFileText, FiExternalLink } from 'react-icons/fi';
 import api      from '../api';
 import { fmt }  from '../utils/format';
 import Skeleton from '../components/common/Skeleton';
@@ -40,7 +40,7 @@ export default function Repayments() {
     <div className="page">
       <div className="page-toolbar">
         <div className="search-wrap">
-          <MdSearch size={18} className="search-icon" />
+          <FiSearch size={18} className="search-icon" />
           <input
             className="search-input search-input--icon"
             placeholder="Search by customer or receipt…"
@@ -52,10 +52,10 @@ export default function Repayments() {
           <button
             className={`btn btn--ghost${showFilters ? ' btn--active' : ''}`}
             onClick={() => setShowFilters(f => !f)}>
-            <MdFilterList size={18} /> Filters
+            <FiFilter size={18} /> Filters
           </button>
           <button className="btn btn--primary" onClick={() => navigate('/loans')}>
-            <MdReceipt size={16} /> Record Payment
+            <FiFileText size={16} /> Record Payment
           </button>
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function Repayments() {
                     <tr>
                       <td colSpan={7}>
                         <div className="empty-state">
-                          <MdReceipt size={36} style={{ color: 'var(--gray-300)' }} />
+                          <FiFileText size={36} style={{ color: 'var(--gray-300)' }} />
                           <p>{hasFilters ? 'No payments match your filters' : 'No payments recorded yet'}</p>
                         </div>
                       </td>
@@ -133,8 +133,11 @@ export default function Repayments() {
                       <td><span className="amount-cell">TZS {fmt(r.amount)}</span></td>
                       <td>{r.recorded_by || <span style={{ color: 'var(--gray-400)' }}>—</span>}</td>
                       <td onClick={e => e.stopPropagation()}>
-                        <button className="btn-sm btn-sm--edit"
-                          onClick={() => navigate(`/loans/${r.loan_id}`)}>View Loan</button>
+                        <button className="icon-btn icon-btn--view"
+                          onClick={() => navigate(`/loans/${r.loan_id}`)}
+                          title="View loan">
+                          <FiExternalLink size={15} />
+                        </button>
                       </td>
                     </tr>
                   ))

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  MdArrowBack, MdPrint, MdPayment,
-  MdPerson, MdPhone, MdHome,
-  MdCalendarToday, MdAttachMoney, MdPercent, MdAccessTime,
-  MdDelete, MdClose,
-} from 'react-icons/md';
+  FiArrowLeft, FiPrinter, FiCreditCard,
+  FiUser, FiPhone, FiMapPin,
+  FiCalendar, FiDollarSign, FiPercent, FiClock,
+  FiTrash2, FiX,
+} from 'react-icons/fi';
 import api        from '../api';
 import { useToast } from '../context/ToastContext';
 import { fmt }      from '../utils/format';
@@ -111,12 +111,12 @@ export default function LoanDetail() {
       {/* ── Page Header ── */}
       <div className="page-top-bar">
         <button className="btn btn--ghost btn--icon" onClick={() => navigate('/loans')}>
-          <MdArrowBack size={18} /> Back
+          <FiArrowLeft size={18} /> Back
         </button>
         <div style={{ display: 'flex', gap: '.5rem' }}>
           {loan.status !== 'paid' && loan.repayments?.length === 0 && (
             <button className="btn btn--ghost btn--danger-ghost" onClick={() => setDelModal(true)}>
-              <MdDelete size={16} /> Delete Loan
+              <FiTrash2 size={16} /> Delete Loan
             </button>
           )}
         </div>
@@ -125,7 +125,7 @@ export default function LoanDetail() {
       {/* ── Overdue Alert ── */}
       {isOverdue && (
         <div className="alert-banner alert-banner--danger">
-          <MdAccessTime size={18} />
+          <FiClock size={18} />
           <span>This loan is <strong>overdue</strong> — due date was {loan.due_date?.slice(0, 10)}</span>
         </div>
       )}
@@ -148,22 +148,22 @@ export default function LoanDetail() {
             {/* Customer Info */}
             <div className="info-section">
               <div className="info-section-title">Customer</div>
-              <InfoRow Icon={MdPerson} label="Name"    value={loan.customer_name} />
-              <InfoRow Icon={MdPhone}  label="Phone"   value={loan.customer_phone} />
-              <InfoRow Icon={MdHome}   label="Address" value={loan.customer_address} />
+              <InfoRow Icon={FiUser}   label="Name"    value={loan.customer_name} />
+              <InfoRow Icon={FiPhone}  label="Phone"   value={loan.customer_phone} />
+              <InfoRow Icon={FiMapPin} label="Address" value={loan.customer_address} />
             </div>
 
             {/* Loan Amounts */}
             <div className="info-section">
               <div className="info-section-title">Financials</div>
-              <InfoRow Icon={MdAttachMoney} label="Principal"     value={`TZS ${fmt(loan.loan_amount)}`} />
-              <InfoRow Icon={MdPercent}     label="Interest Rate" value={`${loan.interest_rate}%`} />
-              <InfoRow Icon={MdAttachMoney} label="Total Payable" value={`TZS ${fmt(loan.total_payable)}`} />
-              <InfoRow Icon={MdPayment}     label="Amount Paid"
+              <InfoRow Icon={FiDollarSign} label="Principal"     value={`TZS ${fmt(loan.loan_amount)}`} />
+              <InfoRow Icon={FiPercent}   label="Interest Rate" value={`${loan.interest_rate}%`} />
+              <InfoRow Icon={FiDollarSign} label="Total Payable" value={`TZS ${fmt(loan.total_payable)}`} />
+              <InfoRow Icon={FiCreditCard} label="Amount Paid"
                 value={`TZS ${fmt(loan.amount_paid)}`}
                 valueClass="text-green"
               />
-              <InfoRow Icon={MdAttachMoney} label="Balance"
+              <InfoRow Icon={FiDollarSign} label="Balance"
                 value={`TZS ${fmt(loan.balance)}`}
                 valueClass={loan.balance > 0 ? 'text-red' : 'text-green'}
               />
@@ -172,22 +172,22 @@ export default function LoanDetail() {
             {/* Dates */}
             <div className="info-section">
               <div className="info-section-title">Schedule</div>
-              <InfoRow Icon={MdCalendarToday} label="Duration"
+              <InfoRow Icon={FiCalendar} label="Duration"
                 value={`${loan.duration_value} ${loan.duration_unit}`}
               />
-              <InfoRow Icon={MdCalendarToday} label="Start Date"  value={loan.start_date?.slice(0, 10) || '—'} />
-              <InfoRow Icon={MdCalendarToday} label="Due Date"
+              <InfoRow Icon={FiCalendar} label="Start Date"  value={loan.start_date?.slice(0, 10) || '—'} />
+              <InfoRow Icon={FiCalendar} label="Due Date"
                 value={loan.due_date?.slice(0, 10) || '—'}
                 valueClass={isOverdue ? 'text-red' : ''}
               />
               {daysLeft !== null && loan.status !== 'paid' && (
-                <InfoRow Icon={MdAccessTime} label="Days Left"
+                <InfoRow Icon={FiClock} label="Days Left"
                   value={daysLeft < 0 ? `${Math.abs(daysLeft)} days overdue` : `${daysLeft} days`}
                   valueClass={daysLeft < 0 ? 'text-red' : daysLeft < 7 ? 'text-orange' : ''}
                 />
               )}
               {loan.purpose && (
-                <InfoRow Icon={MdAttachMoney} label="Purpose" value={loan.purpose} />
+                <InfoRow Icon={FiDollarSign} label="Purpose" value={loan.purpose} />
               )}
             </div>
 
@@ -212,7 +212,7 @@ export default function LoanDetail() {
             {loan.status !== 'paid' && (
               <button className="btn btn--primary btn--block" onClick={openPayment}
                 style={{ marginTop: '1.25rem' }}>
-                <MdPayment size={18} /> Record Payment
+                <FiCreditCard size={18} /> Record Payment
               </button>
             )}
             {loan.status === 'paid' && (
@@ -234,7 +234,7 @@ export default function LoanDetail() {
             {(!loan.repayments || loan.repayments.length === 0)
               ? (
                 <div className="empty-state">
-                  <MdPayment size={40} style={{ color: 'var(--gray-200)' }} />
+                  <FiCreditCard size={40} style={{ color: 'var(--gray-200)' }} />
                   <p>No payments recorded yet</p>
                   {loan.status !== 'paid' && (
                     <button className="btn btn--primary" onClick={openPayment}>
@@ -299,7 +299,7 @@ export default function LoanDetail() {
           <div className="modal">
             <div className="modal-header">
               <h2>Record Payment — Loan #{id}</h2>
-              <button className="modal-close" onClick={() => setPayModal(false)} aria-label="Close"><MdClose size={18} /></button>
+              <button className="modal-close" onClick={() => setPayModal(false)} aria-label="Close"><FiX size={18} /></button>
             </div>
 
             <div className="alert alert--info" style={{ marginBottom: '1rem' }}>
@@ -452,7 +452,7 @@ export default function LoanDetail() {
             <div className="modal-actions no-print" style={{ marginTop: '1.5rem' }}>
               <button className="btn btn--ghost" onClick={() => setReceipt(null)}>Close</button>
               <button className="btn btn--primary" onClick={() => window.print()}>
-                <MdPrint size={16} /> Print Receipt
+                <FiPrinter size={16} /> Print Receipt
               </button>
             </div>
           </div>

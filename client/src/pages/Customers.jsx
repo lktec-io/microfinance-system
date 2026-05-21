@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { MdSearch, MdPersonAdd, MdGridView, MdViewList, MdEdit, MdDelete, MdClose } from 'react-icons/md';
+import { FiSearch, FiUserPlus, FiGrid, FiList, FiEdit2, FiTrash2, FiX } from 'react-icons/fi';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
 import Skeleton from '../components/common/Skeleton';
@@ -76,7 +76,7 @@ export default function Customers() {
     <div className="page">
       <div className="page-toolbar">
         <div className="search-wrap">
-          <MdSearch size={18} className="search-icon" />
+          <FiSearch size={18} className="search-icon" />
           <input
             className="search-input search-input--icon"
             placeholder="Search by name, phone or ID…"
@@ -90,17 +90,17 @@ export default function Customers() {
               className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}
               onClick={() => setViewMode('list')} title="List view"
             >
-              <MdViewList size={19} />
+              <FiList size={19} />
             </button>
             <button
               className={`view-toggle-btn${viewMode === 'grid' ? ' active' : ''}`}
               onClick={() => setViewMode('grid')} title="Grid view"
             >
-              <MdGridView size={19} />
+              <FiGrid size={19} />
             </button>
           </div>
           <button className="btn btn--primary" onClick={openAdd}>
-            <MdPersonAdd size={16} /> Add Customer
+            <FiUserPlus size={16} /> Add Customer
           </button>
         </div>
       </div>
@@ -130,10 +130,10 @@ export default function Customers() {
                   </span>
                   <div className="customer-card-actions">
                     <button className="icon-btn icon-btn--edit" onClick={() => openEdit(c)} title="Edit customer">
-                      <MdEdit size={16} />
+                      <FiEdit2 size={16} />
                     </button>
                     <button className="icon-btn icon-btn--del" onClick={() => setDelId(c.id)} title="Delete customer">
-                      <MdDelete size={16} />
+                      <FiTrash2 size={16} />
                     </button>
                   </div>
                 </div>
@@ -169,10 +169,10 @@ export default function Customers() {
                       <td>
                         <div className="icon-btns">
                           <button className="icon-btn icon-btn--edit" onClick={() => openEdit(c)} title="Edit customer">
-                            <MdEdit size={15} />
+                            <FiEdit2 size={15} />
                           </button>
                           <button className="icon-btn icon-btn--del" onClick={() => setDelId(c.id)} title="Delete customer">
-                            <MdDelete size={15} />
+                            <FiTrash2 size={15} />
                           </button>
                         </div>
                       </td>
@@ -190,7 +190,7 @@ export default function Customers() {
           <div className="modal">
             <div className="modal-header">
               <h2>{modal === 'add' ? 'Add Customer' : 'Edit Customer'}</h2>
-              <button className="modal-close" onClick={() => setModal(null)} aria-label="Close"><MdClose size={18} /></button>
+              <button className="modal-close" onClick={() => setModal(null)} aria-label="Close"><FiX size={18} /></button>
             </div>
             {error && <div className="alert alert--error">{error}</div>}
             <form onSubmit={handleSave} className="modal-form">

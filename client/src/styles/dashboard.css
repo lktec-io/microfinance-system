@@ -52,6 +52,14 @@
 }
 
 .welcome-text { position: relative; z-index: 2; flex: 1; min-width: 0; }
+.welcome-greeting {
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  opacity: .65;
+  margin-bottom: .22rem;
+}
 .welcome-text h2 {
   font-size: 1.4rem;
   font-weight: 700;

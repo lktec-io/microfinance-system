@@ -87,13 +87,13 @@
   display: flex;
   align-items: center;
   gap: .8rem;
-  padding: .65rem 1.3rem;
+  padding: .72rem 1.3rem;
   color: #6a93b0;
   font-size: .86rem;
   font-weight: 500;
   border-left: 3px solid transparent;
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  margin: 1px .5rem 1px 0;
+  margin: 2px .5rem 2px 0;
   transition: background var(--transition), color var(--transition), border-left-color var(--transition);
 }
 .sidebar-link:hover {

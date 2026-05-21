@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MdAdd, MdOpenInNew, MdClose } from 'react-icons/md';
+import { FiPlus, FiExternalLink, FiX } from 'react-icons/fi';
 import api        from '../api';
 import { fmt }    from '../utils/format';
 import StatusBadge from '../components/common/StatusBadge';
@@ -80,7 +80,7 @@ export default function Loans() {
           ))}
         </div>
         <button className="btn btn--primary" onClick={openAdd}>
-          <MdAdd size={18} /> New Loan
+          <FiPlus size={18} /> New Loan
         </button>
       </div>
 
@@ -118,7 +118,7 @@ export default function Loans() {
                         <button className="icon-btn icon-btn--view"
                           onClick={() => navigate(`/loans/${l.id}`)}
                           title="View loan details">
-                          <MdOpenInNew size={15} />
+                          <FiExternalLink size={15} />
                         </button>
                       </td>
                     </tr>
@@ -135,7 +135,7 @@ export default function Loans() {
           <div className="modal modal--lg">
             <div className="modal-header">
               <h2>Create New Loan</h2>
-              <button className="modal-close" onClick={() => setModal(false)} aria-label="Close"><MdClose size={18} /></button>
+              <button className="modal-close" onClick={() => setModal(false)} aria-label="Close"><FiX size={18} /></button>
             </div>
             {error && <div className="alert alert--error">{error}</div>}
             <form onSubmit={handleSave} className="modal-form">
