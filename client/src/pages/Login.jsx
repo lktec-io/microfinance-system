@@ -65,7 +65,7 @@ export default function Login() {
                 className="input-with-icon"
                 placeholder="Enter your email address"
                 value={form.email}
-                onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                onChange={e => setForm(f => ({ ...f, email: e.target.value.toLowerCase() }))}
               />
             </div>
           </div>
@@ -108,6 +108,10 @@ export default function Login() {
 
         <p className="login-hint">Contact your administrator for access credentials</p>
       </div>
+
+      <footer className="login-footer">
+        Baraka Microcredit &copy; 2026 &mdash; All Rights Reserved.
+      </footer>
     </div>
   );
 }

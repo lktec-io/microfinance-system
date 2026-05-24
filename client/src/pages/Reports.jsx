@@ -40,7 +40,7 @@ export default function Reports() {
     doc.rect(0, 0, pageW, 32, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(18); doc.setFont('helvetica', 'bold');
-    doc.text('MicroFinance Manager', 14, 14);
+    doc.text('Baraka Microcredit', 14, 14);
     doc.setFontSize(10); doc.setFont('helvetica', 'normal');
     doc.text(`Financial Report  ·  Generated: ${date}`, 14, 23);
 
@@ -152,7 +152,7 @@ export default function Reports() {
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
       doc.setFontSize(8); doc.setTextColor(150);
-      doc.text(`MicroFinance Manager  ·  Page ${i} of ${pages}`, pageW / 2, 290, { align: 'center' });
+      doc.text(`Baraka Microcredit  ·  Page ${i} of ${pages}`, pageW / 2, 290, { align: 'center' });
     }
 
     doc.save(`MF_Report_${tab}_${new Date().toISOString().slice(0,10)}.pdf`);
@@ -161,7 +161,7 @@ export default function Reports() {
   /* ── CSV export ── */
   function downloadCSV() {
     const date = new Date().toLocaleDateString('en-GB');
-    let csv = `MicroFinance Manager — Financial Report\nGenerated: ${date}\n\n`;
+    let csv = `Baraka Microcredit — Financial Report\nGenerated: ${date}\n\n`;
 
     csv += 'SUMMARY\nMetric,Value\n';
     csv += `Total Customers,${summary.customers}\n`;

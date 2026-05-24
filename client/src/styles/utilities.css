@@ -289,11 +289,12 @@
 @media print {
   /* Hide non-essential UI */
   .sidebar, .header, .page-toolbar, .tabs, .filter-panel,
-  .no-print, .btn, .toast-container, .modal-overlay, .welcome-banner { display: none !important; }
+  .no-print, .btn, .toast-container, .modal-overlay, .welcome-banner,
+  .app-footer { display: none !important; }
 
   /* Reset page layout */
   .app-shell { display: block; }
-  .main-area { margin-left: 0; }
+  .main-area { margin-left: 0; padding-top: 0; }
   .page { padding: 0; max-width: none; }
 
   /* Cards */

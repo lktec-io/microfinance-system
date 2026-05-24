@@ -31,7 +31,7 @@ export default function Sidebar({ open, onClose }) {
 
         <div className="sidebar-brand">
           <span className="sidebar-logo">MF</span>
-          <span className="sidebar-title">MicroFinance</span>
+          <span className="sidebar-title">Baraka Microcredit</span>
           <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
             <MdClose size={20} />
           </button>

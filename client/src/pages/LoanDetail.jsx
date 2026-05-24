@@ -380,8 +380,8 @@ export default function LoanDetail() {
         <div className="modal-overlay">
           <div className="modal receipt-modal" id="receipt-print">
             <div className="receipt-header">
-              <div className="receipt-logo">MF</div>
-              <h2>MicroFinance Manager</h2>
+              <div className="receipt-logo">BC</div>
+              <h2>Baraka Microcredit</h2>
               <p>Official Payment Receipt</p>
             </div>
 

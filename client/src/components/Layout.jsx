@@ -15,7 +15,7 @@ const titles = {
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const title = Object.entries(titles).find(([k]) => location.pathname.startsWith(k) && (k === '/' ? location.pathname === '/' : true))?.[1] || 'MicroFinance';
+  const title = Object.entries(titles).find(([k]) => location.pathname.startsWith(k) && (k === '/' ? location.pathname === '/' : true))?.[1] || 'Baraka Microcredit';
 
   return (
     <div className="app-shell">

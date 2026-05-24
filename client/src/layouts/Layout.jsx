@@ -37,6 +37,9 @@ export default function Layout({ children }) {
       <div className="main-area">
         <Header title={title} onMenuClick={() => setSidebarOpen(true)} />
         <main className="page-content">{children}</main>
+        <footer className="app-footer">
+          Baraka Microcredit &copy; 2026 &mdash; All Rights Reserved.
+        </footer>
       </div>
     </div>
   );
