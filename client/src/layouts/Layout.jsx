@@ -18,7 +18,7 @@ export default function Layout({ children }) {
 
   const title = Object.entries(titles).find(([k]) =>
     location.pathname.startsWith(k) && (k === '/' ? location.pathname === '/' : true)
-  )?.[1] || 'MicroFinance';
+  )?.[1] || 'Baraka Microcredit';
 
   /* Lock body scroll while mobile sidebar is open */
   useEffect(() => {

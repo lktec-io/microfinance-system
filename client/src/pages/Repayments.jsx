@@ -1,6 +1,9 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiFilter, FiFileText, FiExternalLink } from 'react-icons/fi';
+import {
+  FiSearch, FiFilter, FiFileText, FiExternalLink,
+  FiGrid, FiList, FiCalendar, FiUser,
+} from 'react-icons/fi';
 import api      from '../api';
 import { fmt }  from '../utils/format';
 import Skeleton from '../components/common/Skeleton';
@@ -13,6 +16,7 @@ export default function Repayments() {
   const [dateFrom,    setDateFrom]    = useState('');
   const [dateTo,      setDateTo]      = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode,    setViewMode]    = useState('list');
 
   useEffect(() => {
     api.get('/repayments').then(({ data }) => {
@@ -48,7 +52,21 @@ export default function Repayments() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <div style={{ display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="view-toggle">
+            <button
+              className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}
+              onClick={() => setViewMode('list')}
+            >
+              List <FiList size={15} />
+            </button>
+            <button
+              className={`view-toggle-btn${viewMode === 'grid' ? ' active' : ''}`}
+              onClick={() => setViewMode('grid')}
+            >
+              Grid <FiGrid size={15} />
+            </button>
+          </div>
           <button
             className={`btn btn--ghost${showFilters ? ' btn--active' : ''}`}
             onClick={() => setShowFilters(f => !f)}>
@@ -96,6 +114,37 @@ export default function Repayments() {
 
       {loading ? (
         <div className="card"><Skeleton rows={6} cols={6} /></div>
+      ) : viewMode === 'grid' ? (
+        filtered.length === 0
+          ? <div className="card"><p className="empty-msg text-center">No payments found</p></div>
+          : (
+            <div className="repayment-grid">
+              {filtered.map(r => (
+                <div key={r.id} className="repayment-card" onClick={() => navigate(`/loans/${r.loan_id}`)}>
+                  <div className="repayment-card-top">
+                    <div className="repayment-card-avatar">
+                      <FiUser size={16} />
+                    </div>
+                    <div className="repayment-card-receipt">
+                      <code>{r.receipt_number}</code>
+                    </div>
+                  </div>
+                  <div className="repayment-card-name">{r.customer_name}</div>
+                  <div className="repayment-card-amount">TZS {fmt(r.amount)}</div>
+                  <div className="repayment-card-meta">
+                    <span><FiCalendar size={12} /> {r.payment_date?.slice(0, 10)}</span>
+                    <button
+                      className="icon-btn icon-btn--view"
+                      onClick={e => { e.stopPropagation(); navigate(`/loans/${r.loan_id}`); }}
+                      title="View loan"
+                    >
+                      <FiExternalLink size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
       ) : (
         <div className="card">
           <div className="table-wrap">

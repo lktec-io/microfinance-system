@@ -98,9 +98,9 @@ export default function Dashboard() {
   );
 
   const chartData = [
-    { label: 'Active',  value: summary.loan_status.active  || 0, color: '#059669' },
-    { label: 'Pending', value: summary.loan_status.pending || 0, color: '#d97706' },
-    { label: 'Paid',    value: summary.loan_status.paid    || 0, color: '#3b82f6' },
+    { label: 'Active',  value: summary.loan_status.active  || 0, color: '#3b82f6' },
+    { label: 'Paid',    value: summary.loan_status.paid    || 0, color: '#10b981' },
+    { label: 'Pending', value: summary.loan_status.pending || 0, color: '#f59e0b' },
     { label: 'Overdue', value: summary.loan_status.overdue || 0, color: '#ef4444' },
   ];
 

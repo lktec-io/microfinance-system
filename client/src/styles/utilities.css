@@ -171,6 +171,7 @@
 @media (max-width: 1024px) {
   .page { padding: 1.4rem; }
   .header-user-info { display: none; }
+  .header { padding: 0 1.25rem; }
 }
 
 /* ── Responsive — Mobile ────────────────────────────────────────── */
@@ -189,6 +190,7 @@
   .sidebar-close { display: flex; }
   .header-menu-btn { display: flex; }
   .main-area { margin-left: 0; }
+  .header { left: 0; padding: 0 1rem; }
   .header-user { display: none; }
 
   .page { padding: 1.25rem 1rem; }
@@ -279,6 +281,8 @@
   .welcome-banner  { padding: 2rem 1.25rem; min-height: 164px; }
   .welcome-text h2 { font-size: 1.55rem; }
   .page { padding: .9rem; }
+  .notif-panel     { width: calc(100vw - 2rem); right: -2rem; }
+  .repayment-grid  { grid-template-columns: 1fr; }
 }
 
 /* ── Print — Reports & Receipts ─────────────────────────────────── */

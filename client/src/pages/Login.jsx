@@ -15,7 +15,7 @@ function LoginLogoMark() {
       />
     );
   }
-  return <div className="login-logo">MF</div>;
+  return <div className="login-logo">BC</div>;
 }
 
 export default function Login() {
@@ -49,7 +49,7 @@ export default function Login() {
       <div className="login-card">
         <div className="login-brand">
           <LoginLogoMark />
-          <h1 className="login-title">MicroFinance Manager</h1>
+          <h1 className="login-title">Baraka Microcredit</h1>
           <p className="login-sub">Sign in to your account to continue</p>
         </div>
 
@@ -63,7 +63,7 @@ export default function Login() {
               <input
                 id="email" type="email" required
                 className="input-with-icon"
-                placeholder="admin@microfinance.com"
+                placeholder="Enter your email address"
                 value={form.email}
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
               />
@@ -106,7 +106,7 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="login-hint">Default: admin@microfinance.com / password</p>
+        <p className="login-hint">Contact your administrator for access credentials</p>
       </div>
     </div>
   );
