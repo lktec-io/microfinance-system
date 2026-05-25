@@ -281,7 +281,6 @@
   .welcome-banner  { padding: 2rem 1.25rem; min-height: 164px; }
   .welcome-text h2 { font-size: 1.55rem; }
   .page { padding: .9rem; }
-  .notif-panel     { width: calc(100vw - 2rem); right: -2rem; }
   .repayment-grid  { grid-template-columns: 1fr; }
 }
 

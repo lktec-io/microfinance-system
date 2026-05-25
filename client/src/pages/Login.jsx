@@ -45,6 +45,8 @@ export default function Login() {
       <div className="login-orb login-orb--1" />
       <div className="login-orb login-orb--2" />
       <div className="login-orb login-orb--3" />
+      <div className="login-orb login-orb--4" />
+      <div className="login-orb login-orb--5" />
 
       <div className="login-card">
         <div className="login-brand">
