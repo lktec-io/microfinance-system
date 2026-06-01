@@ -1,13 +1,11 @@
 function n(v) {
   return Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
-
 function fmtDate(d) {
-  if (!d) return '—';
-  return String(d).slice(0, 10);
+  return d ? String(d).slice(0, 10) : '—';
 }
 
-/* ── Kiswahili: Thank You (after loan disbursed) ──────────────── */
+/* ── 1. Thank You SMS ─────────────────────────────────────────── */
 function thankYou(customerName, loan) {
   return (
     `Habari, ${customerName},\n\n` +
@@ -19,7 +17,7 @@ function thankYou(customerName, loan) {
   );
 }
 
-/* ── Kiswahili: Payment Reminder ──────────────────────────────── */
+/* ── 2. Reminder SMS ──────────────────────────────────────────── */
 function reminder(customerName, loan) {
   return (
     `Habari, ${customerName},\n\n` +
@@ -30,23 +28,14 @@ function reminder(customerName, loan) {
   );
 }
 
-/* ── Cron job templates (kept for automated daily jobs) ──────── */
-function repaymentReminder(customerName, balance, dueDate) {
+/* ── 3. Overdue SMS ───────────────────────────────────────────── */
+function overdue(customerName, loan) {
   return (
     `Habari, ${customerName},\n\n` +
-    `Tunapenda kukukumbusha kuwa una salio la mkopo la TZS ${n(balance)}.\n\n` +
-    `Tafadhali hakikisha unakamilisha malipo yako kabla ya tarehe ${fmtDate(dueDate)}.\n\n` +
-    `Kwa maelezo zaidi wasiliana na Baraka Microcredit.\n\nAsante.`
-  );
-}
-
-function overdueNotice(customerName, balance, dueDate) {
-  return (
-    `Habari, ${customerName},\n\n` +
-    `Mkopo wako wa TZS ${n(balance)} ulikuwa unadaiwa tarehe ${fmtDate(dueDate)} na sasa umechelewa.\n\n` +
+    `Mkopo wako wa TZS ${n(loan.balance)} ulikuwa unadaiwa tarehe ${fmtDate(loan.due_date)} na sasa umechelewa.\n\n` +
     `Tafadhali wasiliana nasi mara moja kuzuia hatua zaidi.\n\n` +
     `Baraka Microcredit`
   );
 }
 
-module.exports = { thankYou, reminder, repaymentReminder, overdueNotice };
+module.exports = { thankYou, reminder, overdue };

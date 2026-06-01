@@ -4,7 +4,7 @@ import {
   FiArrowLeft, FiPrinter, FiCreditCard,
   FiUser, FiPhone, FiMapPin,
   FiCalendar, FiDollarSign, FiPercent, FiClock,
-  FiTrash2, FiX, FiMessageSquare, FiBell,
+  FiTrash2, FiX, FiMessageSquare, FiBell, FiAlertTriangle, FiEdit2,
 } from 'react-icons/fi';
 import api          from '../api';
 import { useToast }  from '../context/ToastContext';
@@ -38,8 +38,12 @@ export default function LoanDetail() {
   const [error,     setError]     = useState('');
   const [receipt,   setReceipt]   = useState(null);
   const [delModal,  setDelModal]  = useState(false);
-  // null | 'thank_you' | 'reminder'
-  const [smsType,   setSmsType]   = useState(null);
+  // null | 'thank_you' | 'reminder' | 'overdue'
+  const [smsType,    setSmsType]   = useState(null);
+  const [editModal,  setEditModal] = useState(false);
+  const [editForm,   setEditForm]  = useState({ status: '', due_date: '', purpose: '' });
+  const [editSaving, setEditSaving]= useState(false);
+  const [editErr,    setEditErr]   = useState('');
 
   async function fetchLoan() {
     try {
@@ -96,6 +100,28 @@ export default function LoanDetail() {
     }
   }
 
+  function openEdit() {
+    setEditForm({
+      status:   loan.status,
+      due_date: loan.due_date?.slice(0, 10) || '',
+      purpose:  loan.purpose || '',
+    });
+    setEditErr('');
+    setEditModal(true);
+  }
+
+  async function handleEdit(e) {
+    e.preventDefault();
+    setEditSaving(true); setEditErr('');
+    try {
+      await api.put(`/loans/${id}`, editForm);
+      setEditModal(false);
+      fetchLoan();
+    } catch (err) {
+      setEditErr(err.response?.data?.message || 'Failed to update loan');
+    } finally { setEditSaving(false); }
+  }
+
   if (loading) return <Spinner text="Loading loan details…" />;
   if (!loan) return <div className="page"><p>Loan not found.</p></div>;
 
@@ -117,24 +143,31 @@ export default function LoanDetail() {
           <FiArrowLeft size={18} /> Back
         </button>
         <div style={{ display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
-          <button
-            className="btn btn--ghost btn--sms-ty"
-            onClick={() => setSmsType('thank_you')}
-            title="Send Thank You SMS"
-          >
-            <FiMessageSquare size={15} /> Thank You SMS
+          <button className="btn btn--ghost" onClick={openEdit}>
+            <FiEdit2 size={15} /> Edit
+          </button>
+          <button className="btn btn--ghost btn--sms-ty" onClick={() => setSmsType('thank_you')}>
+            <FiMessageSquare size={15} /> Thank You
           </button>
           <button
             className="btn btn--ghost btn--sms-rm"
             onClick={() => setSmsType('reminder')}
-            title="Send Reminder SMS"
             disabled={loan.status === 'paid'}
           >
-            <FiBell size={15} /> Reminder SMS
+            <FiBell size={15} /> Reminder
+          </button>
+          <button
+            className="btn btn--ghost"
+            style={{ borderColor: 'var(--red)', color: 'var(--red)' }}
+            onClick={() => setSmsType('overdue')}
+            disabled={loan.status !== 'overdue'}
+            title={loan.status !== 'overdue' ? 'Only available for overdue loans' : 'Send overdue notice'}
+          >
+            <FiAlertTriangle size={15} /> Overdue SMS
           </button>
           {loan.status !== 'paid' && loan.repayments?.length === 0 && (
             <button className="btn btn--ghost btn--danger-ghost" onClick={() => setDelModal(true)}>
-              <FiTrash2 size={16} /> Delete Loan
+              <FiTrash2 size={16} /> Delete
             </button>
           )}
         </div>
@@ -389,6 +422,48 @@ export default function LoanDetail() {
               <button className="btn btn--ghost" onClick={() => setDelModal(false)}>Cancel</button>
               <button className="btn btn--danger" onClick={handleDeleteLoan}>Delete Loan</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Edit Loan Modal ── */}
+      {editModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2>Edit Loan #{id}</h2>
+              <button className="modal-close" onClick={() => setEditModal(false)}><FiX size={18} /></button>
+            </div>
+            <div className="alert alert--info" style={{ marginBottom: '1rem', fontSize: '.84rem' }}>
+              Customer: <strong>{loan.customer_name}</strong> — Principal: <strong>TZS {fmt(loan.loan_amount)}</strong>
+            </div>
+            {editErr && <div className="alert alert--error">{editErr}</div>}
+            <form onSubmit={handleEdit} className="modal-form">
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Status *</label>
+                  <select required value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}>
+                    {['pending','active','paid','overdue'].map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Due Date</label>
+                  <input type="date" value={editForm.due_date}
+                    onChange={e => setEditForm(f => ({ ...f, due_date: e.target.value }))} />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Purpose</label>
+                <textarea rows={2} value={editForm.purpose}
+                  onChange={e => setEditForm(f => ({ ...f, purpose: e.target.value }))} />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn btn--ghost" onClick={() => setEditModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn--primary" disabled={editSaving}>
+                  {editSaving ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -518,6 +518,88 @@
 .icon-btn--print:hover { background: var(--gray-200); }
 .icon-btns { display: flex; gap: .35rem; align-items: center; }
 
+/* ── Loan Grid ───────────────────────────────────────────────────── */
+.loan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.loan-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition), transform var(--transition), background-color 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+.loan-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+
+.loan-card-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: 1.1rem 1.2rem .9rem;
+  border-bottom: 1px solid var(--border);
+}
+.loan-card-avatar {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dk));
+  color: #fff;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 1rem; font-weight: 700;
+  flex-shrink: 0;
+}
+.loan-card-info { flex: 1; min-width: 0; }
+.loan-card-name {
+  font-size: .9rem; font-weight: 700; color: var(--gray-800);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.loan-card-phone { font-size: .75rem; color: var(--gray-400); margin-top: .08rem; }
+
+.loan-card-body {
+  padding: .85rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  flex: 1;
+}
+.loan-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: .82rem;
+}
+.loan-card-row span { color: var(--gray-500); display: flex; align-items: center; gap: .3rem; }
+.loan-card-row strong { font-weight: 700; color: var(--gray-800); }
+
+.loan-card-progress {
+  height: 4px;
+  background: var(--gray-100);
+  margin: 0 1.2rem .2rem;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.loan-card-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--green));
+  border-radius: 2px;
+  transition: width .5s ease;
+}
+.loan-card-progress-fill--red { background: linear-gradient(90deg, var(--yellow), var(--red)); }
+
+.loan-card-actions {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .8rem 1.2rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
 /* ── Repayment Grid Cards ────────────────────────────────────────── */
 .repayment-grid {
   display: grid;

@@ -1,6 +1,6 @@
 -- ============================================================
 --  SMS Logs Table — Baraka Microcredit
---  Run this once against the live database.
+--  Run once against the live database.
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS sms_logs (
@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS sms_logs (
   phone           VARCHAR(20)   NOT NULL,
   customer_id     INT           DEFAULT NULL,
   loan_id         INT           DEFAULT NULL,
-  message_type    ENUM('thank_you','reminder','manual','repayment_reminder','overdue_notice')
-                                NOT NULL DEFAULT 'manual',
+  message_type    ENUM('thank_you','reminder','overdue')
+                                NOT NULL DEFAULT 'reminder',
   message         TEXT          NOT NULL,
   status          ENUM('sent','failed','pending')
                                 NOT NULL DEFAULT 'pending',
@@ -32,7 +32,6 @@ CREATE TABLE IF NOT EXISTS sms_logs (
   INDEX idx_sms_loan     (loan_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- If the table already existed with old ENUM values, run this:
+-- If table already exists with old ENUM, run:
 -- ALTER TABLE sms_logs MODIFY COLUMN message_type
---   ENUM('thank_you','reminder','manual','repayment_reminder','overdue_notice')
---   NOT NULL DEFAULT 'manual';
+--   ENUM('thank_you','reminder','overdue') NOT NULL DEFAULT 'reminder';

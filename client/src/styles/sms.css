@@ -218,11 +218,9 @@
   text-transform: capitalize;
   white-space: nowrap;
 }
-.sms-type--thank_you           { background: var(--primary-lt);  color: var(--primary-dk); }
-.sms-type--reminder            { background: var(--yellow-lt);   color: var(--yellow); }
-.sms-type--manual              { background: var(--blue-lt);     color: var(--blue-dk); }
-.sms-type--repayment_reminder  { background: var(--yellow-lt);   color: var(--yellow); }
-.sms-type--overdue_notice      { background: var(--red-lt);      color: var(--red-dk); }
+.sms-type--thank_you { background: var(--primary-lt); color: var(--primary-dk); }
+.sms-type--reminder  { background: var(--yellow-lt);  color: var(--yellow); }
+.sms-type--overdue   { background: var(--red-lt);     color: var(--red-dk); }
 
 .sms-status-dot {
   display: inline-flex;
@@ -405,10 +403,16 @@
   background: #fef3c7;
   color: #92400e;
 }
-.icon-btn--sms-rm:disabled {
+.icon-btn--sms-rm:disabled,
+.icon-btn--sms-ov:disabled {
   opacity: .35;
   cursor: not-allowed;
 }
+.icon-btn--sms-ov {
+  background: var(--red-lt);
+  color: var(--red);
+}
+.icon-btn--sms-ov:hover:not(:disabled) { background: #fecaca; }
 
 /* ── Inline SMS buttons on loan detail toolbar ──────────────────── */
 .btn--sms-ty {
@@ -445,6 +449,7 @@
 }
 .sms-modal-icon--ty { background: var(--primary-lt); color: var(--primary-dk); }
 .sms-modal-icon--rm { background: var(--yellow-lt);  color: var(--yellow); }
+.sms-modal-icon--ov { background: var(--red-lt);     color: var(--red-dk); }
 
 /* Recipient info box */
 .sms-confirm-recipient {

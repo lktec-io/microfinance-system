@@ -7,17 +7,16 @@ import {
 } from 'react-icons/fi';
 
 const mainLinks = [
-  { to: '/',           label: 'Dashboard',  Icon: FiHome       },
-  { to: '/customers',  label: 'Customers',  Icon: FiUsers      },
-  { to: '/loans',      label: 'Loans',      Icon: FiDollarSign },
-  { to: '/repayments', label: 'Repayments', Icon: FiCreditCard },
-  { to: '/reports',    label: 'Reports',    Icon: FiBarChart2  },
+  { to: '/',           label: 'Dashboard',  Icon: FiHome          },
+  { to: '/customers',  label: 'Customers',  Icon: FiUsers         },
+  { to: '/loans',      label: 'Loans',      Icon: FiDollarSign    },
+  { to: '/repayments', label: 'Repayments', Icon: FiCreditCard    },
+  { to: '/reports',    label: 'Reports',    Icon: FiBarChart2     },
+  { to: '/sms',        label: 'SMS Center', Icon: FiMessageSquare },
 ];
 
 const adminLinks = [
-  { to: '/users',    label: 'User Management', Icon: FiShield         },
-  { to: '/sms',      label: 'SMS Center',      Icon: FiMessageSquare  },
-  { to: '/sms/logs', label: 'SMS Logs',        Icon: FiMessageSquare  },
+  { to: '/users', label: 'User Management', Icon: FiShield },
 ];
 
 function BrandLogo() {

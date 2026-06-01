@@ -260,6 +260,9 @@
   .loan-preview    { flex-direction: column; gap: .5rem; }
   .payment-preview { flex-direction: column; gap: .4rem; }
 
+  /* Loan grid — single column on mobile */
+  .loan-grid { grid-template-columns: 1fr; }
+
   /* Page top bar */
   .page-top-bar { flex-direction: column; align-items: stretch; }
   .page-top-bar .btn { width: 100%; justify-content: center; }

@@ -1,54 +1,42 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  FiMessageSquare, FiSend, FiUsers, FiCheckCircle,
-  FiAlertCircle, FiClock, FiList, FiZap, FiInfo,
+  FiMessageSquare, FiCheckCircle, FiAlertCircle, FiClock,
+  FiSearch, FiFilter, FiRefreshCw, FiRotateCcw,
+  FiBell, FiAlertTriangle, FiPhone, FiCalendar, FiZap,
 } from 'react-icons/fi';
-import api from '../api';
+import api        from '../api';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../hooks/useToast';
 
-const MAX_CHARS = 320;
+/* ── Config ───────────────────────────────────────────────────────── */
+const TYPE_CONFIG = {
+  thank_you: { label: 'Shukrani',   cls: 'thank_you', Icon: FiMessageSquare },
+  reminder:  { label: 'Kikumbusha', cls: 'reminder',  Icon: FiBell          },
+  overdue:   { label: 'Imechelewa', cls: 'overdue',   Icon: FiAlertTriangle },
+};
 
-const TEMPLATES = [
-  {
-    key: 'thank_you',
-    name: 'Thank You SMS',
-    icon: FiCheckCircle,
-    cls: 'approved',
-    text: 'Habari, [JINA],\n\nBaraka Microcredit tunakushukuru kwa kuchagua huduma zetu.\n\nMkopo wako wa TZS [KIASI] umeidhinishwa na kutolewa kikamilifu.\n\nKiasi cha kurejesha ni TZS [JUMLA] kabla ya tarehe [TAREHE].\n\nTunakutakia mafanikio katika matumizi ya mkopo huu.\n\nBaraka Microcredit',
-  },
-  {
-    key: 'reminder',
-    name: 'Reminder SMS',
-    icon: FiClock,
-    cls: 'reminder',
-    text: 'Habari, [JINA],\n\nTunapenda kukukumbusha kuwa una salio la mkopo la TZS [SALIO].\n\nTafadhali hakikisha unakamilisha malipo yako kabla ya tarehe [TAREHE].\n\nKwa maelezo zaidi wasiliana na Baraka Microcredit.\n\nAsante.',
-  },
-  {
-    key: 'overdue',
-    name: 'Overdue Notice',
-    icon: FiAlertCircle,
-    cls: 'overdue',
-    text: 'Habari, [JINA],\n\nMkopo wako wa TZS [SALIO] ulikuwa unadaiwa tarehe [TAREHE] na sasa umechelewa.\n\nTafadhali wasiliana nasi mara moja kuzuia hatua zaidi.\n\nBaraka Microcredit',
-  },
+const FILTER_TABS = [
+  { key: '', label: 'Zote' },
+  { key: 'thank_you', label: 'Shukrani' },
+  { key: 'reminder',  label: 'Kikumbusha' },
+  { key: 'overdue',   label: 'Imechelewa' },
 ];
 
-function SmsStatStrip({ stats, loading }) {
+/* ── Sub-components ───────────────────────────────────────────────── */
+function StatStrip({ stats, loading }) {
   const items = [
-    { label: 'Total Sent',    val: stats?.total     || 0, cls: 'total',  Icon: FiMessageSquare },
-    { label: 'Delivered',     val: stats?.delivered || 0, cls: 'sent',   Icon: FiCheckCircle   },
-    { label: 'Sent Today',    val: stats?.today_sent || 0, cls: 'today', Icon: FiZap           },
-    { label: 'Failed',        val: stats?.failed    || 0, cls: 'failed', Icon: FiAlertCircle   },
+    { label: 'Jumla Zimetumwa', val: stats?.total     || 0, cls: 'total',  Icon: FiMessageSquare },
+    { label: 'Zilifikia',       val: stats?.delivered || 0, cls: 'sent',   Icon: FiCheckCircle   },
+    { label: 'Leo',             val: stats?.today_sent|| 0, cls: 'today',  Icon: FiZap           },
+    { label: 'Zilishindwa',     val: stats?.failed    || 0, cls: 'failed', Icon: FiAlertCircle   },
   ];
   return (
     <div className="sms-stat-strip">
       {items.map(({ label, val, cls, Icon }) => (
         <div key={cls} className="sms-stat">
-          <div className={`sms-stat-icon sms-stat-icon--${cls}`}>
-            <Icon size={18} />
-          </div>
+          <div className={`sms-stat-icon sms-stat-icon--${cls}`}><Icon size={18} /></div>
           <div className="sms-stat-body">
-            <div className="sms-stat-val">{loading ? '…' : val}</div>
+            <div className="sms-stat-val">{loading ? '…' : Number(val).toLocaleString()}</div>
             <div className="sms-stat-lbl">{label}</div>
           </div>
         </div>
@@ -57,247 +45,307 @@ function SmsStatStrip({ stats, loading }) {
   );
 }
 
+function TypeBadge({ type }) {
+  const cfg = TYPE_CONFIG[type] || { label: type, cls: 'manual' };
+  const Icon = cfg.Icon || FiMessageSquare;
+  return (
+    <span className={`sms-type-badge sms-type--${cfg.cls}`}>
+      <Icon size={10} /> {cfg.label}
+    </span>
+  );
+}
+
+function StatusDot({ status }) {
+  const icon = status === 'sent'
+    ? <FiCheckCircle size={12} />
+    : status === 'failed'
+    ? <FiAlertCircle size={12} />
+    : <FiClock size={12} />;
+  return (
+    <span className={`sms-status-dot sms-status-dot--${status}`}>
+      {icon} {status}
+    </span>
+  );
+}
+
+/* ── Main page ────────────────────────────────────────────────────── */
 export default function SmsCenter() {
-  const navigate = useNavigate();
+  const { isAdmin }   = useAuth();
   const { showToast } = useToast();
 
   const [stats,     setStats]     = useState(null);
-  const [customers, setCustomers] = useState([]);
-  const [recent,    setRecent]    = useState([]);
-  const [statsLoading, setStatsLoading] = useState(true);
+  const [logs,      setLogs]      = useState([]);
+  const [total,     setTotal]     = useState(0);
+  const [loading,   setLoading]   = useState(true);
+  const [statsLoad, setStatsLoad] = useState(true);
+  const [resending, setResending] = useState(null);
+  const [expanded,  setExpanded]  = useState(null);
 
-  const [form, setForm] = useState({ customer_id: '', phone: '', message: '' });
-  const [sending, setSending] = useState(false);
-  const [phoneManual, setPhoneManual] = useState(false);
+  const [search,     setSearch]     = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [statusFilt, setStatusFilt] = useState('');
+  const [showFilter, setShowFilter] = useState(false);
+  const [page,       setPage]       = useState(0);
+  const LIMIT = 25;
 
-  const load = useCallback(async () => {
-    const [s, c, r] = await Promise.all([
-      api.get('/sms/stats'),
-      api.get('/sms/customers'),
-      api.get('/sms/logs?limit=6'),
-    ]);
-    setStats(s.data);
-    setCustomers(c.data);
-    setRecent(r.data.logs || []);
-    setStatsLoading(false);
+  const loadStats = useCallback(async () => {
+    try {
+      const { data } = await api.get('/sms/stats');
+      setStats(data);
+    } catch { setStats(null); }
+    finally { setStatsLoad(false); }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
-
-  function handleCustomerChange(e) {
-    const id = e.target.value;
-    const customer = customers.find(c => String(c.id) === id);
-    setForm(f => ({
-      ...f,
-      customer_id: id,
-      phone: customer ? customer.phone : '',
-    }));
-    setPhoneManual(!customer);
-  }
-
-  function applyTemplate(text) {
-    setForm(f => ({ ...f, message: text }));
-  }
-
-  async function handleSend(e) {
-    e.preventDefault();
-    if (!form.phone.trim())   return showToast('Phone number required', 'error');
-    if (!form.message.trim()) return showToast('Message required', 'error');
-    if (form.message.length > MAX_CHARS) return showToast(`Message too long (max ${MAX_CHARS} chars)`, 'error');
-
-    setSending(true);
+  const loadLogs = useCallback(async (p = 0) => {
+    setLoading(true);
     try {
-      const res = await api.post('/sms/send', {
-        phone:       form.phone.trim(),
-        message:     form.message.trim(),
-        customer_id: form.customer_id || null,
-      });
-      if (res.data.success) {
-        showToast('SMS sent successfully', 'success');
-        setForm(f => ({ ...f, message: '' }));
-        load();
+      const params = new URLSearchParams({ limit: LIMIT, offset: p * LIMIT });
+      if (typeFilter)  params.set('type',   typeFilter);
+      if (statusFilt)  params.set('status', statusFilt);
+      if (search)      params.set('search', search);
+      const { data } = await api.get(`/sms/logs?${params}`);
+      setLogs(data.logs  || []);
+      setTotal(data.total || 0);
+    } catch { setLogs([]); setTotal(0); }
+    finally { setLoading(false); }
+  }, [typeFilter, statusFilt, search]);
+
+  useEffect(() => { loadStats(); }, [loadStats]);
+  useEffect(() => { setPage(0); loadLogs(0); }, [typeFilter, statusFilt, search]);
+  useEffect(() => { loadLogs(page); }, [page]);
+
+  async function handleResend(id) {
+    setResending(id);
+    try {
+      const { data } = await api.post(`/sms/resend/${id}`);
+      if (data.success) {
+        showToast('SMS imetumwa tena kwa mafanikio', 'success');
+        loadLogs(page);
+        loadStats();
       } else {
-        showToast(res.data.error || 'SMS delivery failed — check logs', 'error');
+        showToast(data.error || data.message || 'Kutuma tena kumeshindwa', 'error');
       }
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to send SMS', 'error');
-    } finally {
-      setSending(false);
-    }
+      showToast(err.response?.data?.message || 'Hitilafu ya mtandao', 'error');
+    } finally { setResending(null); }
   }
 
-  const charCount = form.message.length;
-  const charCls   = charCount > MAX_CHARS ? 'sms-char-counter--over'
-                  : charCount > MAX_CHARS * 0.85 ? 'sms-char-counter--warn'
-                  : '';
+  function refresh() { loadStats(); loadLogs(page); }
 
-  const beemConfigured = true; // server-side check; UI shows warning if needed
+  const totalPages  = Math.ceil(total / LIMIT);
+  const hasFilters  = typeFilter || statusFilt || search;
 
   return (
     <div className="page">
-      <div className="page-top-bar">
+
+      {/* ── Page header ── */}
+      <div className="page-top-bar" style={{ marginBottom: '1.5rem' }}>
         <div>
           <h1 className="page-title">SMS Center</h1>
-          <p className="page-subtitle">Send and manage SMS notifications</p>
+          <p className="page-subtitle">
+            Tuma na angalia ujumbe wa SMS — {loading ? '…' : total.toLocaleString()} ujumbe
+          </p>
         </div>
-        <button className="btn btn--ghost" onClick={() => navigate('/sms/logs')}>
-          <FiList size={15} /> View Logs
+        <button className="btn btn--ghost" onClick={refresh}>
+          <FiRefreshCw size={14} className={loading || statsLoad ? 'spin' : ''} /> Refresh
         </button>
       </div>
 
-      <SmsStatStrip stats={stats} loading={statsLoading} />
+      {/* ── Stats ── */}
+      <StatStrip stats={stats} loading={statsLoad} />
 
-      <div className="sms-center-grid">
+      {/* ── Type filter tabs ── */}
+      <div className="filter-tabs" style={{ marginBottom: '1rem' }}>
+        {FILTER_TABS.map(({ key, label }) => (
+          <button
+            key={key}
+            className={`filter-tab${typeFilter === key ? ' filter-tab--active' : ''}`}
+            onClick={() => setTypeFilter(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
-        {/* ── Compose Panel ── */}
-        <div className="sms-compose-card">
-          <div className="sms-compose-header">
-            <div className="sms-compose-header-icon">
-              <FiSend size={17} />
-            </div>
-            <h2>Compose Message</h2>
-          </div>
-
-          <div className="sms-compose-body">
-            <form onSubmit={handleSend}>
-              {/* Customer selector */}
-              <div className="form-group">
-                <label htmlFor="sms-customer">
-                  <FiUsers size={11} /> Recipient
-                </label>
-                <select
-                  id="sms-customer"
-                  value={form.customer_id}
-                  onChange={handleCustomerChange}
-                >
-                  <option value="">— Select customer (optional) —</option>
-                  {customers.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.full_name} — {c.phone}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Phone */}
-              <div className="form-group">
-                <label htmlFor="sms-phone">Phone Number</label>
-                <input
-                  id="sms-phone"
-                  type="tel"
-                  required
-                  placeholder="e.g. 0712345678 or 255712345678"
-                  value={form.phone}
-                  onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                />
-              </div>
-
-              {/* Message */}
-              <div className="form-group">
-                <label htmlFor="sms-message">Message</label>
-                <div className="sms-textarea-wrap">
-                  <textarea
-                    id="sms-message"
-                    required
-                    placeholder="Type your message here…"
-                    value={form.message}
-                    onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-                  />
-                  <span className={`sms-char-counter ${charCls}`}>
-                    {charCount}/{MAX_CHARS}
-                  </span>
-                </div>
-                {form.message && (
-                  <div className="sms-preview-bubble">{form.message}</div>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                className="btn btn--primary btn--block"
-                disabled={sending || charCount > MAX_CHARS || !form.phone || !form.message}
-              >
-                {sending
-                  ? <><span className="login-spinner" /> Sending…</>
-                  : <><FiSend size={14} /> Send SMS</>
-                }
-              </button>
-            </form>
-          </div>
+      {/* ── Search + filter bar ── */}
+      <div className="page-toolbar">
+        <div className="search-wrap">
+          <FiSearch size={15} className="search-icon" />
+          <input
+            type="text"
+            className="search-input--icon"
+            placeholder="Tafuta kwa jina au nambari ya simu…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
         </div>
-
-        {/* ── Right column: Templates + Recent Activity ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-
-          {/* Templates */}
-          <div className="sms-templates-card card" style={{ marginBottom: 0 }}>
-            <div className="sms-templates-header">
-              <FiZap size={14} /> Quick Templates
-            </div>
-            <div className="sms-template-list">
-              {TEMPLATES.map(({ key, name, icon: Icon, cls, text }) => (
-                <div
-                  key={key}
-                  className="sms-template-item"
-                  onClick={() => applyTemplate(text)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={e => e.key === 'Enter' && applyTemplate(text)}
-                >
-                  <div className={`sms-template-icon sms-template-icon--${cls}`}>
-                    <Icon size={14} />
-                  </div>
-                  <div className="sms-template-body">
-                    <div className="sms-template-name">{name}</div>
-                    <div className="sms-template-preview">{text}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="card" style={{ marginBottom: 0 }}>
-            <div className="card-header">
-              <h2 className="card-title" style={{ marginBottom: 0 }}>
-                <FiClock size={15} /> Recent Activity
-              </h2>
-              <button className="link-btn" onClick={() => navigate('/sms/logs')}>
-                View all →
-              </button>
-            </div>
-            {recent.length === 0
-              ? <p className="empty-msg">No SMS sent yet</p>
-              : (
-                <div className="sms-activity-list">
-                  {recent.map(log => (
-                    <div key={log.id} className="sms-activity-item">
-                      <div className={`sms-activity-icon sms-activity-icon--${log.status}`}>
-                        {log.status === 'sent'
-                          ? <FiCheckCircle size={14} />
-                          : <FiAlertCircle size={14} />
-                        }
-                      </div>
-                      <div className="sms-activity-body">
-                        <div className="sms-activity-top">
-                          <span className="sms-activity-phone">
-                            {log.customer_name || log.phone}
-                          </span>
-                          <span className="sms-activity-time">
-                            {log.created_at?.slice(0, 10)}
-                          </span>
-                        </div>
-                        <div className="sms-activity-msg">{log.message}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )
-            }
-          </div>
-
+        <div style={{ display: 'flex', gap: '.5rem' }}>
+          {hasFilters && (
+            <button className="btn btn--ghost btn--sm"
+              onClick={() => { setSearch(''); setTypeFilter(''); setStatusFilt(''); setShowFilter(false); }}>
+              Futa
+            </button>
+          )}
+          <button
+            className={`btn btn--ghost${showFilter ? ' btn--active' : ''}`}
+            onClick={() => setShowFilter(v => !v)}
+          >
+            <FiFilter size={14} /> Chujua
+          </button>
         </div>
       </div>
+
+      {showFilter && (
+        <div className="filter-panel">
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Hali ya Ujumbe</label>
+            <select value={statusFilt} onChange={e => setStatusFilt(e.target.value)}>
+              <option value="">Zote</option>
+              <option value="sent">Zilifikia (sent)</option>
+              <option value="failed">Zilishindwa (failed)</option>
+              <option value="pending">Zinasubiri (pending)</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* ── History table ── */}
+      <div className="card" style={{ marginBottom: '1rem', padding: 0, overflow: 'hidden' }}>
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th style={{ width: 40 }}>#</th>
+                <th>Mteja</th>
+                <th>Simu</th>
+                <th>Aina</th>
+                <th>Ujumbe</th>
+                <th>Hali</th>
+                <th>Tarehe</th>
+                <th style={{ width: 56 }}>Tena</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--gray-400)' }}>
+                    <FiRefreshCw size={18} className="spin" style={{ marginRight: '.5rem' }} />
+                    Inapakia…
+                  </td>
+                </tr>
+              ) : logs.length === 0 ? (
+                <tr>
+                  <td colSpan={8}>
+                    <div className="empty-state" style={{ padding: '3rem' }}>
+                      <FiMessageSquare size={36} style={{ color: 'var(--gray-200)' }} />
+                      <p>{hasFilters ? 'Hakuna ujumbe unaofanana na utafutaji wako' : 'Hakuna ujumbe bado'}</p>
+                      {hasFilters && (
+                        <button className="btn btn--ghost btn--sm"
+                          onClick={() => { setSearch(''); setTypeFilter(''); setStatusFilt(''); }}>
+                          Futa Vichujio
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ) : logs.map((log, i) => (
+                <>
+                  <tr
+                    key={log.id}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setExpanded(expanded === log.id ? null : log.id)}
+                  >
+                    <td style={{ color: 'var(--gray-400)', fontSize: '.78rem' }}>
+                      {page * LIMIT + i + 1}
+                    </td>
+                    <td>
+                      <strong style={{ fontSize: '.875rem' }}>
+                        {log.customer_name || <span style={{ color: 'var(--gray-400)' }}>—</span>}
+                      </strong>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '.3rem' }}>
+                        <FiPhone size={12} style={{ color: 'var(--gray-400)', flexShrink: 0 }} />
+                        <code style={{ fontSize: '.78rem' }}>{log.phone}</code>
+                      </div>
+                    </td>
+                    <td><TypeBadge type={log.message_type} /></td>
+                    <td>
+                      <span className="sms-msg-preview" title={log.message}>{log.message}</span>
+                    </td>
+                    <td><StatusDot status={log.status} /></td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '.3rem', fontSize: '.78rem', color: 'var(--gray-500)', whiteSpace: 'nowrap' }}>
+                        <FiCalendar size={12} />
+                        {log.sent_at
+                          ? String(log.sent_at).slice(0, 16).replace('T', ' ')
+                          : log.created_at?.slice(0, 10) || '—'
+                        }
+                      </div>
+                    </td>
+                    <td onClick={e => e.stopPropagation()}>
+                      {log.status === 'failed' && isAdmin && (
+                        <button
+                          className="icon-btn icon-btn--edit"
+                          title="Tuma tena"
+                          disabled={resending === log.id}
+                          onClick={() => handleResend(log.id)}
+                        >
+                          {resending === log.id
+                            ? <FiRefreshCw size={13} className="spin" />
+                            : <FiRotateCcw size={13} />
+                          }
+                        </button>
+                      )}
+                      {log.status === 'sent' && (
+                        <FiCheckCircle size={15} style={{ color: 'var(--primary)', marginLeft: '.2rem' }} />
+                      )}
+                    </td>
+                  </tr>
+
+                  {/* Expanded full message */}
+                  {expanded === log.id && (
+                    <tr key={`${log.id}-exp`} style={{ background: 'var(--surface-2)' }}>
+                      <td colSpan={8} style={{ padding: '1rem 1.1rem 1.1rem' }}>
+                        <div style={{ fontSize: '.72rem', color: 'var(--gray-500)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '.4rem' }}>
+                          Ujumbe Kamili
+                        </div>
+                        <div className="sms-confirm-bubble" style={{ maxWidth: '580px', fontSize: '.84rem' }}>
+                          {log.message}
+                        </div>
+                        {log.error && (
+                          <div className="alert alert--error" style={{ marginTop: '.75rem', fontSize: '.8rem', padding: '.6rem .9rem' }}>
+                            Hitilafu: {log.error}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Pagination ── */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '.6rem' }}>
+          <button
+            className="btn btn--ghost btn--sm"
+            disabled={page === 0}
+            onClick={() => setPage(p => p - 1)}
+          >← Nyuma</button>
+          <span style={{ fontSize: '.82rem', color: 'var(--gray-500)', padding: '0 .4rem' }}>
+            Ukurasa {page + 1} / {totalPages}
+          </span>
+          <button
+            className="btn btn--ghost btn--sm"
+            disabled={page >= totalPages - 1}
+            onClick={() => setPage(p => p + 1)}
+          >Mbele →</button>
+        </div>
+      )}
     </div>
   );
 }
