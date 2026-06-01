@@ -21,7 +21,7 @@ function thankYou(customerName, loan) {
 function reminder(customerName, loan) {
   return (
     `Habari, ${customerName},\n\n` +
-    `Tunapenda kukukumbusha kuwa una salio la mkopo la TZS ${n(loan.balance)}.\n\n` +
+    `Tunapenda kukukumbusha kuwa kiasi cha mkopo unachodaiwa ni TZS ${n(loan.balance)}.\n\n` +
     `Tafadhali hakikisha unakamilisha malipo yako kabla ya tarehe ${fmtDate(loan.due_date)}.\n\n` +
     `Kwa maelezo zaidi wasiliana na Baraka Microcredit.\n\n` +
     `Asante.`
