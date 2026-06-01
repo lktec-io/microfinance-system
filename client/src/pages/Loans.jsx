@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiExternalLink, FiX } from 'react-icons/fi';
-import api        from '../api';
-import { fmt }    from '../utils/format';
-import StatusBadge from '../components/common/StatusBadge';
-import Skeleton    from '../components/common/Skeleton';
+import { FiPlus, FiExternalLink, FiX, FiMessageSquare, FiBell } from 'react-icons/fi';
+import api          from '../api';
+import { fmt }      from '../utils/format';
+import StatusBadge  from '../components/common/StatusBadge';
+import Skeleton     from '../components/common/Skeleton';
+import SmsSendModal from '../components/common/SmsSendModal';
 
 const EMPTY_FORM = {
   customer_id:    '',
@@ -27,6 +28,8 @@ export default function Loans() {
   const [error,     setError]     = useState('');
   const [preview,   setPreview]   = useState(null);
   const [filter,    setFilter]    = useState('all');
+  // { loan: {...}, type: 'thank_you' | 'reminder' }
+  const [smsModal,  setSmsModal]  = useState(null);
 
   const fetchLoans = useCallback(async () => {
     setLoading(true);
@@ -93,13 +96,13 @@ export default function Loans() {
               <thead>
                 <tr>
                   <th>#</th><th>Customer</th><th>Amount</th>
-                  <th>Interest</th><th>Total</th><th>Paid</th>
-                  <th>Balance</th><th>Due Date</th><th>Status</th><th>Actions</th>
+                  <th>Interest</th><th>Total</th><th>Balance</th>
+                  <th>Due Date</th><th>Status</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0
-                  ? <tr><td colSpan={10} className="text-center">No loans found</td></tr>
+                  ? <tr><td colSpan={9} className="text-center">No loans found</td></tr>
                   : filtered.map((l, i) => (
                     <tr key={l.id}>
                       <td>{i + 1}</td>
@@ -110,16 +113,34 @@ export default function Loans() {
                       <td>TZS {fmt(l.loan_amount)}</td>
                       <td>{l.interest_rate}%</td>
                       <td>TZS {fmt(l.total_payable)}</td>
-                      <td>TZS {fmt(l.amount_paid)}</td>
                       <td><strong>TZS {fmt(l.balance)}</strong></td>
                       <td>{l.due_date?.slice(0, 10) || '—'}</td>
                       <td><StatusBadge status={l.status} /></td>
                       <td>
-                        <button className="icon-btn icon-btn--view"
-                          onClick={() => navigate(`/loans/${l.id}`)}
-                          title="View loan details">
-                          <FiExternalLink size={15} />
-                        </button>
+                        <div className="icon-btns">
+                          <button
+                            className="icon-btn icon-btn--view"
+                            onClick={() => navigate(`/loans/${l.id}`)}
+                            title="View loan details"
+                          >
+                            <FiExternalLink size={14} />
+                          </button>
+                          <button
+                            className="icon-btn icon-btn--sms-ty"
+                            onClick={() => setSmsModal({ loan: l, type: 'thank_you' })}
+                            title="Send Thank You SMS"
+                          >
+                            <FiMessageSquare size={14} />
+                          </button>
+                          <button
+                            className="icon-btn icon-btn--sms-rm"
+                            onClick={() => setSmsModal({ loan: l, type: 'reminder' })}
+                            title="Send Reminder SMS"
+                            disabled={l.status === 'paid'}
+                          >
+                            <FiBell size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -130,19 +151,21 @@ export default function Loans() {
         </div>
       )}
 
+      {/* ── New Loan Modal ── */}
       {modal && (
         <div className="modal-overlay">
           <div className="modal modal--lg">
             <div className="modal-header">
               <h2>Create New Loan</h2>
-              <button className="modal-close" onClick={() => setModal(false)} aria-label="Close"><FiX size={18} /></button>
+              <button className="modal-close" onClick={() => setModal(false)} aria-label="Close">
+                <FiX size={18} />
+              </button>
             </div>
             {error && <div className="alert alert--error">{error}</div>}
             <form onSubmit={handleSave} className="modal-form">
               <div className="form-group">
                 <label>Customer *</label>
-                <select required name="customer_id" value={form.customer_id}
-                  onChange={handleFormChange}>
+                <select required name="customer_id" value={form.customer_id} onChange={handleFormChange}>
                   <option value="">— Select Customer —</option>
                   {customers.map(c => (
                     <option key={c.id} value={c.id}>{c.full_name} ({c.phone})</option>
@@ -199,8 +222,7 @@ export default function Loans() {
                 <textarea rows={2} name="purpose" value={form.purpose} onChange={handleFormChange} />
               </div>
               <div className="modal-actions">
-                <button type="button" className="btn btn--ghost"
-                  onClick={() => setModal(false)}>Cancel</button>
+                <button type="button" className="btn btn--ghost" onClick={() => setModal(false)}>Cancel</button>
                 <button type="submit" className="btn btn--primary" disabled={saving}>
                   {saving ? 'Creating…' : 'Create Loan'}
                 </button>
@@ -208,6 +230,15 @@ export default function Loans() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* ── SMS Send Modal ── */}
+      {smsModal && (
+        <SmsSendModal
+          loan={smsModal.loan}
+          type={smsModal.type}
+          onClose={() => setSmsModal(null)}
+        />
       )}
     </div>
   );

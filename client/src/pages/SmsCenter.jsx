@@ -11,32 +11,25 @@ const MAX_CHARS = 320;
 
 const TEMPLATES = [
   {
-    key: 'approved',
-    name: 'Loan Approved',
+    key: 'thank_you',
+    name: 'Thank You SMS',
     icon: FiCheckCircle,
     cls: 'approved',
-    text: 'Dear [NAME], your loan of TZS [AMOUNT] has been approved. Interest: [RATE]%. Total repayable: TZS [TOTAL]. Due date: [DUE_DATE]. - Baraka Microcredit',
+    text: 'Habari, [JINA],\n\nBaraka Microcredit tunakushukuru kwa kuchagua huduma zetu.\n\nMkopo wako wa TZS [KIASI] umeidhinishwa na kutolewa kikamilifu.\n\nKiasi cha kurejesha ni TZS [JUMLA] kabla ya tarehe [TAREHE].\n\nTunakutakia mafanikio katika matumizi ya mkopo huu.\n\nBaraka Microcredit',
   },
   {
     key: 'reminder',
-    name: 'Payment Reminder',
+    name: 'Reminder SMS',
     icon: FiClock,
     cls: 'reminder',
-    text: 'Dear [NAME], your loan balance of TZS [BALANCE] is due on [DUE_DATE]. Please ensure timely payment to avoid penalties. - Baraka Microcredit',
+    text: 'Habari, [JINA],\n\nTunapenda kukukumbusha kuwa una salio la mkopo la TZS [SALIO].\n\nTafadhali hakikisha unakamilisha malipo yako kabla ya tarehe [TAREHE].\n\nKwa maelezo zaidi wasiliana na Baraka Microcredit.\n\nAsante.',
   },
   {
     key: 'overdue',
     name: 'Overdue Notice',
     icon: FiAlertCircle,
     cls: 'overdue',
-    text: 'Dear [NAME], your loan payment of TZS [BALANCE] was due on [DUE_DATE] and is now OVERDUE. Please contact us immediately. - Baraka Microcredit',
-  },
-  {
-    key: 'payment',
-    name: 'Payment Received',
-    icon: FiCheckCircle,
-    cls: 'payment',
-    text: 'Dear [NAME], payment of TZS [AMOUNT] received. Remaining balance: TZS [BALANCE]. Receipt: [RECEIPT]. - Baraka Microcredit',
+    text: 'Habari, [JINA],\n\nMkopo wako wa TZS [SALIO] ulikuwa unadaiwa tarehe [TAREHE] na sasa umechelewa.\n\nTafadhali wasiliana nasi mara moja kuzuia hatua zaidi.\n\nBaraka Microcredit',
   },
 ];
 

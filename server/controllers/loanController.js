@@ -1,10 +1,6 @@
-const svc        = require('../services/loanService');
-const smsSvc     = require('../services/smsService');
-const templates  = require('../services/smsTemplates');
-const { pool }   = require('../config/database');
+const svc    = require('../services/loanService');
 const { asyncHandler } = require('../middleware/errorHandler');
-const { fail }   = require('../utils/helpers');
-const logger     = require('../utils/logger');
+const { fail } = require('../utils/helpers');
 
 const getAll = asyncHandler(async (_req, res) => {
   res.json(await svc.findAll());
@@ -28,30 +24,7 @@ const create = asyncHandler(async (req, res) => {
   if (!(await svc.customerExists(customer_id))) {
     return fail(res, 'Customer not found', 404);
   }
-
-  const loan = await svc.create(req.body);
-  res.status(201).json(loan);
-
-  // Fire-and-forget SMS notification after response is sent
-  (async () => {
-    try {
-      const [[customer]] = await pool.query(
-        'SELECT full_name, phone FROM customers WHERE id = ?',
-        [customer_id]
-      );
-      if (customer?.phone) {
-        await smsSvc.sendSafe({
-          phone:        customer.phone,
-          message:      templates.loanApproved(customer.full_name, loan),
-          customer_id:  parseInt(customer_id),
-          loan_id:      loan.id,
-          message_type: 'loan_approved',
-        });
-      }
-    } catch (err) {
-      logger.error('Post-loan-create SMS failed', err);
-    }
-  })();
+  res.status(201).json(await svc.create(req.body));
 });
 
 const update = asyncHandler(async (req, res) => {

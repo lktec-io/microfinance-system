@@ -218,11 +218,11 @@
   text-transform: capitalize;
   white-space: nowrap;
 }
-.sms-type--loan_approved       { background: var(--primary-lt);  color: var(--primary-dk); }
-.sms-type--repayment_recorded  { background: var(--teal-lt);     color: var(--teal-dk); }
+.sms-type--thank_you           { background: var(--primary-lt);  color: var(--primary-dk); }
+.sms-type--reminder            { background: var(--yellow-lt);   color: var(--yellow); }
+.sms-type--manual              { background: var(--blue-lt);     color: var(--blue-dk); }
 .sms-type--repayment_reminder  { background: var(--yellow-lt);   color: var(--yellow); }
 .sms-type--overdue_notice      { background: var(--red-lt);      color: var(--red-dk); }
-.sms-type--manual              { background: var(--blue-lt);     color: var(--blue-dk); }
 
 .sms-status-dot {
   display: inline-flex;
@@ -386,4 +386,182 @@
 }
 @media (max-width: 480px) {
   .sms-stat-strip { grid-template-columns: 1fr; }
+}
+
+/* ── SMS Action Buttons (icon-btn variants) ─────────────────────── */
+.icon-btn--sms-ty {
+  background: var(--primary-lt);
+  color: var(--primary);
+}
+.icon-btn--sms-ty:hover:not(:disabled) {
+  background: var(--primary-mid);
+  color: var(--primary-dk);
+}
+.icon-btn--sms-rm {
+  background: var(--yellow-lt);
+  color: var(--yellow);
+}
+.icon-btn--sms-rm:hover:not(:disabled) {
+  background: #fef3c7;
+  color: #92400e;
+}
+.icon-btn--sms-rm:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+/* ── Inline SMS buttons on loan detail toolbar ──────────────────── */
+.btn--sms-ty {
+  border-color: var(--primary-mid);
+  color: var(--primary-dk);
+}
+.btn--sms-ty:hover {
+  background: var(--primary-lt);
+  border-color: var(--primary);
+}
+.btn--sms-rm {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+.btn--sms-rm:hover {
+  background: var(--yellow-lt);
+}
+.btn--sms-rm:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SMS CONFIRM MODAL
+   ══════════════════════════════════════════════════════════════════ */
+.sms-confirm-modal { max-width: 460px; }
+
+/* Icon in modal header */
+.sms-modal-icon {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.sms-modal-icon--ty { background: var(--primary-lt); color: var(--primary-dk); }
+.sms-modal-icon--rm { background: var(--yellow-lt);  color: var(--yellow); }
+
+/* Recipient info box */
+.sms-confirm-recipient {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .75rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.sms-confirm-recip-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .84rem;
+  color: var(--gray-700);
+  font-weight: 500;
+}
+.sms-confirm-recip-row svg { color: var(--gray-400); flex-shrink: 0; }
+
+/* Message preview label */
+.sms-confirm-preview-label {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: .4rem;
+}
+
+/* Message bubble */
+.sms-confirm-bubble {
+  background: var(--gray-100);
+  border-radius: 12px 12px 4px 12px;
+  padding: .85rem 1rem;
+  font-size: .83rem;
+  color: var(--gray-700);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border: 1px solid var(--border);
+  margin-bottom: .5rem;
+}
+[data-theme="dark"] .sms-confirm-bubble {
+  background: var(--surface-2);
+}
+
+/* State screens (sending / success / error) */
+.sms-confirm-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem .5rem 1rem;
+  gap: .4rem;
+}
+.sms-confirm-state-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-top: .5rem;
+}
+.sms-confirm-state-sub {
+  font-size: .84rem;
+  color: var(--gray-500);
+}
+
+/* Sending spinner */
+.sms-confirm-spinner {
+  width: 44px; height: 44px;
+  border: 3.5px solid var(--primary-lt);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Success icon */
+.sms-confirm-success-icon {
+  color: var(--primary);
+  animation: popIn .35s cubic-bezier(.16,1,.3,1);
+}
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* Error icon */
+.sms-confirm-error-icon { color: var(--red); }
+
+/* Sent info rows */
+.sms-confirm-sent-info {
+  background: var(--primary-lt);
+  border: 1px solid var(--primary-mid);
+  border-radius: var(--radius-sm);
+  padding: .75rem 1.1rem;
+  margin-top: .75rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.sms-confirm-sent-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .83rem;
+  color: var(--primary-dk);
+  font-weight: 500;
+}
+.sms-confirm-sent-row svg { color: var(--primary); flex-shrink: 0; }
+
+/* ── Mobile adjustments ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sms-confirm-modal  { margin: .5rem; }
+  .btn--sms-ty,
+  .btn--sms-rm        { font-size: .78rem; padding: .42rem .75rem; }
 }

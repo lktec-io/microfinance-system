@@ -4,13 +4,14 @@ import {
   FiArrowLeft, FiPrinter, FiCreditCard,
   FiUser, FiPhone, FiMapPin,
   FiCalendar, FiDollarSign, FiPercent, FiClock,
-  FiTrash2, FiX,
+  FiTrash2, FiX, FiMessageSquare, FiBell,
 } from 'react-icons/fi';
-import api        from '../api';
-import { useToast } from '../context/ToastContext';
-import { fmt }      from '../utils/format';
-import StatusBadge  from '../components/common/StatusBadge';
-import Spinner      from '../components/common/Spinner';
+import api          from '../api';
+import { useToast }  from '../context/ToastContext';
+import { fmt }       from '../utils/format';
+import StatusBadge   from '../components/common/StatusBadge';
+import Spinner       from '../components/common/Spinner';
+import SmsSendModal  from '../components/common/SmsSendModal';
 
 function InfoRow({ Icon, label, value, valueClass }) {
   return (
@@ -37,6 +38,8 @@ export default function LoanDetail() {
   const [error,     setError]     = useState('');
   const [receipt,   setReceipt]   = useState(null);
   const [delModal,  setDelModal]  = useState(false);
+  // null | 'thank_you' | 'reminder'
+  const [smsType,   setSmsType]   = useState(null);
 
   async function fetchLoan() {
     try {
@@ -113,7 +116,22 @@ export default function LoanDetail() {
         <button className="btn btn--ghost btn--icon" onClick={() => navigate('/loans')}>
           <FiArrowLeft size={18} /> Back
         </button>
-        <div style={{ display: 'flex', gap: '.5rem' }}>
+        <div style={{ display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
+          <button
+            className="btn btn--ghost btn--sms-ty"
+            onClick={() => setSmsType('thank_you')}
+            title="Send Thank You SMS"
+          >
+            <FiMessageSquare size={15} /> Thank You SMS
+          </button>
+          <button
+            className="btn btn--ghost btn--sms-rm"
+            onClick={() => setSmsType('reminder')}
+            title="Send Reminder SMS"
+            disabled={loan.status === 'paid'}
+          >
+            <FiBell size={15} /> Reminder SMS
+          </button>
           {loan.status !== 'paid' && loan.repayments?.length === 0 && (
             <button className="btn btn--ghost btn--danger-ghost" onClick={() => setDelModal(true)}>
               <FiTrash2 size={16} /> Delete Loan
@@ -373,6 +391,15 @@ export default function LoanDetail() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── SMS Send Modal ── */}
+      {smsType && (
+        <SmsSendModal
+          loan={loan}
+          type={smsType}
+          onClose={() => setSmsType(null)}
+        />
       )}
 
       {/* ── Receipt Modal ── */}

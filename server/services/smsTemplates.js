@@ -7,46 +7,46 @@ function fmtDate(d) {
   return String(d).slice(0, 10);
 }
 
-function loanApproved(customerName, loan) {
+/* ── Kiswahili: Thank You (after loan disbursed) ──────────────── */
+function thankYou(customerName, loan) {
   return (
-    `Dear ${customerName}, your loan of TZS ${n(loan.loan_amount)} has been approved. ` +
-    `Interest: ${loan.interest_rate}%. Total repayable: TZS ${n(loan.total_payable)}. ` +
-    `Due date: ${fmtDate(loan.due_date)}. ` +
-    `- Baraka Microcredit`
+    `Habari, ${customerName},\n\n` +
+    `Baraka Microcredit tunakushukuru kwa kuchagua huduma zetu.\n\n` +
+    `Mkopo wako wa TZS ${n(loan.loan_amount)} umeidhinishwa na kutolewa kikamilifu.\n\n` +
+    `Kiasi cha kurejesha ni TZS ${n(loan.total_payable)} kabla ya tarehe ${fmtDate(loan.due_date)}.\n\n` +
+    `Tunakutakia mafanikio katika matumizi ya mkopo huu.\n\n` +
+    `Baraka Microcredit`
   );
 }
 
-function repaymentRecorded(customerName, amount, newBalance, receipt) {
-  if (parseFloat(newBalance) <= 0) {
-    return (
-      `Dear ${customerName}, payment of TZS ${n(amount)} received. ` +
-      `Your loan is now FULLY PAID. Receipt: ${receipt}. ` +
-      `Thank you! - Baraka Microcredit`
-    );
-  }
+/* ── Kiswahili: Payment Reminder ──────────────────────────────── */
+function reminder(customerName, loan) {
   return (
-    `Dear ${customerName}, payment of TZS ${n(amount)} received. ` +
-    `Remaining balance: TZS ${n(newBalance)}. ` +
-    `Receipt: ${receipt}. - Baraka Microcredit`
+    `Habari, ${customerName},\n\n` +
+    `Tunapenda kukukumbusha kuwa una salio la mkopo la TZS ${n(loan.balance)}.\n\n` +
+    `Tafadhali hakikisha unakamilisha malipo yako kabla ya tarehe ${fmtDate(loan.due_date)}.\n\n` +
+    `Kwa maelezo zaidi wasiliana na Baraka Microcredit.\n\n` +
+    `Asante.`
   );
 }
 
+/* ── Cron job templates (kept for automated daily jobs) ──────── */
 function repaymentReminder(customerName, balance, dueDate) {
   return (
-    `Dear ${customerName}, your loan balance of TZS ${n(balance)} ` +
-    `is due on ${fmtDate(dueDate)}. ` +
-    `Please ensure timely payment to avoid penalties. ` +
-    `- Baraka Microcredit`
+    `Habari, ${customerName},\n\n` +
+    `Tunapenda kukukumbusha kuwa una salio la mkopo la TZS ${n(balance)}.\n\n` +
+    `Tafadhali hakikisha unakamilisha malipo yako kabla ya tarehe ${fmtDate(dueDate)}.\n\n` +
+    `Kwa maelezo zaidi wasiliana na Baraka Microcredit.\n\nAsante.`
   );
 }
 
 function overdueNotice(customerName, balance, dueDate) {
   return (
-    `Dear ${customerName}, your loan payment of TZS ${n(balance)} ` +
-    `was due on ${fmtDate(dueDate)} and is now OVERDUE. ` +
-    `Please contact us immediately to avoid further action. ` +
-    `- Baraka Microcredit`
+    `Habari, ${customerName},\n\n` +
+    `Mkopo wako wa TZS ${n(balance)} ulikuwa unadaiwa tarehe ${fmtDate(dueDate)} na sasa umechelewa.\n\n` +
+    `Tafadhali wasiliana nasi mara moja kuzuia hatua zaidi.\n\n` +
+    `Baraka Microcredit`
   );
 }
 
-module.exports = { loanApproved, repaymentRecorded, repaymentReminder, overdueNotice };
+module.exports = { thankYou, reminder, repaymentReminder, overdueNotice };

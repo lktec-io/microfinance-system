@@ -1,8 +1,23 @@
-const { pool }   = require('../config/database');
-const smsSvc     = require('../services/smsService');
+const { pool }      = require('../config/database');
+const smsSvc        = require('../services/smsService');
+const templates     = require('../services/smsTemplates');
 const { asyncHandler } = require('../middleware/errorHandler');
-const { fail }   = require('../utils/helpers');
-const logger     = require('../utils/logger');
+const { fail }      = require('../utils/helpers');
+const logger        = require('../utils/logger');
+
+/* ── Shared: fetch loan with customer info ────────────────────── */
+async function getLoanWithCustomer(loanId) {
+  const [[row]] = await pool.query(
+    `SELECT l.id, l.loan_amount, l.total_payable, l.balance, l.due_date,
+            l.status, l.interest_rate,
+            c.id AS customer_id, c.full_name AS customer_name, c.phone
+     FROM loans l
+     JOIN customers c ON c.id = l.customer_id
+     WHERE l.id = ?`,
+    [parseInt(loanId)]
+  );
+  return row || null;
+}
 
 /* ── GET /api/sms/logs ────────────────────────────────────────── */
 const getLogs = asyncHandler(async (req, res) => {
@@ -113,6 +128,67 @@ const resendLog = asyncHandler(async (req, res) => {
   }
 });
 
+/* ── POST /api/sms/send-thank-you/:loanId ─────────────────────── */
+const sendThankYou = asyncHandler(async (req, res) => {
+  try {
+    const loan = await getLoanWithCustomer(req.params.loanId);
+    if (!loan)         return fail(res, 'Loan not found', 404);
+    if (!loan.phone)   return fail(res, 'Customer has no phone number on record');
+
+    const message = templates.thankYou(loan.customer_name, loan);
+    const result  = await smsSvc.send({
+      phone:        loan.phone,
+      message,
+      customer_id:  loan.customer_id,
+      loan_id:      loan.id,
+      message_type: 'thank_you',
+    });
+
+    res.json({
+      success:       result.success,
+      error:         result.error || null,
+      customer_name: loan.customer_name,
+      phone:         loan.phone,
+      message,
+      sent_at:       new Date().toISOString(),
+    });
+  } catch (err) {
+    logger.error('sendThankYou failed', err);
+    res.status(500).json({ success: false, message: err.message || 'Failed to send SMS' });
+  }
+});
+
+/* ── POST /api/sms/send-reminder/:loanId ─────────────────────── */
+const sendReminder = asyncHandler(async (req, res) => {
+  try {
+    const loan = await getLoanWithCustomer(req.params.loanId);
+    if (!loan)         return fail(res, 'Loan not found', 404);
+    if (!loan.phone)   return fail(res, 'Customer has no phone number on record');
+    if (loan.status === 'paid') return fail(res, 'This loan is already fully paid');
+
+    const message = templates.reminder(loan.customer_name, loan);
+    const result  = await smsSvc.send({
+      phone:        loan.phone,
+      message,
+      customer_id:  loan.customer_id,
+      loan_id:      loan.id,
+      message_type: 'reminder',
+    });
+
+    res.json({
+      success:       result.success,
+      error:         result.error || null,
+      customer_name: loan.customer_name,
+      phone:         loan.phone,
+      message,
+      sent_at:       new Date().toISOString(),
+    });
+  } catch (err) {
+    logger.error('sendReminder failed', err);
+    res.status(500).json({ success: false, message: err.message || 'Failed to send SMS' });
+  }
+});
+
 /* ── GET /api/sms/customers ───────────────────────────────────── */
 const getCustomerList = asyncHandler(async (_req, res) => {
   const [rows] = await pool.query(
@@ -121,4 +197,4 @@ const getCustomerList = asyncHandler(async (_req, res) => {
   res.json(rows);
 });
 
-module.exports = { getLogs, getStats, sendManual, resendLog, getCustomerList };
+module.exports = { getLogs, getStats, sendManual, resendLog, getCustomerList, sendThankYou, sendReminder };
