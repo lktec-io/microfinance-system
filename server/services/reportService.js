@@ -9,22 +9,27 @@ async function getSummary() {
   const [[overdueLoans]] = await pool.query("SELECT COUNT(*) AS total FROM loans WHERE status = 'overdue'");
   const [[byStatus]]     = await pool.query(`
     SELECT
-      SUM(status='active')  AS active,
-      SUM(status='pending') AS pending,
-      SUM(status='paid')    AS paid,
-      SUM(status='overdue') AS overdue
+      COALESCE(SUM(status='active'),  0) AS active,
+      COALESCE(SUM(status='pending'), 0) AS pending,
+      COALESCE(SUM(status='paid'),    0) AS paid,
+      COALESCE(SUM(status='overdue'), 0) AS overdue
     FROM loans
   `);
   return {
-    customers:     customers.total,
-    total_loans:   loans.total,
-    loans_amount:  loans.total_amount,
-    repayments:    repayments.total,
-    collected:     repayments.total_amount,
-    outstanding:   outstanding.total,
-    active_loans:  activeLoans.total,
-    overdue_loans: overdueLoans.total,
-    loan_status:   byStatus,
+    customers:     Number(customers.total    || 0),
+    total_loans:   Number(loans.total        || 0),
+    loans_amount:  Number(loans.total_amount || 0),
+    repayments:    Number(repayments.total   || 0),
+    collected:     Number(repayments.total_amount || 0),
+    outstanding:   Number(outstanding.total  || 0),
+    active_loans:  Number(activeLoans.total  || 0),
+    overdue_loans: Number(overdueLoans.total || 0),
+    loan_status: {
+      active:  Number(byStatus?.active  || 0),
+      pending: Number(byStatus?.pending || 0),
+      paid:    Number(byStatus?.paid    || 0),
+      overdue: Number(byStatus?.overdue || 0),
+    },
   };
 }
 
