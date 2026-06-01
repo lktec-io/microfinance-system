@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   FiHome, FiUsers, FiDollarSign, FiCreditCard,
-  FiBarChart2, FiShield, FiLogOut, FiX,
+  FiBarChart2, FiShield, FiLogOut, FiX, FiMessageSquare,
 } from 'react-icons/fi';
 
 const mainLinks = [
@@ -15,7 +15,9 @@ const mainLinks = [
 ];
 
 const adminLinks = [
-  { to: '/users', label: 'User Management', Icon: FiShield },
+  { to: '/users',    label: 'User Management', Icon: FiShield         },
+  { to: '/sms',      label: 'SMS Center',      Icon: FiMessageSquare  },
+  { to: '/sms/logs', label: 'SMS Logs',        Icon: FiMessageSquare  },
 ];
 
 function BrandLogo() {

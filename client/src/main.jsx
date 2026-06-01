@@ -10,6 +10,7 @@ import './styles/forms.css';
 import './styles/tables.css';
 import './styles/dashboard.css';
 import './styles/utilities.css';
+import './styles/sms.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

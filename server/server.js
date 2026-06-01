@@ -7,6 +7,7 @@ const { sanitizeBody }      = require('./middleware/validate');
 const { globalErrorHandler } = require('./middleware/errorHandler');
 const logger                = require('./utils/logger');
 const overdueJob            = require('./cron/overdueJob');
+const smsJobs               = require('./cron/smsJobs');
 
 const app  = express();
 const PORT = process.env.PORT || 8004;
@@ -33,6 +34,7 @@ app.use('/api/customers',  require('./routes/customers'));
 app.use('/api/loans',      require('./routes/loans'));
 app.use('/api/repayments', require('./routes/repayments'));
 app.use('/api/reports',    require('./routes/reports'));
+app.use('/api/sms',        require('./routes/sms'));
 
 // ── Health ────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) =>
@@ -48,6 +50,7 @@ app.use(globalErrorHandler);
 // ── Start ─────────────────────────────────────────────────────
 testConnection().then(() => {
   overdueJob.start();
+  smsJobs.start();
   app.listen(PORT, () =>
     logger.success(`Server running → https://microfinance.nardio.online:${PORT} [${process.env.NODE_ENV || 'development'}]`)
   );

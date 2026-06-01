@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   FiUsers, FiDollarSign, FiCreditCard,
   FiAlertTriangle, FiTrendingUp, FiHome,
-  FiRefreshCw, FiCalendar,
+  FiRefreshCw, FiCalendar, FiMessageSquare,
+  FiCheckCircle, FiAlertCircle, FiZap,
 } from 'react-icons/fi';
 import api        from '../api';
 import { fmt }    from '../utils/format';
@@ -62,20 +63,25 @@ function DonutChart({ data }) {
 
 export default function Dashboard() {
   const navigate         = useNavigate();
-  const { user }         = useAuth();
+  const { user, isAdmin } = useAuth();
   const [summary, setSummary]     = useState(null);
   const [recent,  setRecent]      = useState({ repayments: [] });
+  const [smsStats, setSmsStats]   = useState(null);
   const [loading, setLoading]     = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
-    const [s, r] = await Promise.all([
+    const requests = [
       api.get('/reports/summary'),
       api.get('/reports/recent'),
-    ]);
+    ];
+    if (isAdmin) requests.push(api.get('/sms/stats'));
+
+    const [s, r, sms] = await Promise.all(requests);
     setSummary(s.data);
     setRecent(r.data);
-  }, []);
+    if (sms) setSmsStats(sms.data);
+  }, [isAdmin]);
 
   useEffect(() => {
     loadData().finally(() => setLoading(false));
@@ -195,6 +201,46 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      {/* ── SMS Statistics Widget (admin only) ── */}
+      {isAdmin && smsStats !== null && (
+        <div className="sms-dashboard-widget">
+          <div className="sms-widget-header">
+            <span className="sms-widget-title">
+              <FiMessageSquare size={15} /> SMS Notifications
+            </span>
+            <button className="link-btn" onClick={() => navigate('/sms')}>
+              Manage →
+            </button>
+          </div>
+          <div className="sms-widget-grid">
+            <div className="sms-widget-stat">
+              <div className="sms-widget-stat-val sms-widget-stat-val--blue">
+                {Number(smsStats.total || 0).toLocaleString()}
+              </div>
+              <div className="sms-widget-stat-lbl">Total Sent</div>
+            </div>
+            <div className="sms-widget-stat">
+              <div className="sms-widget-stat-val sms-widget-stat-val--green">
+                {Number(smsStats.delivered || 0).toLocaleString()}
+              </div>
+              <div className="sms-widget-stat-lbl">Delivered</div>
+            </div>
+            <div className="sms-widget-stat">
+              <div className="sms-widget-stat-val">
+                {Number(smsStats.today_sent || 0).toLocaleString()}
+              </div>
+              <div className="sms-widget-stat-lbl">Sent Today</div>
+            </div>
+            <div className="sms-widget-stat">
+              <div className={`sms-widget-stat-val${smsStats.failed > 0 ? ' sms-widget-stat-val--red' : ''}`}>
+                {Number(smsStats.failed || 0).toLocaleString()}
+              </div>
+              <div className="sms-widget-stat-lbl">Failed</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Overview Grid ── */}
       <div className="overview-grid">

@@ -13,6 +13,8 @@ import LoanDetail from './pages/LoanDetail';
 import Repayments from './pages/Repayments';
 import Reports    from './pages/Reports';
 import Users      from './pages/Users';
+import SmsCenter  from './pages/SmsCenter';
+import SmsLogs    from './pages/SmsLogs';
 
 function Protected({ children, adminOnly = false }) {
   return (
@@ -37,6 +39,8 @@ export default function App() {
                 <Route path="/repayments"   element={<Protected><Repayments /></Protected>} />
                 <Route path="/reports"      element={<Protected><Reports /></Protected>} />
                 <Route path="/users"        element={<Protected adminOnly><Users /></Protected>} />
+                <Route path="/sms"          element={<Protected adminOnly><SmsCenter /></Protected>} />
+                <Route path="/sms/logs"     element={<Protected adminOnly><SmsLogs /></Protected>} />
                 <Route path="*"             element={<Navigate to="/" replace />} />
               </Routes>
             </BrowserRouter>

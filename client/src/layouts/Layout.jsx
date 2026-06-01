@@ -10,6 +10,8 @@ const titles = {
   '/repayments': 'Repayments',
   '/reports':    'Reports',
   '/users':      'User Management',
+  '/sms/logs':   'SMS Logs',
+  '/sms':        'SMS Center',
 };
 
 export default function Layout({ children }) {
