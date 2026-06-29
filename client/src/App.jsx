@@ -4,6 +4,7 @@ import { AuthProvider }  from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute    from './components/ProtectedRoute';
 import Layout            from './layouts/Layout';
+import CustomCursor      from './components/common/CustomCursor';
 
 import Login      from './pages/Login';
 import Dashboard  from './pages/Dashboard';
@@ -27,6 +28,7 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <ToastProvider>
+          <CustomCursor />
           <BrowserRouter>
             <Routes>
               <Route path="/login"      element={<Login />} />

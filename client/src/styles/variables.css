@@ -1,110 +1,96 @@
-/* ══════════════════════════════════════════════════════════════════
-   BARAKA MICROCREDIT — DESIGN SYSTEM  (Phase 2)
-   Primary: Deep Navy Blue  |  Accent: Premium Green (money only)
-   ══════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   BARAKA MICROCREDIT — PREMIUM DESIGN SYSTEM  v3
+   Primary: #00E5FF (Cyan)  |  Money: #39FF14 (Neon Green)  |  BG: #020818
+   ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Brand: Deep Navy Blue — primary actions, CTAs, active states ── */
-  --primary:      #2563eb;
-  --primary-dk:   #1d4ed8;
-  --primary-lt:   rgba(37,99,235,.11);
-  --primary-mid:  rgba(37,99,235,.26);
-  --primary-pale: rgba(37,99,235,.055);
-  --shadow-primary: 0 4px 18px rgba(37,99,235,.38), 0 1px 4px rgba(37,99,235,.2);
+  /* ── Primary Interactive: Electric Cyan ─────────────────────────── */
+  --primary:        #00E5FF;
+  --primary-dk:     #00B8CC;
+  --primary-lt:     rgba(0, 229, 255, 0.1);
+  --primary-mid:    rgba(0, 229, 255, 0.2);
+  --primary-pale:   rgba(0, 229, 255, 0.05);
+  --primary-glow:   rgba(0, 229, 255, 0.35);
+  --shadow-primary: 0 0 20px rgba(0,229,255,.35), 0 4px 14px rgba(0,229,255,.2);
 
-  /* ── Money Green — RESERVED: TZS amounts, paid status, success ── */
-  --green:      #10b981;
-  --green-dk:   #059669;
-  --green-lt:   rgba(16,185,129,.11);
-  --green-mid:  rgba(16,185,129,.26);
-  --green-pale: rgba(16,185,129,.055);
-  --shadow-green: 0 4px 14px rgba(16,185,129,.28);
+  /* ── Money: Neon Green — RESERVED for TZS amounts, paid status ──── */
+  --green:        #39FF14;
+  --green-dk:     #2EDD10;
+  --green-lt:     rgba(57, 255, 20, 0.1);
+  --green-mid:    rgba(57, 255, 20, 0.2);
+  --green-pale:   rgba(57, 255, 20, 0.05);
+  --green-bg:     rgba(57, 255, 20, 0.1);
+  --green-border: rgba(57, 255, 20, 0.2);
+  --shadow-green: 0 0 20px rgba(57,255,20,.35), 0 4px 14px rgba(57,255,20,.2);
 
-  /* Backward-compat aliases */
-  --green-bg:     rgba(16,185,129,.11);
-  --green-border: rgba(16,185,129,.26);
+  /* ── Status Colors ──────────────────────────────────────────────── */
+  --yellow:    #FFD166;
+  --yellow-lt: rgba(255,209,102,.12);
+  --yellow-dk: #E5B84E;
+  --red:       #FF4757;
+  --red-dk:    #FF6B78;
+  --red-lt:    rgba(255,71,87,.12);
+  --orange:    #FF8C42;
+  --blue:      #4CC9F0;
+  --blue-lt:   rgba(76,201,240,.12);
+  --teal:      #4CC9F0;
+  --teal-lt:   rgba(76,201,240,.12);
+  --teal-dk:   #3BAFD4;
 
-  /* ── Status ── */
-  --yellow:    #f59e0b;
-  --yellow-lt: rgba(245,158,11,.11);
-  --yellow-dk: #d97706;
-  --red:       #ef4444;
-  --red-dk:    #dc2626;
-  --red-lt:    rgba(239,68,68,.11);
-  --orange:    #f97316;
-  --blue:      #3b82f6;
-  --blue-lt:   rgba(59,130,246,.11);
-  --teal:      #06b6d4;
-  --teal-lt:   rgba(6,182,212,.11);
-  --teal-dk:   #0891b2;
+  /* ── Deep Navy Surfaces ─────────────────────────────────────────── */
+  --bg:           #020818;
+  --surface:      rgba(255,255,255,.03);
+  --surface-2:    rgba(255,255,255,.055);
+  --surface-3:    rgba(7,26,61,.92);
+  --surface-solid: #061228;
 
-  /* ── Light Theme: Surfaces ── */
-  --bg:        #f0f4fb;
-  --surface:   #ffffff;
-  --surface-2: #f7f9fd;
-  --surface-3: #eff3fa;
+  /* ── Text Scale (dark-first, all modes) ─────────────────────────── */
+  --gray-900: #E8F4FD;
+  --gray-800: rgba(232,244,253,.87);
+  --gray-700: rgba(232,244,253,.73);
+  --gray-600: rgba(232,244,253,.6);
+  --gray-500: rgba(232,244,253,.48);
+  --gray-400: rgba(232,244,253,.35);
+  --gray-300: rgba(232,244,253,.22);
+  --gray-200: rgba(232,244,253,.12);
+  --gray-100: rgba(232,244,253,.07);
+  --gray-50:  rgba(232,244,253,.04);
 
-  /* ── Light Theme: Grays ── */
-  --gray-50:  #f8fafc;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-300: #cbd5e1;
-  --gray-400: #94a3b8;
-  --gray-500: #64748b;
-  --gray-600: #475569;
-  --gray-700: #334155;
-  --gray-800: #1e293b;
-  --gray-900: #0f172a;
+  /* ── Borders ────────────────────────────────────────────────────── */
+  --border:        rgba(0,229,255,.1);
+  --border-strong: rgba(0,229,255,.22);
 
-  /* ── Light Theme: Borders & Shadows ── */
-  --border:        rgba(15,23,42,.08);
-  --border-strong: rgba(15,23,42,.14);
+  /* ── Shadows ────────────────────────────────────────────────────── */
+  --shadow-sm:    0 2px 8px rgba(0,0,0,.4), 0 1px 3px rgba(0,0,0,.3);
+  --shadow-md:    0 4px 20px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.35);
+  --shadow-lg:    0 12px 40px rgba(0,0,0,.6), 0 4px 14px rgba(0,0,0,.42);
+  --shadow-xl:    0 24px 80px rgba(0,0,0,.7), 0 8px 28px rgba(0,0,0,.5);
+  --shadow-glass: 0 8px 32px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
 
-  --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
-  --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
-  --shadow-lg: 0 10px 30px rgba(15,23,42,.12), 0 4px 8px rgba(15,23,42,.06);
-  --shadow-xl: 0 24px 60px rgba(15,23,42,.18), 0 8px 16px rgba(15,23,42,.08);
+  /* ── Radius ─────────────────────────────────────────────────────── */
+  --radius-xs:  4px;
+  --radius-sm:  10px;
+  --radius:     14px;
+  --radius-lg:  18px;
+  --radius-xl:  24px;
+  --radius-2xl: 32px;
 
-  /* ── Radius ── */
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius:    12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  --radius-2xl: 24px;
+  /* ── Motion ─────────────────────────────────────────────────────── */
+  --transition: 0.2s ease;
+  --spring:     0.4s cubic-bezier(.34,1.56,.64,1);
+  --ease-out:   0.3s cubic-bezier(0,0,.2,1);
 
-  /* ── Motion ── */
-  --transition: 0.18s ease;
-  --spring:     0.35s cubic-bezier(.16,1,.3,1);
-
-  /* ── Layout ── */
+  /* ── Layout ─────────────────────────────────────────────────────── */
   --sidebar-w: 260px;
   --header-h:  64px;
 }
 
-/* ── Dark Theme — Rich Dark Navy ───────────────────────────────── */
+/* ── Deeper Dark Mode ───────────────────────────────────────────── */
 [data-theme="dark"] {
-  --bg:        #060a18;
-  --surface:   #0c1428;
-  --surface-2: #111e38;
-  --surface-3: #162444;
-
-  --gray-50:  #0d1422;
-  --gray-100: #141d30;
-  --gray-200: #1c2840;
-  --gray-300: #263654;
-  --gray-400: #3c526e;
-  --gray-500: #5a7090;
-  --gray-600: #7a92b0;
-  --gray-700: #9ab0cc;
-  --gray-800: #bccde4;
-  --gray-900: #dde9f8;
-
-  --border:        rgba(255,255,255,.07);
-  --border-strong: rgba(255,255,255,.13);
-
-  --shadow-sm: 0 1px 4px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2);
-  --shadow-md: 0 4px 18px rgba(0,0,0,.5),  0 2px 6px rgba(0,0,0,.3);
-  --shadow-lg: 0 10px 40px rgba(0,0,0,.6), 0 4px 12px rgba(0,0,0,.38);
-  --shadow-xl: 0 24px 72px rgba(0,0,0,.7), 0 8px 24px rgba(0,0,0,.45);
+  --bg:           #010610;
+  --surface:      rgba(255,255,255,.02);
+  --surface-2:    rgba(255,255,255,.04);
+  --surface-solid: #040D20;
+  --border:        rgba(0,229,255,.08);
+  --border-strong: rgba(0,229,255,.18);
 }

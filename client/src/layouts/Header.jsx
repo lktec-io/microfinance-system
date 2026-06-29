@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiMoon, FiSun, FiBell, FiSettings, FiLogOut,
   FiCheckCircle, FiAlertTriangle, FiX, FiCreditCard,
@@ -57,30 +58,44 @@ export default function Header({ title, onMenuClick }) {
             <span className="notif-badge">3</span>
           </button>
 
-          {notifOpen && (
-            <div className="notif-panel">
-              <div className="notif-panel-header">
-                <span>Notifications</span>
-                <button className="notif-close-btn" onClick={() => setNotifOpen(false)}>
-                  <FiX size={14} />
-                </button>
-              </div>
-              <div className="notif-list">
-                {NOTIFS.map(({ id, type, Icon, text, time }) => (
-                  <div key={id} className={`notif-item notif-item--${type}`}>
-                    <div className="notif-icon-wrap">
-                      <Icon size={14} />
-                    </div>
-                    <div className="notif-body">
-                      <p>{text}</p>
-                      <span>{time}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="notif-footer">All notifications</div>
-            </div>
-          )}
+          <AnimatePresence>
+            {notifOpen && (
+              <motion.div
+                className="notif-panel"
+                initial={{ opacity: 0, y: -10, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.96 }}
+                transition={{ duration: 0.2, ease: [0, 0, 0.2, 1] }}
+              >
+                <div className="notif-panel-header">
+                  <span>Notifications</span>
+                  <button className="notif-close-btn" onClick={() => setNotifOpen(false)}>
+                    <FiX size={14} />
+                  </button>
+                </div>
+                <div className="notif-list">
+                  {NOTIFS.map(({ id, type, Icon, text, time }, i) => (
+                    <motion.div
+                      key={id}
+                      className={`notif-item notif-item--${type}`}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.06, duration: 0.22, ease: [0, 0, 0.2, 1] }}
+                    >
+                      <div className="notif-icon-wrap">
+                        <Icon size={14} />
+                      </div>
+                      <div className="notif-body">
+                        <p>{text}</p>
+                        <span>{time}</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+                <div className="notif-footer">All notifications</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Settings — admin only */}

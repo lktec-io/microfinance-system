@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   FiUsers, FiDollarSign, FiCreditCard,
   FiAlertTriangle, FiTrendingUp, FiHome,
@@ -10,6 +11,27 @@ import { fmt }       from '../utils/format';
 import { useAuth }   from '../context/AuthContext';
 import StatCard      from '../components/common/StatCard';
 import { SkeletonStats } from '../components/common/Skeleton';
+
+const statContainer = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.09, delayChildren: 0.05 } },
+};
+const statItem = {
+  hidden:  { opacity: 0, y: 22 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 26 } },
+};
+const chipContainer = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
+};
+const chipItem = {
+  hidden:  { opacity: 0, scale: 0.88 },
+  visible: { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 320, damping: 24 } },
+};
+const sectionReveal = {
+  hidden:  { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0, 0, 0.2, 1] } },
+};
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 function greeting() {
@@ -262,13 +284,20 @@ export default function Dashboard() {
       )}
 
       {/* ── Stat Cards ── */}
-      <div className="stat-grid">
+      <motion.div
+        className="stat-grid"
+        variants={statContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-40px' }}
+      >
         <StatCard
           label="Total Customers" color="blue"
           value={summary?.customers ?? 0}
           sub="Registered clients"
           Icon={FiUsers}
           to="/customers"
+          variants={statItem}
         />
         <StatCard
           label="Active Loans" color="green"
@@ -276,6 +305,7 @@ export default function Dashboard() {
           sub={`TZS ${fmt(summary?.loans_amount ?? 0)} issued`}
           Icon={FiDollarSign}
           to="/loans"
+          variants={statItem}
         />
         <StatCard
           label="Total Collected" color="teal"
@@ -283,40 +313,61 @@ export default function Dashboard() {
           sub={`${summary?.repayments ?? 0} payments`}
           Icon={FiCreditCard}
           to="/repayments"
+          variants={statItem}
         />
         <StatCard
           label="Outstanding" color="red"
           value={`TZS ${fmt(summary?.outstanding ?? 0)}`}
           sub={`${summary?.overdue_loans ?? 0} overdue`}
           Icon={FiTrendingUp}
+          variants={statItem}
         />
-      </div>
+      </motion.div>
 
       {/* ── Loan Status Pills ── */}
-      <div className="loan-status-row">
+      <motion.div
+        className="loan-status-row"
+        variants={chipContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-30px' }}
+      >
         {[
           { label: 'Active',  val: ls.active,  cls: 'active'  },
           { label: 'Pending', val: ls.pending, cls: 'pending' },
           { label: 'Paid',    val: ls.paid,    cls: 'paid'    },
           { label: 'Overdue', val: ls.overdue, cls: 'overdue' },
         ].map(({ label, val, cls }) => (
-          <div key={cls} className={`status-chip status-chip--${cls}`}>
+          <motion.div key={cls} className={`status-chip status-chip--${cls}`} variants={chipItem}>
             <span className="status-chip-val">{val || 0}</span>
             <span className="status-chip-lbl">{label}</span>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* ── SMS Statistics Widget (admin only) ── */}
       {isAdmin && (
-        <SmsWidget stats={smsStats} onManage={() => navigate('/sms')} />
+        <motion.div
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-30px' }}
+        >
+          <SmsWidget stats={smsStats} onManage={() => navigate('/sms')} />
+        </motion.div>
       )}
 
       {/* ── Overview Grid ── */}
       <div className="overview-grid">
 
         {/* Loan Distribution */}
-        <section className="card">
+        <motion.section
+          className="card"
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+        >
           <div className="card-header">
             <h2 className="card-title" style={{ marginBottom: 0 }}>
               <FiTrendingUp size={16} /> Loan Distribution
@@ -334,10 +385,16 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
-        </section>
+        </motion.section>
 
         {/* Recent Payments */}
-        <section className="card">
+        <motion.section
+          className="card"
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+        >
           <div className="card-header">
             <h2 className="card-title" style={{ marginBottom: 0 }}>
               <FiCreditCard size={16} /> Recent Payments
@@ -367,7 +424,7 @@ export default function Dashboard() {
               </div>
             )
           }
-        </section>
+        </motion.section>
 
       </div>
     </div>

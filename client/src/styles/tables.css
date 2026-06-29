@@ -13,75 +13,93 @@
   min-width: 500px;
 }
 .table th {
-  background: var(--surface-2);
-  border-bottom: 1.5px solid var(--border);
-  padding: .7rem .95rem;
+  background: rgba(0,229,255,.04);
+  border-bottom: 1.5px solid rgba(0,229,255,.1);
+  padding: .75rem .95rem;
   text-align: left;
   font-weight: 700;
-  color: var(--gray-500);
+  color: rgba(0,229,255,.6);
   font-size: .75rem;
   text-transform: uppercase;
-  letter-spacing: .08em;
+  letter-spacing: .1em;
   white-space: nowrap;
 }
 .table td {
-  padding: .78rem .95rem;
-  border-bottom: 1px solid var(--border);
+  padding: .82rem .95rem;
+  border-bottom: 1px solid rgba(255,255,255,.04);
   vertical-align: middle;
   transition: background var(--transition);
+  color: var(--gray-700);
 }
 .table tr:last-child td { border-bottom: none; }
 .table tbody tr { transition: background var(--transition); }
-.table tbody tr:hover td { background: var(--primary-pale); }
-.tr-link { cursor: pointer; }
-.tr-link:hover td { background: var(--primary-lt) !important; }
-.table small { color: var(--gray-400); font-size: .84rem; }
+.table tbody tr:hover td {
+  background: rgba(0,229,255,.04);
+  color: var(--gray-900);
+}
+.tr-link { cursor: none; }
+.tr-link:hover td { background: rgba(0,229,255,.05) !important; }
+.table small { color: var(--gray-500); font-size: .84rem; }
 
 /* ── Text Utilities ─────────────────────────────────────────────── */
 .text-center { text-align: center; }
 .text-right  { text-align: right; }
-.text-red    { color: var(--red); }
-.text-green  { color: var(--green-dk); }
+.text-red    { color: var(--red-dk); }
+.text-green  { color: var(--green); }
 .text-orange { color: var(--orange); }
-.text-blue   { color: var(--blue); }
-.amount-cell { font-weight: 700; color: var(--green-dk); font-size: .95rem; }
+.text-blue   { color: var(--primary); }
+.amount-cell {
+  font-weight: 700;
+  color: var(--green);
+  font-size: .95rem;
+  text-shadow: 0 0 12px rgba(57,255,20,.25);
+}
 
-/* ── Results Summary ────────────────────────────────────────────── */
+/* ── Results Summary ─────────────────────────────────────────────── */
 .results-summary {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: .82rem;
+  font-size: .84rem;
   color: var(--gray-500);
   margin-bottom: .85rem;
-  padding: .48rem .85rem;
-  background: var(--surface);
+  padding: .5rem .9rem;
+  background: rgba(255,255,255,.03);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(0,229,255,.08);
 }
-.results-total { font-size: .88rem; font-weight: 600; color: var(--gray-700); }
+.results-total { font-size: .9rem; font-weight: 600; color: var(--gray-700); }
 
-/* ── Tabs (Reports page) ────────────────────────────────────────── */
+/* ── Tabs (Reports page) ─────────────────────────────────────────── */
 .tabs {
   display: flex;
-  border-bottom: 1.5px solid var(--border);
+  border-bottom: 1.5px solid rgba(0,229,255,.1);
   margin-bottom: 1.75rem;
   gap: .15rem;
 }
 .tab {
-  padding: .75rem 1.5rem;
+  padding: .78rem 1.5rem;
   font-size: .925rem;
   font-weight: 600;
-  color: var(--gray-400);
+  color: var(--gray-500);
   border-bottom: 2px solid transparent;
   margin-bottom: -1.5px;
   transition: color var(--transition), border-color var(--transition), background var(--transition);
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   letter-spacing: -.01em;
 }
-.tab:hover { color: var(--primary); background: var(--primary-pale); }
+.tab:hover { color: var(--primary); background: rgba(0,229,255,.04); }
 .tab--active {
   color: var(--primary);
   border-bottom-color: var(--primary);
   font-weight: 700;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { min-width: 560px; }
+  .table th, .table td { padding: .62rem .85rem; }
+  .tabs { overflow-x: auto; flex-wrap: nowrap; gap: 0; }
+  .tab  { white-space: nowrap; flex-shrink: 0; padding: .6rem 1rem; font-size: .875rem; }
 }

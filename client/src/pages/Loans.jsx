@@ -1,10 +1,30 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiPlus, FiEye, FiEdit2, FiX,
   FiMessageSquare, FiBell, FiAlertTriangle,
   FiGrid, FiList, FiCalendar, FiDollarSign,
 } from 'react-icons/fi';
+
+const gridContainer = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.065, delayChildren: 0.04 } },
+};
+const gridItem = {
+  hidden:  { opacity: 0, y: 18, scale: 0.97 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } },
+};
+const modalOverlay = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.18 } },
+  exit:    { opacity: 0, transition: { duration: 0.14 } },
+};
+const modalPanel = {
+  hidden:  { opacity: 0, y: 24, scale: 0.97 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 320, damping: 28 } },
+  exit:    { opacity: 0, y: 12, scale: 0.98, transition: { duration: 0.15 } },
+};
 import api          from '../api';
 import { fmt }      from '../utils/format';
 import StatusBadge  from '../components/common/StatusBadge';
@@ -254,17 +274,23 @@ export default function Loans() {
         </div>
 
       ) : viewMode === 'grid' ? (
-        <div className="loan-grid">
+        <motion.div
+          className="loan-grid"
+          variants={gridContainer}
+          initial="hidden"
+          animate="visible"
+        >
           {filtered.map(l => (
-            <LoanCard
-              key={l.id}
-              loan={l}
-              onView={() => navigate(`/loans/${l.id}`)}
-              onEdit={() => openEdit(l)}
-              onSms={(type) => setSmsModal({ loan: l, type })}
-            />
+            <motion.div key={l.id} variants={gridItem} whileHover={{ y: -4, transition: { type: 'spring', stiffness: 340, damping: 26 } }}>
+              <LoanCard
+                loan={l}
+                onView={() => navigate(`/loans/${l.id}`)}
+                onEdit={() => openEdit(l)}
+                onSms={(type) => setSmsModal({ loan: l, type })}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
       ) : (
         /* ── List view ── */
@@ -337,9 +363,10 @@ export default function Loans() {
       )}
 
       {/* ── Create Loan Modal ── */}
+      <AnimatePresence>
       {createModal && (
-        <div className="modal-overlay">
-          <div className="modal modal--lg">
+        <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
+          <motion.div className="modal modal--lg" variants={modalPanel}>
             <div className="modal-header">
               <h2>Create New Loan</h2>
               <button className="modal-close" onClick={() => setCreateModal(false)}><FiX size={18} /></button>
@@ -407,14 +434,16 @@ export default function Loans() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* ── Edit Loan Modal ── */}
+      <AnimatePresence>
       {editModal && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
+          <motion.div className="modal" variants={modalPanel}>
             <div className="modal-header">
               <h2>Edit Loan #{editModal.id}</h2>
               <button className="modal-close" onClick={() => setEditModal(null)}><FiX size={18} /></button>
@@ -449,9 +478,10 @@ export default function Loans() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* ── SMS Send Modal ── */}
       {smsModal && (

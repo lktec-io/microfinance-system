@@ -1,7 +1,40 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { FiEye, FiEyeOff, FiMail, FiLock, FiShield } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
+
+const panelVariants = {
+  hidden:  { opacity: 0, x: -40 },
+  visible: {
+    opacity: 1, x: 0,
+    transition: { duration: 0.55, ease: [0, 0, 0.2, 1] },
+  },
+};
+
+const formVariants = {
+  hidden:  { opacity: 0, x: 30 },
+  visible: {
+    opacity: 1, x: 0,
+    transition: { duration: 0.5, ease: [0, 0, 0.2, 1], delay: 0.08 },
+  },
+};
+
+const staggerGroup = {
+  hidden:  { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.07, delayChildren: 0.25 },
+  },
+};
+
+const staggerItem = {
+  hidden:  { opacity: 0, y: 14 },
+  visible: {
+    opacity: 1, y: 0,
+    transition: { type: 'spring', stiffness: 260, damping: 24 },
+  },
+};
 
 function BrandLogo() {
   const [imgErr, setImgErr] = useState(false);
@@ -43,43 +76,81 @@ export default function Login() {
   return (
     <div className="login-page">
 
-      {/* ── Left: Brand panel ── */}
-      <div className="login-brand-panel">
-        <div className="login-brand-inner">
-          <BrandLogo />
-          <h1 className="login-brand-title">
+      {/* ── Left: Brand Panel ── */}
+      <motion.div
+        className="login-brand-panel"
+        variants={panelVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div
+          className="login-brand-inner"
+          variants={staggerGroup}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={staggerItem}>
+            <BrandLogo />
+          </motion.div>
+          <motion.h1 className="login-brand-title" variants={staggerItem}>
             Baraka<br />Microcredit
-          </h1>
-          <p className="login-brand-tagline">
+          </motion.h1>
+          <motion.p className="login-brand-tagline" variants={staggerItem}>
             Enterprise-grade financial management for growing communities.
-          </p>
-          <div className="login-brand-stats">
-            <div className="login-brand-stat">
+          </motion.p>
+          <motion.div className="login-brand-stats" variants={staggerItem}>
+            <motion.div
+              className="login-brand-stat"
+              whileHover={{ scale: 1.03 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+            >
               <span className="login-brand-stat-val">99.9%</span>
               <span className="login-brand-stat-label">Uptime SLA</span>
-            </div>
-            <div className="login-brand-stat">
+            </motion.div>
+            <motion.div
+              className="login-brand-stat"
+              whileHover={{ scale: 1.03 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+            >
               <span className="login-brand-stat-val">AES-256</span>
               <span className="login-brand-stat-label">Encryption</span>
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
         <div className="login-orb login-orb--1" />
         <div className="login-orb login-orb--2" />
-      </div>
+      </motion.div>
 
-      {/* ── Right: Form panel ── */}
-      <div className="login-form-panel">
-        <div className="login-form-inner">
-
-          <div className="login-form-header">
+      {/* ── Right: Form Panel ── */}
+      <motion.div
+        className="login-form-panel"
+        variants={formVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div
+          className="login-form-inner"
+          variants={staggerGroup}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div className="login-form-header" variants={staggerItem}>
             <h2>Welcome back</h2>
             <p>Sign in to your workspace to continue</p>
-          </div>
+          </motion.div>
 
-          {error && <div className="alert alert--error">{error}</div>}
+          {error && (
+            <motion.div
+              className="alert alert--error"
+              initial={{ opacity: 0, scale: .95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+            >
+              {error}
+            </motion.div>
+          )}
 
-          <form onSubmit={handleSubmit} className="login-form">
+          <motion.form onSubmit={handleSubmit} className="login-form" variants={staggerItem}>
             <div className="form-group">
               <label htmlFor="email">Email Address</label>
               <div className="input-icon-wrap">
@@ -120,25 +191,30 @@ export default function Login() {
               </div>
             </div>
 
-            <button
+            <motion.button
               type="submit"
               className="btn btn--primary btn--block login-submit"
               disabled={loading}
+              whileHover={loading ? {} : { scale: 1.01 }}
+              whileTap={loading ? {} : { scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
             >
               {loading
                 ? <><span className="login-spinner" /> Verifying…</>
                 : 'Sign In →'
               }
-            </button>
-          </form>
+            </motion.button>
+          </motion.form>
 
-          <p className="login-hint">Contact your administrator for access credentials</p>
-          <div className="login-security-note">
+          <motion.p className="login-hint" variants={staggerItem}>
+            Contact your administrator for access credentials
+          </motion.p>
+          <motion.div className="login-security-note" variants={staggerItem}>
             <FiShield size={11} /> Secured with end-to-end encryption
-          </div>
+          </motion.div>
 
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
     </div>
   );

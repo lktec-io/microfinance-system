@@ -1,8 +1,28 @@
 import { useEffect, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FiSearch, FiUserPlus, FiGrid, FiList, FiEdit2, FiTrash2, FiX } from 'react-icons/fi';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
 import Skeleton from '../components/common/Skeleton';
+
+const gridContainer = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+};
+const gridItem = {
+  hidden:  { opacity: 0, y: 20, scale: 0.97 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } },
+};
+const modalOverlay = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.18 } },
+  exit:    { opacity: 0, transition: { duration: 0.14 } },
+};
+const modalPanel = {
+  hidden:  { opacity: 0, y: 24, scale: 0.97 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 320, damping: 28 } },
+  exit:    { opacity: 0, y: 12, scale: 0.98, transition: { duration: 0.15 } },
+};
 
 const EMPTY = { full_name: '', phone: '', address: '', id_number: '', registration_date: '' };
 
@@ -111,9 +131,14 @@ export default function Customers() {
         customers.length === 0
           ? <div className="card"><p className="empty-msg text-center">No customers found</p></div>
           : (
-            <div className="customer-grid">
+            <motion.div
+              className="customer-grid"
+              variants={gridContainer}
+              initial="hidden"
+              animate="visible"
+            >
               {customers.map(c => (
-                <div key={c.id} className="customer-card">
+                <motion.div key={c.id} className="customer-card" variants={gridItem} whileHover={{ y: -4, transition: { type: 'spring', stiffness: 340, damping: 26 } }}>
                   <div className="customer-card-avatar">
                     {c.full_name?.[0]?.toUpperCase()}
                   </div>
@@ -136,9 +161,9 @@ export default function Customers() {
                       <FiTrash2 size={16} />
                     </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )
       ) : (
         <div className="card">
@@ -185,67 +210,71 @@ export default function Customers() {
         </div>
       )}
 
-      {modal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>{modal === 'add' ? 'Add Customer' : 'Edit Customer'}</h2>
-              <button className="modal-close" onClick={() => setModal(null)} aria-label="Close"><FiX size={18} /></button>
-            </div>
-            {error && <div className="alert alert--error">{error}</div>}
-            <form onSubmit={handleSave} className="modal-form">
-              <div className="form-group">
-                <label>Full Name *</label>
-                <input required value={form.full_name}
-                  onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} />
+      <AnimatePresence>
+        {modal && (
+          <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
+            <motion.div className="modal" variants={modalPanel}>
+              <div className="modal-header">
+                <h2>{modal === 'add' ? 'Add Customer' : 'Edit Customer'}</h2>
+                <button className="modal-close" onClick={() => setModal(null)} aria-label="Close"><FiX size={18} /></button>
               </div>
-              <div className="form-row">
+              {error && <div className="alert alert--error">{error}</div>}
+              <form onSubmit={handleSave} className="modal-form">
                 <div className="form-group">
-                  <label>Phone *</label>
-                  <input required value={form.phone}
-                    onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+                  <label>Full Name *</label>
+                  <input required value={form.full_name}
+                    onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Phone *</label>
+                    <input required value={form.phone}
+                      onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label>ID Number</label>
+                    <input value={form.id_number}
+                      onChange={e => setForm(f => ({ ...f, id_number: e.target.value }))} />
+                  </div>
                 </div>
                 <div className="form-group">
-                  <label>ID Number</label>
-                  <input value={form.id_number}
-                    onChange={e => setForm(f => ({ ...f, id_number: e.target.value }))} />
+                  <label>Address *</label>
+                  <textarea required rows={2} value={form.address}
+                    onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
                 </div>
-              </div>
-              <div className="form-group">
-                <label>Address *</label>
-                <textarea required rows={2} value={form.address}
-                  onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
-              </div>
-              <div className="form-group">
-                <label>Registration Date</label>
-                <input type="date" value={form.registration_date}
-                  onChange={e => setForm(f => ({ ...f, registration_date: e.target.value }))} />
-              </div>
-              <div className="modal-actions">
-                <button type="button" className="btn btn--ghost" onClick={() => setModal(null)}>Cancel</button>
-                <button type="submit" className="btn btn--primary" disabled={saving}>
-                  {saving ? 'Saving…' : 'Save'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+                <div className="form-group">
+                  <label>Registration Date</label>
+                  <input type="date" value={form.registration_date}
+                    onChange={e => setForm(f => ({ ...f, registration_date: e.target.value }))} />
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="btn btn--ghost" onClick={() => setModal(null)}>Cancel</button>
+                  <button type="submit" className="btn btn--primary" disabled={saving}>
+                    {saving ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {delId && (
-        <div className="modal-overlay">
-          <div className="modal modal--sm">
-            <h2>Delete Customer?</h2>
-            <p style={{ margin: '1rem 0', color: 'var(--gray-600)' }}>
-              This action cannot be undone. Customers with loans cannot be deleted.
-            </p>
-            <div className="modal-actions">
-              <button className="btn btn--ghost" onClick={() => setDelId(null)}>Cancel</button>
-              <button className="btn btn--danger" onClick={handleDelete}>Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {delId && (
+          <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
+            <motion.div className="modal modal--sm" variants={modalPanel}>
+              <h2>Delete Customer?</h2>
+              <p style={{ margin: '1rem 0', color: 'var(--gray-600)' }}>
+                This action cannot be undone. Customers with loans cannot be deleted.
+              </p>
+              <div className="modal-actions">
+                <button className="btn btn--ghost" onClick={() => setDelId(null)}>Cancel</button>
+                <button className="btn btn--danger" onClick={handleDelete}>Delete</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
