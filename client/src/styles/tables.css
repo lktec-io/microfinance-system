@@ -9,7 +9,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: .855rem;
+  font-size: .925rem;
   min-width: 500px;
 }
 .table th {
@@ -19,7 +19,7 @@
   text-align: left;
   font-weight: 700;
   color: var(--gray-500);
-  font-size: .67rem;
+  font-size: .75rem;
   text-transform: uppercase;
   letter-spacing: .08em;
   white-space: nowrap;
@@ -35,7 +35,7 @@
 .table tbody tr:hover td { background: var(--primary-pale); }
 .tr-link { cursor: pointer; }
 .tr-link:hover td { background: var(--primary-lt) !important; }
-.table small { color: var(--gray-400); font-size: .77rem; }
+.table small { color: var(--gray-400); font-size: .84rem; }
 
 /* ── Text Utilities ─────────────────────────────────────────────── */
 .text-center { text-align: center; }
@@ -44,7 +44,7 @@
 .text-green  { color: var(--green-dk); }
 .text-orange { color: var(--orange); }
 .text-blue   { color: var(--blue); }
-.amount-cell { font-weight: 700; color: var(--green-dk); font-size: .875rem; }
+.amount-cell { font-weight: 700; color: var(--green-dk); font-size: .95rem; }
 
 /* ── Results Summary ────────────────────────────────────────────── */
 .results-summary {
@@ -70,7 +70,7 @@
 }
 .tab {
   padding: .75rem 1.5rem;
-  font-size: .85rem;
+  font-size: .925rem;
   font-weight: 600;
   color: var(--gray-400);
   border-bottom: 2px solid transparent;

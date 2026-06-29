@@ -15,7 +15,7 @@
   margin-bottom: 1.1rem;
 }
 .card-title {
-  font-size: .875rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--gray-800);
   display: flex;
@@ -30,7 +30,7 @@
   align-items: center;
   padding: .2rem .62rem;
   border-radius: 99px;
-  font-size: .68rem;
+  font-size: .75rem;
   font-weight: 700;
   letter-spacing: .02em;
   white-space: nowrap;
@@ -285,7 +285,7 @@
   align-items: center;
   gap: .3rem;
   padding: .42rem .8rem;
-  font-size: .77rem;
+  font-size: .84rem;
   font-weight: 600;
   color: var(--gray-500);
   background: var(--surface);
@@ -333,7 +333,7 @@
   color: var(--gray-900);
   margin-bottom: .22rem;
 }
-.user-card-email { font-size: .77rem; color: var(--gray-500); margin-bottom: .65rem; }
+.user-card-email { font-size: .84rem; color: var(--gray-500); margin-bottom: .65rem; }
 .user-card-badges { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; margin-bottom: .3rem; }
 .user-card-actions { display: flex; gap: .4rem; margin-top: .75rem; }
 .user-avatar-sm {
@@ -383,7 +383,7 @@
 }
 .customer-info { flex: 1; min-width: 0; }
 .customer-name { font-weight: 700; font-size: .9rem; color: var(--gray-900); }
-.customer-id   { font-size: .71rem; color: var(--gray-400); margin-top: .1rem; }
+.customer-id   { font-size: .78rem; color: var(--gray-400); margin-top: .1rem; }
 .customer-loan-count {
   display: flex;
   align-items: center;
@@ -392,7 +392,7 @@
   background: var(--primary-lt);
   color: var(--primary);
   border-radius: 6px;
-  font-size: .65rem;
+  font-size: .72rem;
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -400,7 +400,7 @@
   display: flex;
   flex-direction: column;
   gap: .28rem;
-  font-size: .79rem;
+  font-size: .86rem;
   color: var(--gray-500);
 }
 .customer-detail-row { display: flex; align-items: center; gap: .4rem; }
@@ -445,14 +445,14 @@
   box-shadow: 0 2px 8px rgba(37,99,235,.2);
 }
 .loan-card-info { flex: 1; min-width: 0; }
-.loan-card-name  { font-weight: 700; font-size: .875rem; color: var(--gray-900); }
-.loan-card-phone { font-size: .73rem; color: var(--gray-400); margin-top: .07rem; }
+.loan-card-name  { font-weight: 700; font-size: .95rem; color: var(--gray-900); }
+.loan-card-phone { font-size: .8rem; color: var(--gray-400); margin-top: .07rem; }
 .loan-card-body  { padding: .88rem 1.1rem; display: flex; flex-direction: column; gap: .42rem; }
 .loan-card-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: .81rem;
+  font-size: .875rem;
 }
 .loan-card-row span { color: var(--gray-500); display: flex; align-items: center; gap: .3rem; }
 .loan-card-row strong { font-weight: 600; color: var(--gray-800); }
@@ -539,7 +539,7 @@
   background: var(--surface-2);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  font-size: .81rem;
+  font-size: .875rem;
 }
 .sms-stat-label { color: var(--gray-500); display: flex; align-items: center; gap: .4rem; }
 .sms-stat-value { font-weight: 700; color: var(--gray-800); }

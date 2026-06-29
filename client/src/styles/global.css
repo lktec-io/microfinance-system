@@ -1,6 +1,6 @@
 /* ── Base Elements ──────────────────────────────────────────────── */
 html {
-  font-size: 15px;
+  font-size: 16px;
   -webkit-text-size-adjust: 100%;
   overflow-x: hidden;
   scroll-behavior: smooth;
@@ -20,6 +20,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  overflow-x: hidden;
   transition: background 0.25s ease, color 0.25s ease;
 }
 
@@ -40,9 +41,9 @@ input, select, textarea {
   border: 1.5px solid var(--border);
   background: var(--surface-2);
   width: 100%;
-  padding: .6rem .9rem;
+  padding: .65rem 1rem;
   border-radius: var(--radius-sm);
-  font-size: .875rem;
+  font-size: .9375rem;
   line-height: 1.5;
   transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
 }

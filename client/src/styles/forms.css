@@ -5,7 +5,7 @@
   gap: .45rem;
   padding: .56rem 1.25rem;
   border-radius: var(--radius-sm);
-  font-size: .86rem;
+  font-size: .925rem;
   font-weight: 600;
   line-height: 1;
   transition:
@@ -77,7 +77,7 @@
 .btn--active { background: var(--primary-lt); border-color: var(--primary-mid); color: var(--primary); }
 .btn--block  { width: 100%; justify-content: center; }
 .btn--icon   { gap: .35rem; }
-.btn--sm     { padding: .38rem .85rem; font-size: .78rem; }
+.btn--sm     { padding: .38rem .85rem; font-size: .84rem; }
 
 /* Small inline buttons */
 .btn-sm {
@@ -86,7 +86,7 @@
   gap: .25rem;
   padding: .32rem .72rem;
   border-radius: 6px;
-  font-size: .77rem;
+  font-size: .83rem;
   font-weight: 600;
   margin-right: .3rem;
   cursor: pointer;
@@ -108,7 +108,7 @@
 .btn--sms-rm:disabled { opacity: .38; cursor: not-allowed; }
 
 .link-btn {
-  font-size: .81rem;
+  font-size: .875rem;
   font-weight: 600;
   color: var(--primary);
   padding: .2rem .5rem;
@@ -121,7 +121,7 @@
 .form-group { margin-bottom: 1.05rem; }
 .form-group label {
   display: block;
-  font-size: .72rem;
+  font-size: .8rem;
   font-weight: 700;
   color: var(--gray-500);
   margin-bottom: .42rem;
@@ -159,7 +159,7 @@
   flex-wrap: wrap;
 }
 .page-section-title {
-  font-size: .97rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--gray-800);
   letter-spacing: -.02em;
@@ -293,7 +293,7 @@
 }
 .login-brand-stat-label {
   display: block;
-  font-size: .67rem;
+  font-size: .74rem;
   color: rgba(255,255,255,.32);
   text-transform: uppercase;
   letter-spacing: .07em;

@@ -62,7 +62,7 @@
 
 .welcome-text  { position: relative; z-index: 2; flex: 1; min-width: 0; }
 .welcome-greeting {
-  font-size: .68rem;
+  font-size: .75rem;
   font-weight: 600;
   letter-spacing: .16em;
   text-transform: uppercase;
@@ -70,7 +70,7 @@
   margin-bottom: .3rem;
 }
 .welcome-text h2 {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 700;
   margin-bottom: .48rem;
   line-height: 1.2;
@@ -185,13 +185,13 @@
 
 .stat-card-inner { display: flex; align-items: flex-start; justify-content: space-between; }
 .stat-value {
-  font-size: 1.55rem;
+  font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -.025em;
 }
 .stat-label {
-  font-size: .68rem;
+  font-size: .75rem;
   opacity: .75;
   margin-top: .38rem;
   text-transform: uppercase;
@@ -199,7 +199,7 @@
   font-weight: 700;
 }
 .stat-sub {
-  font-size: .73rem;
+  font-size: .8rem;
   opacity: .58;
   margin-top: .18rem;
   font-weight: 400;
@@ -224,8 +224,8 @@
 .status-chip--pending { background: var(--yellow-lt);  color: var(--yellow-dk); border-color: rgba(245,158,11,.3); }
 .status-chip--paid    { background: var(--green-lt);   color: var(--green-dk); border-color: var(--green-mid); }
 .status-chip--overdue { background: var(--red-lt);     color: var(--red-dk);   border-color: rgba(239,68,68,.3); }
-.status-chip-val { font-size: 1.58rem; line-height: 1; }
-.status-chip-lbl { font-size: .67rem; text-transform: capitalize; margin-top: .15rem; font-weight: 600; opacity: .8; }
+.status-chip-val { font-size: 1.75rem; line-height: 1; }
+.status-chip-lbl { font-size: .74rem; text-transform: capitalize; margin-top: .15rem; font-weight: 600; opacity: .8; }
 
 /* ── Dashboard Grid ──────────────────────────────────────────────── */
 .dashboard-grid {
@@ -246,14 +246,14 @@
 
 /* ── Page Title ──────────────────────────────────────────────────── */
 .page-title {
-  font-size: 1.28rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--gray-800);
   letter-spacing: -.03em;
   line-height: 1.2;
 }
 .page-subtitle {
-  font-size: .79rem;
+  font-size: .875rem;
   color: var(--gray-500);
   font-weight: 500;
   margin-top: .2rem;
@@ -264,7 +264,7 @@
 .filter-tab {
   padding: .44rem 1rem;
   border-radius: 20px;
-  font-size: .77rem;
+  font-size: .875rem;
   font-weight: 600;
   background: var(--gray-100);
   color: var(--gray-500);
@@ -306,7 +306,7 @@
   display: flex;
   align-items: center;
   gap: .45rem;
-  font-size: .81rem;
+  font-size: .875rem;
 }
 .donut-dot {
   width: 8px; height: 8px;
@@ -317,7 +317,7 @@
   flex: 1;
   color: var(--gray-600);
   font-weight: 500;
-  font-size: .8rem;
+  font-size: .875rem;
 }
 .donut-legend-val {
   font-weight: 700;
