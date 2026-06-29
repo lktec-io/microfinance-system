@@ -1,4 +1,4 @@
-/* ── Table Wrapper (scrollable on mobile) ───────────────────────── */
+/* ── Table Wrapper ──────────────────────────────────────────────── */
 .table-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -9,32 +9,33 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: .86rem;
+  font-size: .855rem;
   min-width: 500px;
 }
 .table th {
   background: var(--surface-2);
-  border-bottom: 2px solid var(--primary-lt);
-  padding: .7rem .9rem;
+  border-bottom: 1.5px solid var(--border);
+  padding: .72rem .95rem;
   text-align: left;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--gray-500);
-  font-size: .71rem;
+  font-size: .68rem;
   text-transform: uppercase;
-  letter-spacing: .05em;
+  letter-spacing: .07em;
   white-space: nowrap;
 }
 .table td {
-  padding: .75rem .9rem;
-  border-bottom: 1px solid var(--gray-100);
+  padding: .78rem .95rem;
+  border-bottom: 1px solid var(--border);
   vertical-align: middle;
+  transition: background var(--transition);
 }
 .table tr:last-child td { border-bottom: none; }
 .table tbody tr { transition: background var(--transition); }
 .table tbody tr:hover td { background: var(--primary-pale); }
 .tr-link { cursor: pointer; }
 .tr-link:hover td { background: var(--primary-lt) !important; }
-.table small { color: var(--gray-500); font-size: .78rem; }
+.table small { color: var(--gray-400); font-size: .77rem; }
 
 /* ── Text Utilities ─────────────────────────────────────────────── */
 .text-center { text-align: center; }
@@ -43,40 +44,44 @@
 .text-green  { color: var(--green-dk); }
 .text-orange { color: var(--orange); }
 .text-blue   { color: var(--blue); }
-.amount-cell { font-weight: 700; color: var(--green-dk); font-size: .88rem; }
+.amount-cell { font-weight: 700; color: var(--green-dk); font-size: .875rem; }
 
 /* ── Results Summary ────────────────────────────────────────────── */
 .results-summary {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: .84rem;
-  color: var(--gray-600);
+  font-size: .83rem;
+  color: var(--gray-500);
   margin-bottom: .85rem;
-  padding: .5rem .75rem;
+  padding: .5rem .85rem;
   background: var(--surface);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
 }
-.results-total { font-size: .9rem; font-weight: 600; color: var(--gray-700); }
+.results-total { font-size: .88rem; font-weight: 600; color: var(--gray-700); }
 
 /* ── Tabs (Reports) ─────────────────────────────────────────────── */
 .tabs {
   display: flex;
-  border-bottom: 2px solid var(--border);
+  border-bottom: 1.5px solid var(--border);
   margin-bottom: 1.75rem;
-  gap: .3rem;
+  gap: .2rem;
 }
 .tab {
-  padding: .8rem 1.6rem;
-  font-size: .88rem;
+  padding: .78rem 1.5rem;
+  font-size: .86rem;
   font-weight: 600;
-  color: var(--gray-500);
-  border-bottom: 2.5px solid transparent;
-  margin-bottom: -2px;
+  color: var(--gray-400);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1.5px;
   transition: color var(--transition), border-color var(--transition), background var(--transition);
-  text-transform: capitalize;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  letter-spacing: -.01em;
 }
-.tab:hover { color: var(--primary); background: var(--primary-lt); }
-.tab--active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+.tab:hover { color: var(--primary); background: var(--primary-pale); }
+.tab--active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 700;
+}

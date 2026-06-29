@@ -1,24 +1,6 @@
 /* ══════════════════════════════════════════════════════════════════
-   SMS CENTER & LOGS — Baraka Microcredit
+   SMS CENTER — Baraka Microcredit
    ══════════════════════════════════════════════════════════════════ */
-
-/* ── Spin utility (for loading icons) ──────────────────────────── */
-.spin { animation: spin .7s linear infinite; }
-
-/* ── Page heading helpers (used across SMS pages) ───────────────── */
-.page-title {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: var(--gray-800);
-  letter-spacing: -.02em;
-  line-height: 1.2;
-}
-.page-subtitle {
-  font-size: .82rem;
-  color: var(--gray-500);
-  font-weight: 500;
-  margin-top: .18rem;
-}
 
 /* ── SMS Stats Strip ────────────────────────────────────────────── */
 .sms-stat-strip {
@@ -30,15 +12,15 @@
 .sms-stat {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.25rem 1.4rem;
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.45rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: background-color 0.25s ease, box-shadow var(--transition);
+  transition: background-color 0.22s ease, box-shadow var(--transition);
   box-shadow: var(--shadow-sm);
 }
-.sms-stat:hover { box-shadow: var(--shadow); }
+.sms-stat:hover { box-shadow: var(--shadow-md); }
 .sms-stat-icon {
   width: 42px; height: 42px;
   border-radius: var(--radius-sm);
@@ -52,17 +34,17 @@
 .sms-stat-icon--failed  { background: var(--red-lt);     color: var(--red); }
 .sms-stat-body { min-width: 0; }
 .sms-stat-val {
-  font-size: 1.45rem;
+  font-size: 1.42rem;
   font-weight: 800;
   color: var(--gray-800);
   line-height: 1.1;
-  letter-spacing: -.02em;
+  letter-spacing: -.025em;
 }
 .sms-stat-lbl {
-  font-size: .74rem;
+  font-size: .72rem;
   color: var(--gray-500);
   font-weight: 500;
-  margin-top: .18rem;
+  margin-top: .2rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -76,11 +58,11 @@
   align-items: start;
 }
 
-/* ── Compose Panel ──────────────────────────────────────────────── */
+/* ── Compose Panel (legacy — kept for backward compat) ──────────── */
 .sms-compose-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   overflow: hidden;
 }
@@ -91,14 +73,10 @@
   align-items: center;
   gap: .75rem;
 }
-.sms-compose-header h2 {
-  color: #fff;
-  font-size: .95rem;
-  font-weight: 700;
-}
+.sms-compose-header h2 { color: #fff; font-size: .92rem; font-weight: 700; }
 .sms-compose-header-icon {
-  width: 36px; height: 36px;
-  background: rgba(255,255,255,.2);
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,.18);
   border-radius: 8px;
   display: grid; place-items: center;
   color: #fff;
@@ -117,24 +95,23 @@
 }
 .sms-char-counter {
   position: absolute;
-  bottom: .55rem;
-  right: .75rem;
-  font-size: .72rem;
+  bottom: .55rem; right: .75rem;
+  font-size: .7rem;
   color: var(--gray-400);
   font-weight: 500;
   pointer-events: none;
 }
-.sms-char-counter--warn  { color: var(--yellow); }
-.sms-char-counter--over  { color: var(--red); }
+.sms-char-counter--warn { color: var(--yellow); }
+.sms-char-counter--over { color: var(--red); }
 
 /* SMS preview bubble */
 .sms-preview-bubble {
   background: var(--gray-100);
-  border-radius: 16px 16px 4px 16px;
+  border-radius: 14px 14px 4px 14px;
   padding: .75rem 1rem;
   font-size: .82rem;
   color: var(--gray-700);
-  line-height: 1.5;
+  line-height: 1.55;
   margin-top: .75rem;
   border: 1px solid var(--border);
   min-height: 48px;
@@ -143,15 +120,15 @@
   transition: background 0.2s;
 }
 [data-theme="dark"] .sms-preview-bubble {
-  background: var(--gray-200);
-  border-color: var(--gray-300);
+  background: var(--gray-100);
+  border-color: var(--border);
 }
 
 /* ── Templates Panel ────────────────────────────────────────────── */
 .sms-templates-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
 .sms-templates-header {
@@ -163,6 +140,7 @@
   display: flex;
   align-items: center;
   gap: .45rem;
+  letter-spacing: -.01em;
 }
 .sms-template-list { padding: .5rem .6rem .6rem; }
 .sms-template-item {
@@ -196,6 +174,7 @@
   font-weight: 700;
   color: var(--gray-800);
   margin-bottom: .12rem;
+  letter-spacing: -.01em;
 }
 .sms-template-preview {
   font-size: .76rem;
@@ -206,32 +185,46 @@
   max-width: 220px;
 }
 
-/* ── SMS Logs Table ─────────────────────────────────────────────── */
+/* ── SMS Type Badges ────────────────────────────────────────────── */
 .sms-type-badge {
   display: inline-flex;
   align-items: center;
-  gap: .3rem;
-  padding: .2rem .6rem;
+  gap: .28rem;
+  padding: .18rem .58rem;
   border-radius: 20px;
-  font-size: .7rem;
+  font-size: .68rem;
   font-weight: 700;
   text-transform: capitalize;
   white-space: nowrap;
+  border: 1px solid transparent;
 }
-.sms-type--thank_you { background: var(--primary-lt); color: var(--primary-dk); }
-.sms-type--reminder  { background: var(--yellow-lt);  color: var(--yellow); }
-.sms-type--overdue   { background: var(--red-lt);     color: var(--red-dk); }
+.sms-type--thank_you {
+  background: var(--primary-lt);
+  color: var(--primary-dk);
+  border-color: var(--primary-mid);
+}
+.sms-type--reminder {
+  background: var(--yellow-lt);
+  color: var(--yellow);
+  border-color: rgba(251,191,36,.35);
+}
+.sms-type--overdue {
+  background: var(--red-lt);
+  color: var(--red-dk);
+  border-color: rgba(248,113,113,.35);
+}
 
+/* ── SMS Status Dot ─────────────────────────────────────────────── */
 .sms-status-dot {
   display: inline-flex;
   align-items: center;
   gap: .35rem;
-  font-size: .78rem;
+  font-size: .77rem;
   font-weight: 600;
 }
 .sms-status-dot::before {
   content: '';
-  width: 7px; height: 7px;
+  width: 6px; height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -244,15 +237,15 @@
 
 /* Message preview in log table */
 .sms-msg-preview {
-  font-size: .8rem;
-  color: var(--gray-600);
+  font-size: .79rem;
+  color: var(--gray-500);
   max-width: 300px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ── Recent Activity List (SMS Center) ──────────────────────────── */
+/* ── Recent Activity List ───────────────────────────────────────── */
 .sms-activity-list { display: flex; flex-direction: column; gap: .5rem; }
 .sms-activity-item {
   display: flex;
@@ -266,8 +259,8 @@
 }
 .sms-activity-item:hover { background: var(--primary-lt); }
 .sms-activity-icon {
-  width: 30px; height: 30px;
-  border-radius: 50%;
+  width: 28px; height: 28px;
+  border-radius: 7px;
   display: grid; place-items: center;
   flex-shrink: 0;
 }
@@ -278,20 +271,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: .12rem;
+  margin-bottom: .1rem;
 }
-.sms-activity-phone {
-  font-size: .82rem;
-  font-weight: 700;
-  color: var(--gray-800);
-}
-.sms-activity-time {
-  font-size: .72rem;
-  color: var(--gray-400);
-  flex-shrink: 0;
-}
+.sms-activity-phone { font-size: .82rem; font-weight: 700; color: var(--gray-800); }
+.sms-activity-time  { font-size: .7rem; color: var(--gray-400); flex-shrink: 0; }
 .sms-activity-msg {
-  font-size: .76rem;
+  font-size: .75rem;
   color: var(--gray-500);
   white-space: nowrap;
   overflow: hidden;
@@ -302,54 +287,51 @@
 .sms-dashboard-widget {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   margin-bottom: 1.5rem;
 }
 .sms-widget-header {
-  padding: 1rem 1.4rem;
+  padding: 1rem 1.45rem;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 .sms-widget-title {
-  font-size: .88rem;
+  font-size: .86rem;
   font-weight: 700;
   color: var(--gray-800);
   display: flex;
   align-items: center;
   gap: .45rem;
+  letter-spacing: -.01em;
 }
-.sms-widget-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  divide-x: 1px solid var(--border);
-}
+.sms-widget-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
 .sms-widget-stat {
-  padding: 1rem 1.2rem;
+  padding: 1rem 1.25rem;
   border-right: 1px solid var(--border);
   text-align: center;
 }
 .sms-widget-stat:last-child { border-right: none; }
 .sms-widget-stat-val {
-  font-size: 1.35rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: var(--gray-800);
-  letter-spacing: -.02em;
+  letter-spacing: -.025em;
   line-height: 1;
 }
 .sms-widget-stat-val--green { color: var(--primary-dk); }
 .sms-widget-stat-val--red   { color: var(--red); }
 .sms-widget-stat-val--blue  { color: var(--blue); }
 .sms-widget-stat-lbl {
-  font-size: .7rem;
+  font-size: .68rem;
   color: var(--gray-500);
-  font-weight: 500;
+  font-weight: 600;
   margin-top: .3rem;
   text-transform: uppercase;
-  letter-spacing: .04em;
+  letter-spacing: .05em;
 }
 
 /* ── Config notice ──────────────────────────────────────────────── */
@@ -369,24 +351,24 @@
 
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 1200px) {
-  .sms-stat-strip { grid-template-columns: repeat(2, 1fr); }
-  .sms-center-grid { grid-template-columns: 1fr; }
-  .sms-widget-grid { grid-template-columns: repeat(2, 1fr); }
+  .sms-stat-strip   { grid-template-columns: repeat(2, 1fr); }
+  .sms-center-grid  { grid-template-columns: 1fr; }
+  .sms-widget-grid  { grid-template-columns: repeat(2, 1fr); }
   .sms-widget-stat:nth-child(2) { border-right: none; }
 }
 @media (max-width: 768px) {
-  .sms-stat-strip { grid-template-columns: 1fr 1fr; gap: .75rem; }
-  .sms-widget-grid { grid-template-columns: repeat(2, 1fr); }
+  .sms-stat-strip   { grid-template-columns: 1fr 1fr; gap: .75rem; }
+  .sms-widget-grid  { grid-template-columns: repeat(2, 1fr); }
   .sms-widget-stat:nth-child(2) { border-right: none; }
   .sms-widget-stat:nth-child(3) { border-top: 1px solid var(--border); }
   .sms-widget-stat:nth-child(4) { border-top: 1px solid var(--border); }
-  .sms-msg-preview { max-width: 140px; }
+  .sms-msg-preview  { max-width: 140px; }
 }
 @media (max-width: 480px) {
   .sms-stat-strip { grid-template-columns: 1fr; }
 }
 
-/* ── SMS Action Buttons (icon-btn variants) ─────────────────────── */
+/* ── SMS Action Buttons ─────────────────────────────────────────── */
 .icon-btn--sms-ty {
   background: var(--primary-lt);
   color: var(--primary);
@@ -405,7 +387,7 @@
 }
 .icon-btn--sms-rm:disabled,
 .icon-btn--sms-ov:disabled {
-  opacity: .35;
+  opacity: .3;
   cursor: not-allowed;
 }
 .icon-btn--sms-ov {
@@ -419,31 +401,22 @@
   border-color: var(--primary-mid);
   color: var(--primary-dk);
 }
-.btn--sms-ty:hover {
-  background: var(--primary-lt);
-  border-color: var(--primary);
-}
+.btn--sms-ty:hover { background: var(--primary-lt); border-color: var(--primary); }
 .btn--sms-rm {
   border-color: var(--yellow);
   color: var(--yellow);
 }
-.btn--sms-rm:hover {
-  background: var(--yellow-lt);
-}
-.btn--sms-rm:disabled {
-  opacity: .4;
-  cursor: not-allowed;
-}
+.btn--sms-rm:hover    { background: var(--yellow-lt); }
+.btn--sms-rm:disabled { opacity: .38; cursor: not-allowed; }
 
 /* ══════════════════════════════════════════════════════════════════
    SMS CONFIRM MODAL
    ══════════════════════════════════════════════════════════════════ */
 .sms-confirm-modal { max-width: 460px; }
 
-/* Icon in modal header */
 .sms-modal-icon {
   width: 34px; height: 34px;
-  border-radius: 8px;
+  border-radius: 9px;
   display: grid; place-items: center;
   flex-shrink: 0;
 }
@@ -451,12 +424,11 @@
 .sms-modal-icon--rm { background: var(--yellow-lt);  color: var(--yellow); }
 .sms-modal-icon--ov { background: var(--red-lt);     color: var(--red-dk); }
 
-/* Recipient info box */
 .sms-confirm-recipient {
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: .75rem 1rem;
+  padding: .78rem 1rem;
   margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
@@ -466,27 +438,25 @@
   display: flex;
   align-items: center;
   gap: .5rem;
-  font-size: .84rem;
+  font-size: .83rem;
   color: var(--gray-700);
   font-weight: 500;
 }
 .sms-confirm-recip-row svg { color: var(--gray-400); flex-shrink: 0; }
 
-/* Message preview label */
 .sms-confirm-preview-label {
-  font-size: .72rem;
+  font-size: .7rem;
   font-weight: 700;
   color: var(--gray-500);
   text-transform: uppercase;
-  letter-spacing: .06em;
+  letter-spacing: .07em;
   margin-bottom: .4rem;
 }
 
-/* Message bubble */
 .sms-confirm-bubble {
   background: var(--gray-100);
   border-radius: 12px 12px 4px 12px;
-  padding: .85rem 1rem;
+  padding: .88rem 1rem;
   font-size: .83rem;
   color: var(--gray-700);
   line-height: 1.65;
@@ -495,11 +465,8 @@
   border: 1px solid var(--border);
   margin-bottom: .5rem;
 }
-[data-theme="dark"] .sms-confirm-bubble {
-  background: var(--surface-2);
-}
+[data-theme="dark"] .sms-confirm-bubble { background: var(--surface-2); }
 
-/* State screens (sending / success / error) */
 .sms-confirm-state {
   display: flex;
   flex-direction: column;
@@ -509,27 +476,26 @@
   gap: .4rem;
 }
 .sms-confirm-state-title {
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 700;
   color: var(--gray-800);
   margin-top: .5rem;
+  letter-spacing: -.015em;
 }
 .sms-confirm-state-sub {
-  font-size: .84rem;
+  font-size: .83rem;
   color: var(--gray-500);
 }
 
-/* Sending spinner */
 .sms-confirm-spinner {
   width: 44px; height: 44px;
-  border: 3.5px solid var(--primary-lt);
+  border: 3px solid var(--primary-lt);
   border-top-color: var(--primary);
   border-radius: 50%;
-  animation: spin .7s linear infinite;
+  animation: spin .65s linear infinite;
   flex-shrink: 0;
 }
 
-/* Success icon */
 .sms-confirm-success-icon {
   color: var(--primary);
   animation: popIn .35s cubic-bezier(.16,1,.3,1);
@@ -539,10 +505,8 @@
   to   { transform: scale(1); opacity: 1; }
 }
 
-/* Error icon */
 .sms-confirm-error-icon { color: var(--red); }
 
-/* Sent info rows */
 .sms-confirm-sent-info {
   background: var(--primary-lt);
   border: 1px solid var(--primary-mid);
@@ -558,7 +522,7 @@
   display: flex;
   align-items: center;
   gap: .5rem;
-  font-size: .83rem;
+  font-size: .82rem;
   color: var(--primary-dk);
   font-weight: 500;
 }

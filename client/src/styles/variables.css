@@ -2,30 +2,30 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ═══════════════════════════════════════════════════════════════════
-   LIGHT THEME  (default)
-   Primary = Cool Green (Emerald)  |  Secondary = Soft Dark Blue
+   LIGHT THEME
+   Primary = Emerald  |  Secondary = Blue
    ═══════════════════════════════════════════════════════════════════ */
 :root {
-  /* ── Primary — Cool Green (Emerald) ─────────────────────────────── */
-  --primary:      #059669;   /* Emerald 600 */
-  --primary-dk:   #047857;   /* Emerald 700 */
-  --primary-lt:   #d1fae5;   /* Emerald 100 */
-  --primary-mid:  #6ee7b7;   /* Emerald 300 */
-  --primary-pale: #ecfdf5;   /* Emerald 50  */
+  /* ── Primary — Emerald ─────────────────────────────────────────── */
+  --primary:      #059669;
+  --primary-dk:   #047857;
+  --primary-lt:   #d1fae5;
+  --primary-mid:  #6ee7b7;
+  --primary-pale: #ecfdf5;
 
-  /* ── Secondary — Soft Dark Blue ─────────────────────────────────── */
-  --blue:         #1d4ed8;   /* Blue 700 */
-  --blue-dk:      #1e3a8a;   /* Blue 900 */
-  --blue-lt:      #dbeafe;   /* Blue 100 */
-  --blue-mid:     #93c5fd;   /* Blue 300 */
-  --blue-pale:    #eff6ff;   /* Blue 50  */
+  /* ── Blue ──────────────────────────────────────────────────────── */
+  --blue:         #2563eb;
+  --blue-dk:      #1d4ed8;
+  --blue-lt:      #dbeafe;
+  --blue-mid:     #93c5fd;
+  --blue-pale:    #eff6ff;
 
-  /* ── Teal accent ────────────────────────────────────────────────── */
-  --teal:         #0891b2;   /* Cyan 600 */
-  --teal-dk:      #0e7490;   /* Cyan 700 */
-  --teal-lt:      #e0f2fe;   /* Cyan 100 */
+  /* ── Teal ──────────────────────────────────────────────────────── */
+  --teal:         #0891b2;
+  --teal-dk:      #0e7490;
+  --teal-lt:      #e0f7fa;
 
-  /* ── Semantic ───────────────────────────────────────────────────── */
+  /* ── Semantic ──────────────────────────────────────────────────── */
   --red:          #dc2626;
   --red-dk:       #b91c1c;
   --red-lt:       #fee2e2;
@@ -33,7 +33,7 @@
   --yellow-lt:    #fef3c7;
   --orange:       #ea580c;
 
-  /* ── Neutral — Slate scale ──────────────────────────────────────── */
+  /* ── Neutral — Clean slate ─────────────────────────────────────── */
   --gray-50:      #f8fafc;
   --gray-100:     #f1f5f9;
   --gray-200:     #e2e8f0;
@@ -51,18 +51,18 @@
 
   /* ── Surfaces ───────────────────────────────────────────────────── */
   --surface:      #ffffff;
-  --surface-2:    #f8fafc;
-  --surface-3:    #f1f5f9;
-  --border:       #e2e8f0;
+  --surface-2:    #f9f9fc;
+  --surface-3:    #f2f2f8;
+  --border:       #e6e8f0;
   --border-focus: var(--primary);
 
-  /* ── Shadows ────────────────────────────────────────────────────── */
-  --shadow-sm:    0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow:       0 4px 16px rgba(0,0,0,.07);
-  --shadow-md:    0 8px 24px rgba(0,0,0,.10);
-  --shadow-lg:    0 16px 48px rgba(0,0,0,.13);
-  --shadow-blue:  0 4px 20px rgba(29,78,216,.20);
-  --shadow-green: 0 4px 20px rgba(5,150,105,.22);
+  /* ── Layered shadow system ──────────────────────────────────────── */
+  --shadow-sm:    0 1px 2px rgba(0,0,0,.04), 0 1px 4px rgba(0,0,0,.03);
+  --shadow:       0 2px 8px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+  --shadow-md:    0 4px 16px rgba(0,0,0,.09), 0 8px 24px rgba(0,0,0,.06);
+  --shadow-lg:    0 8px 32px rgba(0,0,0,.12), 0 20px 48px rgba(0,0,0,.08);
+  --shadow-blue:  0 4px 20px rgba(37,99,235,.22);
+  --shadow-green: 0 4px 20px rgba(5,150,105,.24);
 
   /* ── Radius ─────────────────────────────────────────────────────── */
   --radius-sm:    8px;
@@ -70,78 +70,81 @@
   --radius-lg:    16px;
   --radius-xl:    24px;
 
-  --transition:   0.18s ease;
+  /* ── Motion ─────────────────────────────────────────────────────── */
+  --transition:   0.16s ease;
+  --spring:       0.3s cubic-bezier(.16,1,.3,1);
 
-  /* ── Backward-compat aliases (--green → --primary) ─────────────── */
-  --green:        var(--primary);
-  --green-dk:     var(--primary-dk);
-  --green-lt:     var(--primary-lt);
-  --green-mid:    var(--primary-mid);
-  --green-pale:   var(--primary-pale);
+  /* ── Backward-compat aliases ────────────────────────────────────── */
+  --green:      var(--primary);
+  --green-dk:   var(--primary-dk);
+  --green-lt:   var(--primary-lt);
+  --green-mid:  var(--primary-mid);
+  --green-pale: var(--primary-pale);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   DARK THEME
+   DARK THEME — Premium neutral-dark (not blue-slate)
+   Inspired by Linear / Vercel / Stripe dark palettes
    ═══════════════════════════════════════════════════════════════════ */
 [data-theme="dark"] {
-  /* ── Primary — Cool Green (brighter for dark bg) ─────────────────── */
-  --primary:      #10b981;   /* Emerald 500 */
-  --primary-dk:   #059669;   /* Emerald 600 */
-  --primary-lt:   rgba(16,185,129,.16);
-  --primary-mid:  rgba(16,185,129,.36);
-  --primary-pale: rgba(16,185,129,.07);
+  /* ── Primary ───────────────────────────────────────────────────── */
+  --primary:      #10b981;
+  --primary-dk:   #059669;
+  --primary-lt:   rgba(16,185,129,.13);
+  --primary-mid:  rgba(16,185,129,.28);
+  --primary-pale: rgba(16,185,129,.06);
 
-  /* ── Secondary — Blue (lighter for dark bg) ──────────────────────── */
-  --blue:         #3b82f6;   /* Blue 500 */
-  --blue-dk:      #2563eb;   /* Blue 600 */
-  --blue-lt:      rgba(59,130,246,.16);
-  --blue-mid:     rgba(59,130,246,.36);
-  --blue-pale:    rgba(59,130,246,.07);
+  /* ── Blue ──────────────────────────────────────────────────────── */
+  --blue:         #60a5fa;
+  --blue-dk:      #3b82f6;
+  --blue-lt:      rgba(96,165,250,.13);
+  --blue-mid:     rgba(96,165,250,.28);
+  --blue-pale:    rgba(96,165,250,.06);
 
-  /* ── Teal ─────────────────────────────────────────────────────────── */
+  /* ── Teal ──────────────────────────────────────────────────────── */
   --teal:         #22d3ee;
   --teal-dk:      #06b6d4;
-  --teal-lt:      rgba(34,211,238,.16);
+  --teal-lt:      rgba(34,211,238,.13);
 
-  /* ── Semantic ─────────────────────────────────────────────────────── */
+  /* ── Semantic ──────────────────────────────────────────────────── */
   --red:          #f87171;
   --red-dk:       #ef4444;
-  --red-lt:       rgba(248,113,113,.16);
+  --red-lt:       rgba(248,113,113,.13);
   --yellow:       #fbbf24;
-  --yellow-lt:    rgba(251,191,36,.16);
+  --yellow-lt:    rgba(251,191,36,.13);
   --orange:       #fb923c;
 
-  /* ── Neutral — Inverted Slate (mirror for automatic dark theming) ─── */
-  --gray-50:      #1e293b;
-  --gray-100:     #243347;
-  --gray-200:     #334155;
-  --gray-300:     #475569;
-  --gray-400:     #64748b;
-  --gray-500:     #94a3b8;
-  --gray-600:     #cbd5e1;
-  --gray-700:     #e2e8f0;
-  --gray-800:     #f1f5f9;
-  --gray-900:     #f8fafc;
+  /* ── Neutral — Premium neutral-dark (warm purple-dark, not blue-slate) */
+  --gray-50:      #1c1c2e;
+  --gray-100:     #24243c;
+  --gray-200:     #2e2e4a;
+  --gray-300:     #3c3c5c;
+  --gray-400:     #6c6c98;
+  --gray-500:     #9292b8;
+  --gray-600:     #b8b8d4;
+  --gray-700:     #d4d4ec;
+  --gray-800:     #eaeaf8;
+  --gray-900:     #f4f4fc;
 
-  /* ── Surfaces ─────────────────────────────────────────────────────── */
-  --surface:      #1e293b;   /* Slate 800 */
-  --surface-2:    #0f172a;   /* Slate 900 */
-  --surface-3:    #0a1120;
-  --border:       #334155;   /* Slate 700 */
+  /* ── Surfaces — true dark, not slate ───────────────────────────── */
+  --surface:      #14141e;
+  --surface-2:    #0d0d16;
+  --surface-3:    #09090f;
+  --border:       rgba(255,255,255,.09);
   --border-focus: var(--primary);
 
-  /* ── Shadows (stronger in dark) ───────────────────────────────────── */
-  --shadow-sm:    0 1px 4px rgba(0,0,0,.35);
-  --shadow:       0 4px 20px rgba(0,0,0,.45);
-  --shadow-md:    0 8px 28px rgba(0,0,0,.55);
-  --shadow-lg:    0 16px 52px rgba(0,0,0,.65);
-  --shadow-blue:  0 4px 20px rgba(59,130,246,.25);
-  --shadow-green: 0 4px 20px rgba(16,185,129,.25);
+  /* ── Deep shadows for dark mode ─────────────────────────────────── */
+  --shadow-sm:    0 1px 3px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.4);
+  --shadow:       0 4px 16px rgba(0,0,0,.65), 0 2px 6px rgba(0,0,0,.5);
+  --shadow-md:    0 8px 28px rgba(0,0,0,.75), 0 4px 10px rgba(0,0,0,.6);
+  --shadow-lg:    0 20px 60px rgba(0,0,0,.88), 0 8px 24px rgba(0,0,0,.72);
+  --shadow-blue:  0 4px 24px rgba(96,165,250,.2);
+  --shadow-green: 0 4px 24px rgba(16,185,129,.2);
 
-  /* ── Backward-compat aliases ──────────────────────────────────────── */
-  --green:        var(--primary);
-  --green-dk:     var(--primary-dk);
-  --green-lt:     var(--primary-lt);
-  --green-mid:    var(--primary-mid);
-  --green-pale:   var(--primary-pale);
+  /* ── Backward-compat aliases ────────────────────────────────────── */
+  --green:      var(--primary);
+  --green-dk:   var(--primary-dk);
+  --green-lt:   var(--primary-lt);
+  --green-mid:  var(--primary-mid);
+  --green-pale: var(--primary-pale);
 }
