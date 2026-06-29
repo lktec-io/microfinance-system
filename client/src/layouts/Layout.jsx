@@ -10,7 +10,6 @@ const titles = {
   '/repayments': 'Repayments',
   '/reports':    'Reports',
   '/users':      'User Management',
-  '/sms':        'SMS Center',
 };
 
 export default function Layout({ children }) {
@@ -21,13 +20,11 @@ export default function Layout({ children }) {
     location.pathname.startsWith(k) && (k === '/' ? location.pathname === '/' : true)
   )?.[1] || 'Baraka Microcredit';
 
-  /* Lock body scroll while mobile sidebar is open */
   useEffect(() => {
     document.body.style.overflow = sidebarOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [sidebarOpen]);
 
-  /* Close sidebar on route change */
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);

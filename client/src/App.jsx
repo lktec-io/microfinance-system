@@ -13,7 +13,6 @@ import LoanDetail from './pages/LoanDetail';
 import Repayments from './pages/Repayments';
 import Reports    from './pages/Reports';
 import Users      from './pages/Users';
-import SmsCenter  from './pages/SmsCenter';
 
 function Protected({ children, adminOnly = false }) {
   return (
@@ -30,18 +29,15 @@ export default function App() {
         <ToastProvider>
           <BrowserRouter>
             <Routes>
-              <Route path="/login"        element={<Login />} />
-              <Route path="/"             element={<Protected><Dashboard /></Protected>} />
-              <Route path="/customers"    element={<Protected><Customers /></Protected>} />
-              <Route path="/loans"        element={<Protected><Loans /></Protected>} />
-              <Route path="/loans/:id"    element={<Protected><LoanDetail /></Protected>} />
-              <Route path="/repayments"   element={<Protected><Repayments /></Protected>} />
-              <Route path="/reports"      element={<Protected><Reports /></Protected>} />
-              <Route path="/users"        element={<Protected adminOnly><Users /></Protected>} />
-              <Route path="/sms"          element={<Protected><SmsCenter /></Protected>} />
-              {/* Legacy redirect */}
-              <Route path="/sms/logs"     element={<Navigate to="/sms" replace />} />
-              <Route path="*"             element={<Navigate to="/" replace />} />
+              <Route path="/login"      element={<Login />} />
+              <Route path="/"           element={<Protected><Dashboard /></Protected>} />
+              <Route path="/customers"  element={<Protected><Customers /></Protected>} />
+              <Route path="/loans"      element={<Protected><Loans /></Protected>} />
+              <Route path="/loans/:id"  element={<Protected><LoanDetail /></Protected>} />
+              <Route path="/repayments" element={<Protected><Repayments /></Protected>} />
+              <Route path="/reports"    element={<Protected><Reports /></Protected>} />
+              <Route path="/users"      element={<Protected adminOnly><Users /></Protected>} />
+              <Route path="*"           element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
         </ToastProvider>

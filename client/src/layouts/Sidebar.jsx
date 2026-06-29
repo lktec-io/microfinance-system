@@ -3,16 +3,15 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   FiHome, FiUsers, FiDollarSign, FiCreditCard,
-  FiBarChart2, FiShield, FiLogOut, FiX, FiMessageSquare,
+  FiBarChart2, FiShield, FiLogOut, FiX,
 } from 'react-icons/fi';
 
 const mainLinks = [
-  { to: '/',           label: 'Dashboard',  Icon: FiHome          },
-  { to: '/customers',  label: 'Customers',  Icon: FiUsers         },
-  { to: '/loans',      label: 'Loans',      Icon: FiDollarSign    },
-  { to: '/repayments', label: 'Repayments', Icon: FiCreditCard    },
-  { to: '/reports',    label: 'Reports',    Icon: FiBarChart2     },
-  { to: '/sms',        label: 'SMS Center', Icon: FiMessageSquare },
+  { to: '/',           label: 'Dashboard',  Icon: FiHome       },
+  { to: '/customers',  label: 'Customers',  Icon: FiUsers      },
+  { to: '/loans',      label: 'Loans',      Icon: FiDollarSign },
+  { to: '/repayments', label: 'Repayments', Icon: FiCreditCard },
+  { to: '/reports',    label: 'Reports',    Icon: FiBarChart2  },
 ];
 
 const adminLinks = [
@@ -72,7 +71,7 @@ export default function Sidebar({ open, onClose }) {
           <BrandLogo />
           <span className="sidebar-title">Baraka Microcredit</span>
           <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
-            <FiX size={19} />
+            <FiX size={18} />
           </button>
         </div>
 

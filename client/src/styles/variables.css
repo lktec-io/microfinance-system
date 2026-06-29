@@ -1,150 +1,110 @@
-/* ── Reset ──────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ══════════════════════════════════════════════════════════════════
+   BARAKA MICROCREDIT — DESIGN SYSTEM  (Phase 2)
+   Primary: Deep Navy Blue  |  Accent: Premium Green (money only)
+   ══════════════════════════════════════════════════════════════════ */
 
-/* ═══════════════════════════════════════════════════════════════════
-   LIGHT THEME
-   Primary = Emerald  |  Secondary = Blue
-   ═══════════════════════════════════════════════════════════════════ */
 :root {
-  /* ── Primary — Emerald ─────────────────────────────────────────── */
-  --primary:      #059669;
-  --primary-dk:   #047857;
-  --primary-lt:   #d1fae5;
-  --primary-mid:  #6ee7b7;
-  --primary-pale: #ecfdf5;
+  /* ── Brand: Deep Navy Blue — primary actions, CTAs, active states ── */
+  --primary:      #2563eb;
+  --primary-dk:   #1d4ed8;
+  --primary-lt:   rgba(37,99,235,.11);
+  --primary-mid:  rgba(37,99,235,.26);
+  --primary-pale: rgba(37,99,235,.055);
+  --shadow-primary: 0 4px 18px rgba(37,99,235,.38), 0 1px 4px rgba(37,99,235,.2);
 
-  /* ── Blue ──────────────────────────────────────────────────────── */
-  --blue:         #2563eb;
-  --blue-dk:      #1d4ed8;
-  --blue-lt:      #dbeafe;
-  --blue-mid:     #93c5fd;
-  --blue-pale:    #eff6ff;
+  /* ── Money Green — RESERVED: TZS amounts, paid status, success ── */
+  --green:      #10b981;
+  --green-dk:   #059669;
+  --green-lt:   rgba(16,185,129,.11);
+  --green-mid:  rgba(16,185,129,.26);
+  --green-pale: rgba(16,185,129,.055);
+  --shadow-green: 0 4px 14px rgba(16,185,129,.28);
 
-  /* ── Teal ──────────────────────────────────────────────────────── */
-  --teal:         #0891b2;
-  --teal-dk:      #0e7490;
-  --teal-lt:      #e0f7fa;
+  /* Backward-compat aliases */
+  --green-bg:     rgba(16,185,129,.11);
+  --green-border: rgba(16,185,129,.26);
 
-  /* ── Semantic ──────────────────────────────────────────────────── */
-  --red:          #dc2626;
-  --red-dk:       #b91c1c;
-  --red-lt:       #fee2e2;
-  --yellow:       #d97706;
-  --yellow-lt:    #fef3c7;
-  --orange:       #ea580c;
+  /* ── Status ── */
+  --yellow:    #f59e0b;
+  --yellow-lt: rgba(245,158,11,.11);
+  --yellow-dk: #d97706;
+  --red:       #ef4444;
+  --red-dk:    #dc2626;
+  --red-lt:    rgba(239,68,68,.11);
+  --orange:    #f97316;
+  --blue:      #3b82f6;
+  --blue-lt:   rgba(59,130,246,.11);
+  --teal:      #06b6d4;
+  --teal-lt:   rgba(6,182,212,.11);
+  --teal-dk:   #0891b2;
 
-  /* ── Neutral — Clean slate ─────────────────────────────────────── */
-  --gray-50:      #f8fafc;
-  --gray-100:     #f1f5f9;
-  --gray-200:     #e2e8f0;
-  --gray-300:     #cbd5e1;
-  --gray-400:     #94a3b8;
-  --gray-500:     #64748b;
-  --gray-600:     #475569;
-  --gray-700:     #334155;
-  --gray-800:     #1e293b;
-  --gray-900:     #0f172a;
+  /* ── Light Theme: Surfaces ── */
+  --bg:        #f0f4fb;
+  --surface:   #ffffff;
+  --surface-2: #f7f9fd;
+  --surface-3: #eff3fa;
 
-  /* ── Layout ─────────────────────────────────────────────────────── */
-  --sidebar-w:    260px;
-  --header-h:     64px;
+  /* ── Light Theme: Grays ── */
+  --gray-50:  #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
 
-  /* ── Surfaces ───────────────────────────────────────────────────── */
-  --surface:      #ffffff;
-  --surface-2:    #f9f9fc;
-  --surface-3:    #f2f2f8;
-  --border:       #e6e8f0;
-  --border-focus: var(--primary);
+  /* ── Light Theme: Borders & Shadows ── */
+  --border:        rgba(15,23,42,.08);
+  --border-strong: rgba(15,23,42,.14);
 
-  /* ── Layered shadow system ──────────────────────────────────────── */
-  --shadow-sm:    0 1px 2px rgba(0,0,0,.04), 0 1px 4px rgba(0,0,0,.03);
-  --shadow:       0 2px 8px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
-  --shadow-md:    0 4px 16px rgba(0,0,0,.09), 0 8px 24px rgba(0,0,0,.06);
-  --shadow-lg:    0 8px 32px rgba(0,0,0,.12), 0 20px 48px rgba(0,0,0,.08);
-  --shadow-blue:  0 4px 20px rgba(37,99,235,.22);
-  --shadow-green: 0 4px 20px rgba(5,150,105,.24);
+  --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+  --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.05);
+  --shadow-lg: 0 10px 30px rgba(15,23,42,.12), 0 4px 8px rgba(15,23,42,.06);
+  --shadow-xl: 0 24px 60px rgba(15,23,42,.18), 0 8px 16px rgba(15,23,42,.08);
 
-  /* ── Radius ─────────────────────────────────────────────────────── */
-  --radius-sm:    8px;
-  --radius:       12px;
-  --radius-lg:    16px;
-  --radius-xl:    24px;
+  /* ── Radius ── */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius:    12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
 
-  /* ── Motion ─────────────────────────────────────────────────────── */
-  --transition:   0.16s ease;
-  --spring:       0.3s cubic-bezier(.16,1,.3,1);
+  /* ── Motion ── */
+  --transition: 0.18s ease;
+  --spring:     0.35s cubic-bezier(.16,1,.3,1);
 
-  /* ── Backward-compat aliases ────────────────────────────────────── */
-  --green:      var(--primary);
-  --green-dk:   var(--primary-dk);
-  --green-lt:   var(--primary-lt);
-  --green-mid:  var(--primary-mid);
-  --green-pale: var(--primary-pale);
+  /* ── Layout ── */
+  --sidebar-w: 260px;
+  --header-h:  64px;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   DARK THEME — Premium neutral-dark (not blue-slate)
-   Inspired by Linear / Vercel / Stripe dark palettes
-   ═══════════════════════════════════════════════════════════════════ */
+/* ── Dark Theme — Rich Dark Navy ───────────────────────────────── */
 [data-theme="dark"] {
-  /* ── Primary ───────────────────────────────────────────────────── */
-  --primary:      #10b981;
-  --primary-dk:   #059669;
-  --primary-lt:   rgba(16,185,129,.13);
-  --primary-mid:  rgba(16,185,129,.28);
-  --primary-pale: rgba(16,185,129,.06);
+  --bg:        #060a18;
+  --surface:   #0c1428;
+  --surface-2: #111e38;
+  --surface-3: #162444;
 
-  /* ── Blue ──────────────────────────────────────────────────────── */
-  --blue:         #60a5fa;
-  --blue-dk:      #3b82f6;
-  --blue-lt:      rgba(96,165,250,.13);
-  --blue-mid:     rgba(96,165,250,.28);
-  --blue-pale:    rgba(96,165,250,.06);
+  --gray-50:  #0d1422;
+  --gray-100: #141d30;
+  --gray-200: #1c2840;
+  --gray-300: #263654;
+  --gray-400: #3c526e;
+  --gray-500: #5a7090;
+  --gray-600: #7a92b0;
+  --gray-700: #9ab0cc;
+  --gray-800: #bccde4;
+  --gray-900: #dde9f8;
 
-  /* ── Teal ──────────────────────────────────────────────────────── */
-  --teal:         #22d3ee;
-  --teal-dk:      #06b6d4;
-  --teal-lt:      rgba(34,211,238,.13);
+  --border:        rgba(255,255,255,.07);
+  --border-strong: rgba(255,255,255,.13);
 
-  /* ── Semantic ──────────────────────────────────────────────────── */
-  --red:          #f87171;
-  --red-dk:       #ef4444;
-  --red-lt:       rgba(248,113,113,.13);
-  --yellow:       #fbbf24;
-  --yellow-lt:    rgba(251,191,36,.13);
-  --orange:       #fb923c;
-
-  /* ── Neutral — Premium neutral-dark (warm purple-dark, not blue-slate) */
-  --gray-50:      #1c1c2e;
-  --gray-100:     #24243c;
-  --gray-200:     #2e2e4a;
-  --gray-300:     #3c3c5c;
-  --gray-400:     #6c6c98;
-  --gray-500:     #9292b8;
-  --gray-600:     #b8b8d4;
-  --gray-700:     #d4d4ec;
-  --gray-800:     #eaeaf8;
-  --gray-900:     #f4f4fc;
-
-  /* ── Surfaces — true dark, not slate ───────────────────────────── */
-  --surface:      #14141e;
-  --surface-2:    #0d0d16;
-  --surface-3:    #09090f;
-  --border:       rgba(255,255,255,.09);
-  --border-focus: var(--primary);
-
-  /* ── Deep shadows for dark mode ─────────────────────────────────── */
-  --shadow-sm:    0 1px 3px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.4);
-  --shadow:       0 4px 16px rgba(0,0,0,.65), 0 2px 6px rgba(0,0,0,.5);
-  --shadow-md:    0 8px 28px rgba(0,0,0,.75), 0 4px 10px rgba(0,0,0,.6);
-  --shadow-lg:    0 20px 60px rgba(0,0,0,.88), 0 8px 24px rgba(0,0,0,.72);
-  --shadow-blue:  0 4px 24px rgba(96,165,250,.2);
-  --shadow-green: 0 4px 24px rgba(16,185,129,.2);
-
-  /* ── Backward-compat aliases ────────────────────────────────────── */
-  --green:      var(--primary);
-  --green-dk:   var(--primary-dk);
-  --green-lt:   var(--primary-lt);
-  --green-mid:  var(--primary-mid);
-  --green-pale: var(--primary-pale);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2);
+  --shadow-md: 0 4px 18px rgba(0,0,0,.5),  0 2px 6px rgba(0,0,0,.3);
+  --shadow-lg: 0 10px 40px rgba(0,0,0,.6), 0 4px 12px rgba(0,0,0,.38);
+  --shadow-xl: 0 24px 72px rgba(0,0,0,.7), 0 8px 24px rgba(0,0,0,.45);
 }

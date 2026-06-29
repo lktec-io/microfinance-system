@@ -1,160 +1,150 @@
 /* ══════════════════════════════════════════════════════════════════
-   WELCOME BANNER — Cinematic premium hero section
+   WELCOME BANNER — Cinematic dark navy hero
    ══════════════════════════════════════════════════════════════════ */
 .welcome-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(135deg,
-    #060c1a 0%,
-    #0b1530 45%,
-    #0a1b10 100%
+    #060a18 0%,
+    #0a142e 40%,
+    #091c38 75%,
+    #060e1e 100%
   );
   border-radius: var(--radius-xl);
   padding: 2.25rem 2.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
   color: #fff;
-  box-shadow:
-    0 4px 24px rgba(4,9,20,.4),
-    0 1px 0 rgba(255,255,255,.04) inset;
+  box-shadow: 0 4px 24px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.04) inset;
   overflow: hidden;
   position: relative;
-  border: 1px solid rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.055);
 }
 
-/* Mesh gradient overlay */
+/* Top edge highlight */
 .welcome-banner::before {
   content: '';
   position: absolute;
-  right: -50px; top: -50px;
-  width: 220px; height: 220px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.03);
-  pointer-events: none;
-}
-.welcome-banner::after {
-  content: '';
-  position: absolute;
-  right: 110px; bottom: -65px;
-  width: 150px; height: 150px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.025);
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(37,99,235,.5), rgba(16,185,129,.3), transparent);
   pointer-events: none;
 }
 
-/* Moving light sweep animation */
+/* Decorative circle elements */
+.welcome-banner::after {
+  content: '';
+  position: absolute;
+  right: -30px; top: -40px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(37,99,235,.06);
+  pointer-events: none;
+}
+
+/* Light sweep animation */
 .welcome-shimmer {
   position: absolute;
   top: 0; left: 0;
   width: 55%;
   height: 100%;
-  background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,.048) 50%, transparent 100%);
-  animation: bannerSweep 6s ease-in-out infinite 2s;
+  background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,.04) 50%, transparent 100%);
+  animation: bannerSweep 8s ease-in-out infinite 3s;
   pointer-events: none;
   z-index: 1;
 }
 @keyframes bannerSweep {
   0%   { transform: translateX(-100%); opacity: 0; }
-  15%  { opacity: 1; }
-  80%  { opacity: 1; }
-  100% { transform: translateX(220%); opacity: 0; }
+  12%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateX(240%); opacity: 0; }
 }
 
-.welcome-text { position: relative; z-index: 2; flex: 1; min-width: 0; }
+.welcome-text  { position: relative; z-index: 2; flex: 1; min-width: 0; }
 .welcome-greeting {
-  font-size: .7rem;
+  font-size: .68rem;
   font-weight: 600;
-  letter-spacing: .15em;
+  letter-spacing: .16em;
   text-transform: uppercase;
-  opacity: .5;
+  opacity: .45;
   margin-bottom: .3rem;
 }
 .welcome-text h2 {
-  font-size: 1.85rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  margin-bottom: .5rem;
+  margin-bottom: .48rem;
   line-height: 1.2;
-  letter-spacing: -.025em;
+  letter-spacing: -.03em;
 }
-.welcome-text h2 span { color: #7dd3fc; }
+.welcome-text h2 span { color: #7fb8ff; }
 .welcome-date {
   display: inline-flex;
   align-items: center;
   gap: .35rem;
-  font-size: .84rem;
-  opacity: .6;
+  font-size: .83rem;
+  opacity: .5;
   font-weight: 400;
-  margin-top: .1rem;
 }
 .welcome-actions {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: .75rem;
+  gap: .7rem;
   position: relative;
   z-index: 2;
   flex-shrink: 0;
 }
-.welcome-btns {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-}
+.welcome-btns { display: flex; align-items: center; gap: .5rem; }
 .welcome-view-btn {
   display: inline-flex;
   align-items: center;
   gap: .4rem;
-  padding: .48rem 1rem;
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.88);
+  padding: .46rem .95rem;
+  background: rgba(255,255,255,.07);
+  color: rgba(255,255,255,.82);
   border-radius: var(--radius-sm);
-  font-size: .8rem;
+  font-size: .79rem;
   font-weight: 600;
-  border: 1px solid rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.12);
   transition: background var(--transition), border-color var(--transition);
   font-family: inherit;
   white-space: nowrap;
   letter-spacing: -.01em;
 }
 .welcome-view-btn:hover {
-  background: rgba(255,255,255,.15);
-  border-color: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.2);
 }
 .welcome-refresh {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px; height: 36px;
-  background: rgba(255,255,255,.1);
-  color: rgba(255,255,255,.8);
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.75);
   border-radius: 50%;
   transition: background var(--transition), transform var(--transition);
   flex-shrink: 0;
-  border: 1.5px solid rgba(255,255,255,.18);
+  border: 1.5px solid rgba(255,255,255,.14);
 }
 .welcome-refresh:hover:not(:disabled) {
-  background: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.18);
   transform: rotate(60deg);
 }
-.welcome-refresh:disabled { opacity: .45; cursor: not-allowed; }
+.welcome-refresh:disabled { opacity: .4; cursor: not-allowed; }
 .welcome-refresh.refreshing svg { animation: spin .7s linear infinite; }
-.welcome-icon {
-  position: relative; z-index: 2;
-  opacity: .1;
-  flex-shrink: 0;
-}
+.welcome-icon { position: relative; z-index: 2; opacity: .08; flex-shrink: 0; }
 
-/* ── Stat Grid & Cards ──────────────────────────────────────────── */
+/* ── Stat Grid ───────────────────────────────────────────────────── */
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.25rem;
+  gap: 1.1rem;
   margin-bottom: 1.75rem;
 }
-
 .stat-card {
   border-radius: var(--radius-lg);
-  padding: 1.45rem 1.55rem;
+  padding: 1.4rem 1.5rem;
   color: #fff;
   box-shadow: var(--shadow-md);
   position: relative;
@@ -163,21 +153,23 @@
   transition: transform var(--transition), box-shadow var(--transition);
   border: 1px solid rgba(255,255,255,.06);
 }
+/* Top highlight edge */
 .stat-card::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: rgba(255,255,255,.15);
+  background: rgba(255,255,255,.18);
   pointer-events: none;
 }
+/* Decorative circle */
 .stat-card::after {
   content: '';
   position: absolute;
-  right: -18px; top: -18px;
-  width: 90px; height: 90px;
+  right: -16px; top: -16px;
+  width: 80px; height: 80px;
   border-radius: 50%;
-  background: rgba(255,255,255,.05);
+  background: rgba(255,255,255,.06);
   pointer-events: none;
 }
 .stat-card--link { cursor: pointer; }
@@ -186,63 +178,63 @@
   box-shadow: var(--shadow-lg);
 }
 
-.stat-card--blue  { background: linear-gradient(135deg, #1e40af 0%, #1d3a8c 100%); }
+.stat-card--blue  { background: linear-gradient(135deg, #1e40af 0%, #1a3490 100%); }
 .stat-card--green { background: linear-gradient(135deg, #047857 0%, #065f46 100%); }
 .stat-card--teal  { background: linear-gradient(135deg, #0e7490 0%, #155e75 100%); }
 .stat-card--red   { background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%); }
 
 .stat-card-inner { display: flex; align-items: flex-start; justify-content: space-between; }
 .stat-value {
-  font-size: 1.6rem;
+  font-size: 1.55rem;
   font-weight: 700;
   line-height: 1.1;
-  letter-spacing: -.02em;
+  letter-spacing: -.025em;
 }
 .stat-label {
-  font-size: .7rem;
-  opacity: .78;
+  font-size: .68rem;
+  opacity: .75;
   margin-top: .38rem;
   text-transform: uppercase;
   letter-spacing: .08em;
   font-weight: 700;
 }
 .stat-sub {
-  font-size: .75rem;
-  opacity: .62;
+  font-size: .73rem;
+  opacity: .58;
   margin-top: .18rem;
   font-weight: 400;
 }
-.stat-icon-wrap { opacity: .22; margin-top: -.2rem; }
+.stat-icon-wrap { opacity: .2; margin-top: -.2rem; }
 
-/* ── Loan Status Chips ──────────────────────────────────────────── */
-.loan-status-row { display: flex; gap: 1rem; margin-bottom: 1.75rem; flex-wrap: wrap; }
+/* ── Loan Status Chips ───────────────────────────────────────────── */
+.loan-status-row { display: flex; gap: .9rem; margin-bottom: 1.75rem; flex-wrap: wrap; }
 .status-chip {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: .88rem 1.55rem;
+  padding: .85rem 1.5rem;
   border-radius: var(--radius);
-  min-width: 92px;
+  min-width: 90px;
   font-weight: 700;
   border: 1.5px solid transparent;
   transition: transform var(--transition), box-shadow var(--transition);
 }
 .status-chip:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
 .status-chip--active  { background: var(--primary-lt); color: var(--primary);  border-color: var(--primary-mid); }
-.status-chip--pending { background: var(--yellow-lt);  color: var(--yellow);   border-color: rgba(251,191,36,.4); }
+.status-chip--pending { background: var(--yellow-lt);  color: var(--yellow-dk); border-color: rgba(245,158,11,.3); }
 .status-chip--paid    { background: var(--green-lt);   color: var(--green-dk); border-color: var(--green-mid); }
-.status-chip--overdue { background: var(--red-lt);     color: var(--red-dk);   border-color: rgba(248,113,113,.4); }
-.status-chip-val { font-size: 1.62rem; line-height: 1; }
-.status-chip-lbl { font-size: .68rem; text-transform: capitalize; margin-top: .16rem; font-weight: 600; opacity: .8; }
+.status-chip--overdue { background: var(--red-lt);     color: var(--red-dk);   border-color: rgba(239,68,68,.3); }
+.status-chip-val { font-size: 1.58rem; line-height: 1; }
+.status-chip-lbl { font-size: .67rem; text-transform: capitalize; margin-top: .15rem; font-weight: 600; opacity: .8; }
 
-/* ── Dashboard Grid ─────────────────────────────────────────────── */
+/* ── Dashboard Grid ──────────────────────────────────────────────── */
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
+  gap: 1.1rem;
 }
 
-/* ── Page Top Bar ───────────────────────────────────────────────── */
+/* ── Page Top Bar ────────────────────────────────────────────────── */
 .page-top-bar {
   display: flex;
   align-items: center;
@@ -252,27 +244,27 @@
   gap: .75rem;
 }
 
-/* ── Page Title (SMS pages) ─────────────────────────────────────── */
+/* ── Page Title ──────────────────────────────────────────────────── */
 .page-title {
-  font-size: 1.3rem;
+  font-size: 1.28rem;
   font-weight: 800;
   color: var(--gray-800);
-  letter-spacing: -.025em;
+  letter-spacing: -.03em;
   line-height: 1.2;
 }
 .page-subtitle {
-  font-size: .8rem;
+  font-size: .79rem;
   color: var(--gray-500);
   font-weight: 500;
   margin-top: .2rem;
 }
 
-/* ── Filter Tabs (Loans / SMS) ──────────────────────────────────── */
-.filter-tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+/* ── Filter Tabs (Loans etc.) ────────────────────────────────────── */
+.filter-tabs { display: flex; gap: .35rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .filter-tab {
-  padding: .46rem 1.05rem;
+  padding: .44rem 1rem;
   border-radius: 20px;
-  font-size: .78rem;
+  font-size: .77rem;
   font-weight: 600;
   background: var(--gray-100);
   color: var(--gray-500);
@@ -288,7 +280,7 @@
   box-shadow: 0 0 0 3px var(--primary-pale);
 }
 
-/* ── Overview Grid (dashboard pie + table) ──────────────────────── */
+/* ── Overview Grid ───────────────────────────────────────────────── */
 .overview-grid {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr);
@@ -308,13 +300,13 @@
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: .55rem .5rem;
+  gap: .5rem .5rem;
 }
 .donut-legend-item {
   display: flex;
   align-items: center;
-  gap: .48rem;
-  font-size: .82rem;
+  gap: .45rem;
+  font-size: .81rem;
 }
 .donut-dot {
   width: 8px; height: 8px;
@@ -325,11 +317,11 @@
   flex: 1;
   color: var(--gray-600);
   font-weight: 500;
-  font-size: .81rem;
+  font-size: .8rem;
 }
 .donut-legend-val {
   font-weight: 700;
   color: var(--gray-800);
-  min-width: 22px;
+  min-width: 20px;
   text-align: right;
 }

@@ -1,31 +1,31 @@
 /* ── Loan Detail Grid ───────────────────────────────────────────── */
 .detail-grid {
   display: grid;
-  grid-template-columns: 420px 1fr;
-  gap: 1.75rem;
+  grid-template-columns: 400px 1fr;
+  gap: 1.5rem;
   align-items: start;
 }
 
 /* ── Info Sections ──────────────────────────────────────────────── */
 .info-section {
-  margin-bottom: 1.4rem;
-  padding-bottom: 1.4rem;
+  margin-bottom: 1.35rem;
+  padding-bottom: 1.35rem;
   border-bottom: 1px solid var(--border);
 }
 .info-section:last-of-type { border-bottom: none; margin-bottom: 0; }
 .info-section-title {
-  font-size: .65rem;
+  font-size: .63rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .11em;
+  letter-spacing: .12em;
   color: var(--gray-400);
-  margin-bottom: .55rem;
+  margin-bottom: .52rem;
 }
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: .52rem 0;
+  padding: .5rem 0;
   font-size: .875rem;
 }
 .info-row-label {
@@ -46,25 +46,25 @@
 }
 
 /* ── Progress Bar ───────────────────────────────────────────────── */
-.progress-section { margin-top: 1.4rem; }
+.progress-section { margin-top: 1.35rem; }
 .progress-header {
   display: flex;
   justify-content: space-between;
-  font-size: .81rem;
+  font-size: .8rem;
   color: var(--gray-500);
-  margin-bottom: .46rem;
+  margin-bottom: .44rem;
   font-weight: 500;
 }
 .progress-pct { font-weight: 700; color: var(--gray-700); }
 .progress-bar {
-  height: 8px;
+  height: 7px;
   background: var(--gray-200);
   border-radius: 4px;
   overflow: hidden;
 }
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--green));
+  background: linear-gradient(90deg, var(--primary), #60a5fa);
   border-radius: 4px;
   transition: width .6s ease;
 }
@@ -72,18 +72,18 @@
 .progress-meta {
   display: flex;
   justify-content: space-between;
-  font-size: .75rem;
+  font-size: .74rem;
   color: var(--gray-400);
   margin-top: .4rem;
 }
 
 /* ── Repayment List ─────────────────────────────────────────────── */
-.repayment-list { display: flex; flex-direction: column; gap: .75rem; }
+.repayment-list { display: flex; flex-direction: column; gap: .7rem; }
 .repayment-item {
   display: flex;
   gap: .8rem;
   align-items: flex-start;
-  padding: 1rem 1.1rem;
+  padding: .95rem 1.1rem;
   background: var(--surface-2);
   border-radius: var(--radius);
   border: 1px solid var(--border);
@@ -91,13 +91,13 @@
 }
 .repayment-item:hover { background: var(--primary-pale); border-color: var(--primary-mid); }
 .repayment-item-num {
-  width: 28px; height: 28px;
+  width: 26px; height: 26px;
   background: var(--primary-lt);
   color: var(--primary);
-  border-radius: 8px;
+  border-radius: 7px;
   display: grid;
   place-items: center;
-  font-size: .72rem;
+  font-size: .7rem;
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -106,18 +106,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: .24rem;
+  margin-bottom: .22rem;
 }
-.repayment-item-top strong { font-size: .935rem; color: var(--gray-800); }
+.repayment-item-top strong { font-size: .92rem; color: var(--gray-800); }
 .repayment-item-meta {
   display: flex;
   justify-content: space-between;
-  font-size: .77rem;
+  font-size: .76rem;
   color: var(--gray-400);
 }
 .repayment-item-note {
-  margin-top: .28rem;
-  font-size: .77rem;
+  margin-top: .26rem;
+  font-size: .76rem;
   color: var(--gray-500);
   font-style: italic;
 }
@@ -125,12 +125,12 @@
 /* ── Loan Summary Box ───────────────────────────────────────────── */
 .loan-summary-box {
   background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
-  border: 1px solid var(--primary-lt);
+  border: 1px solid var(--primary-lt) !important;
 }
 .summary-row {
   display: flex;
   justify-content: space-between;
-  padding: .52rem 0;
+  padding: .5rem 0;
   border-bottom: 1px solid var(--border);
   font-size: .875rem;
   color: var(--gray-700);
@@ -138,24 +138,24 @@
 .summary-row:last-child { border-bottom: none; }
 .summary-row--total {
   font-weight: 700;
-  font-size: .94rem;
-  padding: .65rem 0;
+  font-size: .93rem;
+  padding: .62rem 0;
   border-top: 2px solid var(--primary-lt);
   border-bottom: 2px solid var(--primary-lt);
   color: var(--gray-800);
 }
-.summary-row--balance { font-size: 1rem; padding: .65rem 0; }
+.summary-row--balance { font-size: .98rem; padding: .62rem 0; }
 
 /* ── Fully Paid Badge ───────────────────────────────────────────── */
 .fully-paid-badge {
-  margin-top: 1.3rem;
-  padding: .82rem;
-  background: linear-gradient(135deg, var(--green-lt), #ecfdf5);
+  margin-top: 1.25rem;
+  padding: .8rem;
+  background: var(--green-lt);
   color: var(--green-dk);
   border-radius: var(--radius-sm);
   text-align: center;
   font-weight: 700;
-  font-size: .94rem;
+  font-size: .93rem;
   border: 1.5px solid var(--green-mid);
 }
 
@@ -185,93 +185,74 @@
   }
   .sidebar--open {
     transform: translateX(0);
-    box-shadow: 0 0 80px rgba(0,0,0,.5);
+    box-shadow: 0 0 80px rgba(0,0,0,.55);
   }
-  .sidebar-close { display: flex; }
+  .sidebar-overlay { display: block; }
+  .sidebar-close   { display: flex; }
   .header-menu-btn { display: flex; }
   .main-area { margin-left: 0; }
   .header { left: 0; padding: 0 1.1rem; }
   .header-user { display: none; }
 
   .page { padding: 1.25rem 1rem; }
-
-  /* Mobile header — tighten action area */
   .header-actions { gap: .1rem; }
   .header-icon-btn,
   .header-theme-btn { width: 34px; height: 34px; }
 
-  /* Welcome banner */
   .welcome-banner {
-    padding: 2rem 1.5rem;
+    padding: 1.75rem 1.5rem;
     min-height: 180px;
     align-items: flex-start;
     flex-direction: column;
-    gap: 1rem;
+    gap: .9rem;
     border-radius: var(--radius-lg);
   }
-  .welcome-text h2 {
-    font-size: 1.7rem;
-    font-weight: 700;
-    line-height: 1.2;
-  }
-  .welcome-date { font-size: .84rem; opacity: .7; margin-top: .2rem; }
-  .welcome-icon { display: none; }
-  .welcome-actions { flex-direction: row; align-items: center; gap: .6rem; }
-  .welcome-btns { flex-direction: row; gap: .45rem; }
-  .welcome-refresh { width: 40px; height: 40px; }
+  .welcome-text h2 { font-size: 1.65rem; font-weight: 700; line-height: 1.2; }
+  .welcome-date    { font-size: .82rem; opacity: .6; }
+  .welcome-icon    { display: none; }
+  .welcome-actions { flex-direction: row; align-items: center; gap: .55rem; }
+  .welcome-btns    { flex-direction: row; gap: .42rem; }
+  .welcome-refresh { width: 38px; height: 38px; }
 
-  /* Stat grid: 2 columns on mobile */
-  .stat-grid { grid-template-columns: 1fr 1fr; gap: .75rem; }
-  .stat-value { font-size: 1.25rem; }
+  .stat-grid { grid-template-columns: 1fr 1fr; gap: .72rem; }
+  .stat-value { font-size: 1.22rem; }
   .stat-sub   { display: none; }
 
-  /* Loan status chips */
-  .loan-status-row { gap: .5rem; }
-  .status-chip     { min-width: 72px; padding: .5rem .8rem; }
-  .status-chip-val { font-size: 1.2rem; }
+  .loan-status-row { gap: .45rem; }
+  .status-chip     { min-width: 70px; padding: .5rem .78rem; }
+  .status-chip-val { font-size: 1.18rem; }
 
-  /* Tables: horizontal scroll */
   .card { padding: 1.1rem; }
   .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .table { min-width: 560px; }
-  .table th, .table td { padding: .65rem .85rem; }
+  .table th, .table td { padding: .62rem .85rem; }
 
-  /* Page toolbar stacks */
   .page-toolbar { flex-direction: column; align-items: stretch; }
   .page-toolbar .btn { width: 100%; justify-content: center; }
   .search-wrap { max-width: 100%; }
 
-  /* Filter tabs wrap */
-  .filter-tabs { gap: .28rem; }
-  .filter-tab  { font-size: .75rem; padding: .34rem .7rem; }
+  .filter-tabs { gap: .26rem; }
+  .filter-tab  { font-size: .74rem; padding: .33rem .68rem; }
 
-  /* Forms */
   .form-row { grid-template-columns: 1fr; gap: 0; }
-  .modal { padding: 1.4rem; border-radius: var(--radius-lg); margin: .5rem; }
+  .modal { padding: 1.35rem; border-radius: var(--radius-lg); margin: .5rem; }
   .modal-actions { flex-direction: column-reverse; gap: .5rem; }
   .modal-actions .btn { width: 100%; justify-content: center; }
 
-  /* Detail grid */
   .detail-grid { grid-template-columns: 1fr; gap: .9rem; }
   .info-row-label { width: 42%; }
   .info-row-value { max-width: 58%; }
 
-  /* Loan/payment preview */
   .loan-preview    { flex-direction: column; gap: .5rem; }
   .payment-preview { flex-direction: column; gap: .4rem; }
+  .loan-grid       { grid-template-columns: 1fr; }
 
-  /* Loan grid — single column on mobile */
-  .loan-grid { grid-template-columns: 1fr; }
-
-  /* Page top bar */
   .page-top-bar { flex-direction: column; align-items: stretch; }
   .page-top-bar .btn { width: 100%; justify-content: center; }
 
-  /* Tabs scroll */
   .tabs { overflow-x: auto; flex-wrap: nowrap; gap: 0; }
-  .tab  { white-space: nowrap; flex-shrink: 0; padding: .6rem 1rem; font-size: .81rem; }
+  .tab  { white-space: nowrap; flex-shrink: 0; padding: .58rem .95rem; font-size: .8rem; }
 
-  /* Dashboard grids */
   .dashboard-grid { grid-template-columns: 1fr; }
   .overview-grid  { grid-template-columns: 1fr; }
 }
@@ -280,10 +261,10 @@
 @media (max-width: 480px) {
   .stat-grid       { grid-template-columns: 1fr; }
   .toast-container { max-width: calc(100% - 1.5rem); right: .75rem; top: .75rem; }
-  .status-chip     { min-width: 60px; }
-  .welcome-banner  { padding: 1.75rem 1.25rem; min-height: 160px; }
-  .welcome-text h2 { font-size: 1.5rem; }
-  .page { padding: .9rem; }
+  .status-chip     { min-width: 58px; }
+  .welcome-banner  { padding: 1.6rem 1.2rem; }
+  .welcome-text h2 { font-size: 1.42rem; }
+  .page            { padding: .85rem; }
   .repayment-grid  { grid-template-columns: 1fr; }
 }
 
@@ -304,24 +285,16 @@
     margin-bottom: .75rem;
     overflow: visible !important;
   }
-
   .stat-card {
     background: #f5f5f5 !important;
     color: #000 !important;
     box-shadow: none !important;
   }
   .stat-grid { grid-template-columns: repeat(2, 1fr); gap: .5rem; }
-
   .table { font-size: .8rem; min-width: auto; }
   .table th { background: #eee !important; color: #000 !important; }
   .table td { border-bottom: 1px solid #ddd; }
-
-  .badge {
-    background: #eee !important;
-    color: #000 !important;
-    border: 1px solid #999;
-  }
-
+  .badge { background: #eee !important; color: #000 !important; border: 1px solid #999; }
   #receipt-print { position: static !important; padding: 1.5rem; }
   .modal-overlay { background: transparent !important; backdrop-filter: none !important; position: static !important; }
   .receipt-modal { max-width: none; box-shadow: none !important; border: none !important; }
