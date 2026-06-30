@@ -120,7 +120,12 @@ export default function Repayments() {
           : (
             <div className="repayment-grid">
               {filtered.map(r => (
-                <div key={r.id} className="repayment-card" onClick={() => navigate(`/loans/${r.loan_id}`)}>
+                <div
+                  key={r.id}
+                  className="repayment-card"
+                  onClick={() => r.loan_id && navigate(`/loans/${r.loan_id}`)}
+                  style={r.loan_id ? undefined : { cursor: 'default' }}
+                >
                   <div className="repayment-card-top">
                     <div className="repayment-card-avatar">
                       <FiUser size={16} />
@@ -133,13 +138,15 @@ export default function Repayments() {
                   <div className="repayment-card-amount">TZS {fmt(r.amount)}</div>
                   <div className="repayment-card-meta">
                     <span><FiCalendar size={12} /> {r.payment_date?.slice(0, 10)}</span>
-                    <button
-                      className="icon-btn icon-btn--view"
-                      onClick={e => { e.stopPropagation(); navigate(`/loans/${r.loan_id}`); }}
-                      title="View loan"
-                    >
-                      <FiExternalLink size={14} />
-                    </button>
+                    {r.loan_id && (
+                      <button
+                        className="icon-btn icon-btn--view"
+                        onClick={e => { e.stopPropagation(); navigate(`/loans/${r.loan_id}`); }}
+                        title="View loan"
+                      >
+                        <FiExternalLink size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -173,8 +180,11 @@ export default function Repayments() {
                     </tr>
                   )
                   : filtered.map((r, i) => (
-                    <tr key={r.id} className="tr-link"
-                      onClick={() => navigate(`/loans/${r.loan_id}`)}>
+                    <tr
+                      key={r.id}
+                      className={r.loan_id ? 'tr-link' : ''}
+                      onClick={() => r.loan_id && navigate(`/loans/${r.loan_id}`)}
+                    >
                       <td style={{ color: 'var(--gray-400)', fontSize: '.8rem' }}>{i + 1}</td>
                       <td><code>{r.receipt_number}</code></td>
                       <td><strong>{r.customer_name}</strong></td>
@@ -182,11 +192,13 @@ export default function Repayments() {
                       <td><span className="amount-cell">TZS {fmt(r.amount)}</span></td>
                       <td>{r.recorded_by || <span style={{ color: 'var(--gray-400)' }}>—</span>}</td>
                       <td onClick={e => e.stopPropagation()}>
-                        <button className="icon-btn icon-btn--view"
-                          onClick={() => navigate(`/loans/${r.loan_id}`)}
-                          title="View loan">
-                          <FiExternalLink size={15} />
-                        </button>
+                        {r.loan_id && (
+                          <button className="icon-btn icon-btn--view"
+                            onClick={() => navigate(`/loans/${r.loan_id}`)}
+                            title="View loan">
+                            <FiExternalLink size={15} />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))

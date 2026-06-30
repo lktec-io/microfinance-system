@@ -10,7 +10,7 @@
 .info-section {
   margin-bottom: 1.35rem;
   padding-bottom: 1.35rem;
-  border-bottom: 1px solid rgba(0,229,255,.08);
+  border-bottom: 1px solid var(--border);
 }
 .info-section:last-of-type { border-bottom: none; margin-bottom: 0; }
 .info-section-title {
@@ -18,7 +18,8 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .12em;
-  color: rgba(0,229,255,.45);
+  color: var(--primary);
+  opacity: .6;
   margin-bottom: .52rem;
 }
 .info-row {
@@ -55,19 +56,19 @@
   margin-bottom: .44rem;
   font-weight: 500;
 }
-.progress-pct { font-weight: 700; color: var(--primary); }
+.progress-pct { font-weight: 700; color: var(--green); }
 .progress-bar {
   height: 7px;
-  background: rgba(255,255,255,.06);
+  background: var(--gray-200);
   border-radius: 4px;
   overflow: hidden;
 }
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--primary), rgba(0,229,255,.5));
+  background: linear-gradient(90deg, var(--green), #22C55E);
   border-radius: 4px;
   transition: width .6s ease;
-  box-shadow: 0 0 8px rgba(0,229,255,.3);
+  box-shadow: 0 0 6px rgba(22,163,74,.3);
 }
 .progress-fill--red { background: linear-gradient(90deg, var(--yellow), var(--red)); }
 .progress-meta {
@@ -78,25 +79,30 @@
   margin-top: .4rem;
 }
 
-/* ── Repayment List ─────────────────────────────────────────────── */
+/* ── Repayment List (Loan Detail) ───────────────────────────────── */
 .repayment-list { display: flex; flex-direction: column; gap: .7rem; }
 .repayment-item {
   display: flex;
   gap: .8rem;
   align-items: flex-start;
   padding: .95rem 1.1rem;
-  background: rgba(255,255,255,.03);
+  background: var(--surface-2);
   border-radius: var(--radius);
-  border: 1px solid rgba(0,229,255,.08);
-  transition: background var(--transition), border-color var(--transition);
+  border: 1px solid var(--border);
+  transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
 }
 .repayment-item:hover {
-  background: rgba(0,229,255,.04);
-  border-color: rgba(0,229,255,.18);
+  background: var(--green-lt);
+  border-color: var(--green-border);
+  box-shadow: var(--shadow-sm);
+}
+[data-theme="dark"] .repayment-item {
+  background: rgba(255,255,255,.03);
+  border-color: rgba(255,255,255,.08);
 }
 .repayment-item-num {
   width: 28px; height: 28px;
-  background: rgba(0,229,255,.1);
+  background: var(--primary-lt);
   color: var(--primary);
   border-radius: 8px;
   display: grid;
@@ -128,14 +134,14 @@
 
 /* ── Loan Summary Box ───────────────────────────────────────────── */
 .loan-summary-box {
-  background: rgba(0,229,255,.03) !important;
-  border: 1px solid rgba(0,229,255,.14) !important;
+  background: var(--primary-lt) !important;
+  border: 1px solid var(--border-strong) !important;
 }
 .summary-row {
   display: flex;
   justify-content: space-between;
   padding: .52rem 0;
-  border-bottom: 1px solid rgba(0,229,255,.06);
+  border-bottom: 1px solid var(--border);
   font-size: .9rem;
   color: var(--gray-700);
 }
@@ -144,9 +150,9 @@
   font-weight: 700;
   font-size: .95rem;
   padding: .62rem 0;
-  border-top: 2px solid rgba(0,229,255,.12);
-  border-bottom: 2px solid rgba(0,229,255,.12);
-  color: var(--gray-800);
+  border-top: 2px solid var(--border-strong);
+  border-bottom: 2px solid var(--border-strong);
+  color: var(--gray-900);
 }
 .summary-row--balance { font-size: 1rem; padding: .62rem 0; }
 
@@ -154,14 +160,129 @@
 .fully-paid-badge {
   margin-top: 1.25rem;
   padding: .85rem;
-  background: rgba(57,255,20,.08);
-  color: var(--green);
+  background: var(--green-lt);
+  color: var(--green-dk);
   border-radius: var(--radius-sm);
   text-align: center;
   font-weight: 700;
   font-size: 1rem;
-  border: 1.5px solid rgba(57,255,20,.22);
-  text-shadow: 0 0 16px rgba(57,255,20,.35);
+  border: 1.5px solid var(--green-border);
+  box-shadow: inset 0 0 20px rgba(22,163,74,.06);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   REPAYMENT GRID VIEW — Premium Card Design
+   ══════════════════════════════════════════════════════════════════ */
+.repayment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.repayment-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.35rem 1.25rem 1.1rem;
+  cursor: none;
+  transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Green top accent on hover */
+.repayment-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.repayment-card:hover::before { opacity: 1; }
+
+.repayment-card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--green-border);
+  transform: translateY(-3px);
+}
+
+[data-theme="dark"] .repayment-card {
+  background: rgba(255,255,255,.04);
+  border-color: rgba(255,255,255,.08);
+}
+
+.repayment-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.repayment-card-avatar {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--primary) 0%, #16A34A 100%);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(15,61,110,.2);
+}
+
+.repayment-card-receipt code {
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: .75rem;
+  background: var(--primary-lt);
+  color: var(--primary);
+  padding: .2rem .5rem;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  font-weight: 600;
+  letter-spacing: .03em;
+}
+[data-theme="dark"] .repayment-card-receipt code {
+  background: rgba(255,255,255,.08);
+}
+
+.repayment-card-name {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.repayment-card-amount {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: -.035em;
+  line-height: 1.1;
+}
+
+.repayment-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding-top: .6rem;
+  border-top: 1px solid var(--border);
+}
+.repayment-card-meta span {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .8rem;
+  color: var(--gray-500);
+  font-weight: 500;
 }
 
 /* ── Responsive ─────────────────────────────────────────────────── */
@@ -176,6 +297,7 @@
   .loan-preview    { flex-direction: column; gap: .5rem; }
   .payment-preview { flex-direction: column; gap: .4rem; }
   .loan-grid       { grid-template-columns: 1fr; }
+  .repayment-grid  { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 }
 
 @media (max-width: 480px) {

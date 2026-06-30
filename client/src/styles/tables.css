@@ -2,104 +2,124 @@
 .table-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  border-radius: var(--radius-sm);
 }
 
-/* ── Tables ─────────────────────────────────────────────────────── */
+/* ── Table ── */
 .table {
   width: 100%;
   border-collapse: collapse;
   font-size: .925rem;
-  min-width: 500px;
-}
-.table th {
-  background: rgba(0,229,255,.04);
-  border-bottom: 1.5px solid rgba(0,229,255,.1);
-  padding: .75rem .95rem;
-  text-align: left;
-  font-weight: 700;
-  color: rgba(0,229,255,.6);
-  font-size: .75rem;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  white-space: nowrap;
-}
-.table td {
-  padding: .82rem .95rem;
-  border-bottom: 1px solid rgba(255,255,255,.04);
-  vertical-align: middle;
-  transition: background var(--transition);
   color: var(--gray-700);
 }
-.table tr:last-child td { border-bottom: none; }
-.table tbody tr { transition: background var(--transition); }
-.table tbody tr:hover td {
-  background: rgba(0,229,255,.04);
-  color: var(--gray-900);
-}
-.tr-link { cursor: none; }
-.tr-link:hover td { background: rgba(0,229,255,.05) !important; }
-.table small { color: var(--gray-500); font-size: .84rem; }
 
-/* ── Text Utilities ─────────────────────────────────────────────── */
-.text-center { text-align: center; }
-.text-right  { text-align: right; }
-.text-red    { color: var(--red-dk); }
-.text-green  { color: var(--green); }
-.text-orange { color: var(--orange); }
-.text-blue   { color: var(--primary); }
-.amount-cell {
-  font-weight: 700;
-  color: var(--green);
-  font-size: .95rem;
-  text-shadow: 0 0 12px rgba(57,255,20,.25);
-}
-
-/* ── Results Summary ─────────────────────────────────────────────── */
-.results-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: .84rem;
-  color: var(--gray-500);
-  margin-bottom: .85rem;
-  padding: .5rem .9rem;
-  background: rgba(255,255,255,.03);
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(0,229,255,.08);
-}
-.results-total { font-size: .9rem; font-weight: 600; color: var(--gray-700); }
-
-/* ── Tabs (Reports page) ─────────────────────────────────────────── */
-.tabs {
-  display: flex;
-  border-bottom: 1.5px solid rgba(0,229,255,.1);
-  margin-bottom: 1.75rem;
-  gap: .15rem;
-}
-.tab {
-  padding: .78rem 1.5rem;
-  font-size: .925rem;
+.table th {
+  background: var(--gray-50);
+  padding: .72rem 1rem;
+  text-align: left;
+  font-size: .75rem;
   font-weight: 600;
   color: var(--gray-500);
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1.5px;
-  transition: color var(--transition), border-color var(--transition), background var(--transition);
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  letter-spacing: -.01em;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  white-space: nowrap;
+  border-bottom: 1.5px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
-.tab:hover { color: var(--primary); background: rgba(0,229,255,.04); }
+
+[data-theme="dark"] .table th {
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.45);
+}
+
+.table td {
+  padding: .82rem 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  transition: background var(--transition);
+}
+
+.table tbody tr:last-child td { border-bottom: none; }
+
+.table tbody tr:hover td {
+  background: var(--primary-lt);
+}
+[data-theme="dark"] .table tbody tr:hover td {
+  background: rgba(255,255,255,.04);
+}
+
+/* Clickable row */
+.tr-link { cursor: none; }
+.tr-link td { transition: background var(--transition), color var(--transition); }
+.tr-link:hover td { background: var(--primary-lt); }
+
+/* ── Tab Navigation (detail pages) ── */
+.tab-nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+}
+.tab {
+  padding: .7rem 1.25rem;
+  font-size: .925rem;
+  font-weight: 500;
+  color: var(--gray-500);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-family: inherit;
+  transition: color var(--transition), border-color var(--transition);
+  white-space: nowrap;
+  cursor: none;
+}
+.tab:hover { color: var(--gray-800); }
 .tab--active {
   color: var(--primary);
   border-bottom-color: var(--primary);
-  font-weight: 700;
+  font-weight: 600;
 }
 
-/* ── Responsive ─────────────────────────────────────────────────── */
+/* ── Amount Cell — always green ── */
+.amount-cell {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Small text in table ── */
+.table small {
+  font-size: .77rem;
+  color: var(--gray-400);
+  display: block;
+  margin-top: .12rem;
+}
+
+/* ── Code in table (receipt number) ── */
+.table code,
+code {
+  font-family: 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
+  font-size: .8rem;
+  background: var(--gray-100);
+  color: var(--primary);
+  padding: .15rem .45rem;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+[data-theme="dark"] code {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.1);
+}
+
+/* ── Responsive ── */
 @media (max-width: 768px) {
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .table { min-width: 560px; }
-  .table th, .table td { padding: .62rem .85rem; }
-  .tabs { overflow-x: auto; flex-wrap: nowrap; gap: 0; }
-  .tab  { white-space: nowrap; flex-shrink: 0; padding: .6rem 1rem; font-size: .875rem; }
+  .table { min-width: 600px; }
+  .table th,
+  .table td { padding: .65rem .75rem; }
 }
