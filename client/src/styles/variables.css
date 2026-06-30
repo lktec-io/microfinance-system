@@ -1,20 +1,22 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   BARAKA MICROCREDIT — DESIGN SYSTEM  v4  (Light-first)
-   Primary: #0F3D6E (Navy)  |  CTA: #16A34A (Green)  |  BG: #EEF2F8
+   BARAKA MICROCREDIT — DESIGN SYSTEM  v5  (Light-first, Poppins)
+   Primary: #123458 (Navy)  |  CTA: #16A34A (Green)  |  BG: #F8FAFC
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Primary: Navy #0F3D6E ──────────────────────────────────────── */
-  --primary:        #0F3D6E;
-  --primary-dk:     #0A2D52;
-  --primary-lt:     rgba(15, 61, 110, 0.08);
-  --primary-mid:    rgba(15, 61, 110, 0.15);
-  --primary-pale:   rgba(15, 61, 110, 0.04);
-  --primary-glow:   rgba(15, 61, 110, 0.22);
-  --shadow-primary: 0 4px 20px rgba(15,61,110,.2), 0 2px 8px rgba(15,61,110,.1);
+  /* ── Primary: Navy #123458 ──────────────────────────────────────── */
+  --primary:        #123458;
+  --primary-dk:     #0D2749;
+  --primary-lt:     rgba(18, 52, 88, 0.08);
+  --primary-mid:    rgba(18, 52, 88, 0.15);
+  --primary-pale:   rgba(18, 52, 88, 0.04);
+  --primary-glow:   rgba(18, 52, 88, 0.22);
+  --shadow-primary: 0 4px 20px rgba(18,52,88,.2), 0 2px 8px rgba(18,52,88,.1);
 
   /* ── CTA / Money / Success: Green #16A34A ───────────────────────── */
   --green:        #16A34A;
+  --green-accent: #22C55E;
+  --green-light:  #DCFCE7;
   --green-dk:     #15803D;
   --green-lt:     rgba(22, 163, 74, 0.1);
   --green-mid:    rgba(22, 163, 74, 0.2);
@@ -38,10 +40,10 @@
   --teal-dk:   #0F766E;
 
   /* ── Surfaces — very soft light ─────────────────────────────────── */
-  --bg:           #EEF2F8;
-  --surface:      #FFFFFF;
-  --surface-2:    #F7F9FC;
-  --surface-3:    rgba(255,255,255,.92);
+  --bg:            #F8FAFC;
+  --surface:       #FFFFFF;
+  --surface-2:     #F8FAFC;
+  --surface-3:     rgba(255,255,255,.92);
   --surface-solid: #FFFFFF;
 
   /* ── Text scale (light mode — 900=dark, 50=light) ───────────────── */
@@ -57,15 +59,15 @@
   --gray-50:  #F8FAFC;
 
   /* ── Borders ────────────────────────────────────────────────────── */
-  --border:        rgba(15, 61, 110, 0.1);
-  --border-strong: rgba(15, 61, 110, 0.2);
+  --border:        #E2E8F0;
+  --border-strong: rgba(18, 52, 88, 0.2);
 
   /* ── Shadows — soft for light design ───────────────────────────── */
-  --shadow-sm:    0 1px 4px rgba(15,61,110,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-md:    0 4px 16px rgba(15,61,110,.08), 0 2px 6px rgba(0,0,0,.04);
-  --shadow-lg:    0 12px 40px rgba(15,61,110,.1),  0 4px 14px rgba(0,0,0,.06);
-  --shadow-xl:    0 24px 80px rgba(15,61,110,.14), 0 8px 24px rgba(0,0,0,.06);
-  --shadow-glass: 0 4px 24px rgba(15,61,110,.08), inset 0 1px 0 rgba(255,255,255,.9);
+  --shadow-sm:    0 1px 4px rgba(18,52,88,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:    0 4px 16px rgba(18,52,88,.08), 0 2px 6px rgba(0,0,0,.04);
+  --shadow-lg:    0 12px 40px rgba(18,52,88,.1),  0 4px 14px rgba(0,0,0,.06);
+  --shadow-xl:    0 24px 80px rgba(18,52,88,.14), 0 8px 24px rgba(0,0,0,.06);
+  --shadow-glass: 0 4px 24px rgba(18,52,88,.08), inset 0 1px 0 rgba(255,255,255,.9);
 
   /* ── Radius ─────────────────────────────────────────────────────── */
   --radius-xs:  4px;
@@ -81,16 +83,17 @@
   --ease-out:   0.3s cubic-bezier(0,0,.2,1);
 
   /* ── Layout ─────────────────────────────────────────────────────── */
-  --sidebar-w: 260px;
-  --header-h:  64px;
+  --sidebar-w:           260px;
+  --sidebar-w-collapsed: 68px;
+  --header-h:            64px;
 }
 
 /* ── Dark Mode override ─────────────────────────────────────────── */
 [data-theme="dark"] {
-  --bg:           #0D1B2E;
-  --surface:      rgba(255,255,255,.04);
-  --surface-2:    rgba(255,255,255,.07);
-  --surface-solid: #142038;
+  --bg:            #0A1628;
+  --surface:       rgba(255,255,255,.04);
+  --surface-2:     rgba(255,255,255,.07);
+  --surface-solid: #122040;
   --gray-900: #F1F5F9;
   --gray-800: rgba(241,245,249,.85);
   --gray-700: rgba(241,245,249,.7);

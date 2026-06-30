@@ -26,7 +26,8 @@ const pageVariants = {
 };
 
 export default function Layout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen,      setSidebarOpen]      = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
 
   const title = Object.entries(titles).find(([k]) =>
@@ -44,9 +45,22 @@ export default function Layout({ children }) {
 
   return (
     <div className="app-shell">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="main-area">
-        <Header title={title} onMenuClick={() => setSidebarOpen(true)} />
+      {/* Ambient page glow — fixed behind content */}
+      <div className="page-glow-bg" aria-hidden="true" />
+
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(c => !c)}
+      />
+
+      <div className={`main-area${sidebarCollapsed ? ' main-area--collapsed' : ''}`}>
+        <Header
+          title={title}
+          onMenuClick={() => setSidebarOpen(true)}
+          collapsed={sidebarCollapsed}
+        />
         <AnimatePresence mode="wait" initial={false}>
           <motion.main
             key={location.pathname}

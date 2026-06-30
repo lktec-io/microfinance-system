@@ -233,7 +233,7 @@
   place-items: center;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 3px 10px rgba(15,61,110,.2);
+  box-shadow: 0 3px 10px rgba(18,52,88,.2);
 }
 
 .repayment-card-receipt code {

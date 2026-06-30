@@ -3,18 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiMoon, FiSun, FiBell, FiSettings, FiLogOut,
-  FiCheckCircle, FiAlertTriangle, FiX, FiCreditCard,
+  FiCheckCircle, FiAlertTriangle, FiX, FiCreditCard, FiCalendar,
 } from 'react-icons/fi';
 import { useAuth }  from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 const NOTIFS = [
-  { id: 1, type: 'success', Icon: FiCreditCard,    text: 'Payment received successfully',    time: 'Just now'   },
-  { id: 2, type: 'warning', Icon: FiAlertTriangle, text: 'Overdue loans need your attention', time: '1 hour ago' },
-  { id: 3, type: 'success', Icon: FiCheckCircle,   text: 'Daily report is ready to export',  time: '3 hours ago'},
+  { id: 1, type: 'success', Icon: FiCreditCard,    text: 'Payment received successfully',    time: 'Just now'    },
+  { id: 2, type: 'warning', Icon: FiAlertTriangle, text: 'Overdue loans need your attention', time: '1 hour ago'  },
+  { id: 3, type: 'success', Icon: FiCheckCircle,   text: 'Daily report is ready to export',  time: '3 hours ago' },
 ];
 
-export default function Header({ title, onMenuClick }) {
+function todayShort() {
+  return new Date().toLocaleDateString('en-GB', {
+    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+  });
+}
+
+export default function Header({ title, onMenuClick, collapsed }) {
   const { user, logout, isAdmin } = useAuth();
   const { theme, toggleTheme }    = useTheme();
   const navigate                  = useNavigate();
@@ -37,12 +43,17 @@ export default function Header({ title, onMenuClick }) {
   function handleLogout() { logout(); navigate('/login'); }
 
   return (
-    <header className="header">
+    <header className={`header${collapsed ? ' header--collapsed' : ''}`}>
       <button className="header-menu-btn" onClick={onMenuClick} aria-label="Open menu">
         <span /><span /><span />
       </button>
 
-      <h1 className="header-title">{title}</h1>
+      <div className="header-title-wrap">
+        <h1 className="header-title">{title}</h1>
+        <span className="header-date">
+          <FiCalendar size={11} /> {todayShort()}
+        </span>
+      </div>
 
       <div className="header-actions">
 

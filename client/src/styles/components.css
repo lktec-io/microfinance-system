@@ -27,7 +27,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(15,61,110,.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(18,52,88,.12), transparent);
   pointer-events: none;
 }
 

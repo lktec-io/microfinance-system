@@ -12,7 +12,7 @@ html {
 
 body {
   cursor: none;
-  font-family: 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 15px;
   line-height: 1.6;
   color: var(--gray-800);
@@ -59,7 +59,7 @@ img { max-width: 100%; display: block; }
   position: fixed;
   top: 0; left: 0;
   width: 32px; height: 32px;
-  border: 1.5px solid rgba(15,61,110,.38);
+  border: 1.5px solid rgba(18,52,88,.38);
   border-radius: 50%;
   pointer-events: none;
   z-index: 99998;
@@ -81,12 +81,12 @@ img { max-width: 100%; display: block; }
 .cursor-dot.cursor-click {
   width: 14px; height: 14px;
   background: var(--primary);
-  box-shadow: 0 0 20px rgba(15,61,110,.6), 0 0 40px rgba(15,61,110,.3);
+  box-shadow: 0 0 20px rgba(18,52,88,.6), 0 0 40px rgba(18,52,88,.3);
 }
 .cursor-ring.cursor-click {
   width: 24px; height: 24px;
   border-color: var(--primary);
-  background: rgba(15,61,110,.08);
+  background: rgba(18,52,88,.08);
 }
 .cursor-dot.cursor-hidden,
 .cursor-ring.cursor-hidden { opacity: 0; }

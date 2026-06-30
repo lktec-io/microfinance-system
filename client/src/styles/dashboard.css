@@ -38,13 +38,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  background: linear-gradient(135deg, var(--primary) 0%, #16537E 60%, #0A2D52 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #1A4A7A 60%, #0D2749 100%);
   border-radius: var(--radius-xl);
   padding: 1.75rem 2rem;
   margin-bottom: 1.5rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(15,61,110,.25);
+  box-shadow: 0 8px 32px rgba(18,52,88,.25);
 }
 
 /* Shimmer sweep */

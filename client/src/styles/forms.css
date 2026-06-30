@@ -61,7 +61,7 @@
 
 /* ── Navy Secondary ── */
 .btn--secondary {
-  background: linear-gradient(135deg, #0F3D6E 0%, #0A2D52 100%);
+  background: linear-gradient(135deg, #123458 0%, #0D2749 100%);
   color: #fff;
   box-shadow: 0 4px 14px rgba(15,61,110,.25);
 }
@@ -272,7 +272,7 @@ textarea { resize: vertical; min-height: 80px; }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #EEF2F8 0%, #E8EFF7 50%, #EEF2F8 100%);
+  background: linear-gradient(135deg, #F8FAFC 0%, #EEF3F9 50%, #F8FAFC 100%);
   position: relative;
   overflow: hidden;
   padding: 1.5rem;
@@ -299,7 +299,7 @@ textarea { resize: vertical; min-height: 80px; }
 
 .login-blob--1 {
   width: 650px; height: 650px;
-  background: radial-gradient(circle, rgba(15,61,110,.13) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(18,52,88,.13) 0%, transparent 70%);
   top: -220px; right: -120px;
   animation: loginBlob1 22s ease-in-out infinite;
 }
@@ -323,7 +323,7 @@ textarea { resize: vertical; min-height: 80px; }
 }
 
 [data-theme="dark"] .login-blob--1 {
-  background: radial-gradient(circle, rgba(15,61,110,.28) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(18,52,88,.28) 0%, transparent 70%);
 }
 [data-theme="dark"] .login-blob--2 {
   background: radial-gradient(circle, rgba(22,163,74,.18) 0%, transparent 70%);
@@ -340,7 +340,7 @@ textarea { resize: vertical; min-height: 80px; }
   width: 42px; height: 42px;
   border-radius: 50%;
   background: rgba(255,255,255,.88);
-  border: 1px solid rgba(15,61,110,.12);
+  border: 1px solid rgba(18,52,88,.12);
   color: var(--primary);
   display: grid;
   place-items: center;
@@ -372,8 +372,8 @@ textarea { resize: vertical; min-height: 80px; }
   border: 1px solid rgba(255,255,255,.92);
   border-radius: var(--radius-xl);
   box-shadow:
-    0 24px 80px rgba(15,61,110,.13),
-    0 8px 28px rgba(15,61,110,.07),
+    0 24px 80px rgba(18,52,88,.13),
+    0 8px 28px rgba(18,52,88,.07),
     inset 0 1px 0 rgba(255,255,255,.95);
   padding: 2.5rem 2.25rem;
   position: relative;
@@ -402,18 +402,18 @@ textarea { resize: vertical; min-height: 80px; }
   width: 68px; height: 68px;
   object-fit: contain;
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(15,61,110,.2);
+  box-shadow: 0 4px 16px rgba(18,52,88,.2);
 }
 .login-logo {
   width: 68px; height: 68px;
-  background: linear-gradient(135deg, #0F3D6E 0%, #16A34A 100%);
+  background: linear-gradient(135deg, #123458 0%, #16A34A 100%);
   color: #fff;
   border-radius: 16px;
   display: grid;
   place-items: center;
   font-size: 1.5rem;
   font-weight: 700;
-  box-shadow: 0 6px 20px rgba(15,61,110,.3);
+  box-shadow: 0 6px 20px rgba(18,52,88,.3);
 }
 .login-card-title {
   font-size: 1.5rem;

@@ -5,14 +5,15 @@ import { useAuth } from '../context/AuthContext';
 import {
   FiHome, FiUsers, FiDollarSign, FiCreditCard,
   FiBarChart2, FiShield, FiLogOut, FiX,
+  FiChevronLeft, FiChevronRight,
 } from 'react-icons/fi';
 
 const mainLinks = [
-  { to: '/',           label: 'Dashboard',  Icon: FiHome       },
-  { to: '/customers',  label: 'Customers',  Icon: FiUsers      },
-  { to: '/loans',      label: 'Loans',      Icon: FiDollarSign },
-  { to: '/repayments', label: 'Repayments', Icon: FiCreditCard },
-  { to: '/reports',    label: 'Reports',    Icon: FiBarChart2  },
+  { to: '/',           label: 'Dashboard',       Icon: FiHome       },
+  { to: '/customers',  label: 'Customers',        Icon: FiUsers      },
+  { to: '/loans',      label: 'Loans',            Icon: FiDollarSign },
+  { to: '/repayments', label: 'Repayments',       Icon: FiCreditCard },
+  { to: '/reports',    label: 'Reports',          Icon: FiBarChart2  },
 ];
 
 const adminLinks = [
@@ -50,7 +51,7 @@ function BrandLogo() {
   return <span className="sidebar-logo">BC</span>;
 }
 
-function NavSection({ links, onClose }) {
+function NavSection({ links, onClose, collapsed }) {
   return (
     <motion.nav
       className="sidebar-nav"
@@ -74,6 +75,9 @@ function NavSection({ links, onClose }) {
               <Icon size={17} />
             </motion.span>
             <span className="sidebar-link-label">{label}</span>
+            {collapsed && (
+              <span className="sidebar-link-tooltip">{label}</span>
+            )}
           </NavLink>
         </motion.div>
       ))}
@@ -81,7 +85,7 @@ function NavSection({ links, onClose }) {
   );
 }
 
-export default function Sidebar({ open, onClose }) {
+export default function Sidebar({ open, onClose, collapsed, onToggle }) {
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
 
@@ -105,7 +109,19 @@ export default function Sidebar({ open, onClose }) {
         )}
       </AnimatePresence>
 
-      <aside className={`sidebar${open ? ' sidebar--open' : ''}`}>
+      <aside className={`sidebar${open ? ' sidebar--open' : ''}${collapsed ? ' sidebar--collapsed' : ''}`}>
+
+        {/* Collapse toggle — desktop only */}
+        {onToggle && (
+          <button
+            className="sidebar-collapse-btn"
+            onClick={onToggle}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <FiChevronRight size={13} /> : <FiChevronLeft size={13} />}
+          </button>
+        )}
 
         {/* Brand */}
         <motion.div
@@ -115,35 +131,43 @@ export default function Sidebar({ open, onClose }) {
           transition={{ delay: 0.05, type: 'spring', stiffness: 260, damping: 26 }}
         >
           <BrandLogo />
-          <span className="sidebar-title">Baraka Microcredit</span>
-          <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
-            <FiX size={18} />
-          </button>
+          {!collapsed && (
+            <>
+              <span className="sidebar-title">Baraka Microcredit</span>
+              <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
+                <FiX size={18} />
+              </button>
+            </>
+          )}
         </motion.div>
 
         {/* Nav */}
         <div className="sidebar-scroll">
-          <motion.div
-            className="sidebar-section-label"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.12 }}
-          >
-            Main
-          </motion.div>
-          <NavSection links={mainLinks} onClose={onClose} />
+          {!collapsed && (
+            <motion.div
+              className="sidebar-section-label"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.12 }}
+            >
+              Main
+            </motion.div>
+          )}
+          <NavSection links={mainLinks} onClose={onClose} collapsed={collapsed} />
 
           {isAdmin && (
             <>
-              <motion.div
-                className="sidebar-section-label sidebar-section-label--spaced"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                Administration
-              </motion.div>
-              <NavSection links={adminLinks} onClose={onClose} />
+              {!collapsed && (
+                <motion.div
+                  className="sidebar-section-label sidebar-section-label--spaced"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  Administration
+                </motion.div>
+              )}
+              <NavSection links={adminLinks} onClose={onClose} collapsed={collapsed} />
             </>
           )}
         </div>
@@ -163,20 +187,24 @@ export default function Sidebar({ open, onClose }) {
             >
               {user?.name?.[0]?.toUpperCase()}
             </motion.div>
-            <div className="sidebar-user-info">
-              <span className="sidebar-user-name">{user?.name}</span>
-              <span className="sidebar-user-role">{user?.role}</span>
-            </div>
+            {!collapsed && (
+              <div className="sidebar-user-info">
+                <span className="sidebar-user-name">{user?.name}</span>
+                <span className="sidebar-user-role">{user?.role}</span>
+              </div>
+            )}
           </div>
-          <motion.button
-            className="btn-logout"
-            onClick={handleLogout}
-            whileHover={{ x: 3 }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-          >
-            <FiLogOut size={14} /> Sign Out
-          </motion.button>
+          {!collapsed && (
+            <motion.button
+              className="btn-logout"
+              onClick={handleLogout}
+              whileHover={{ x: 3 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+            >
+              <FiLogOut size={14} /> Sign Out
+            </motion.button>
+          )}
         </motion.div>
 
       </aside>
