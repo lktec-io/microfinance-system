@@ -23,7 +23,7 @@ function BrandLogo() {
 export default function Login() {
   const { login }              = useAuth();
   const navigate               = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
   const [form, setForm]        = useState({ email: '', password: '' });
   const [error, setError]      = useState('');
   const [loading, setLoading]  = useState(false);
@@ -58,10 +58,10 @@ export default function Login() {
       <button
         className="login-theme-btn"
         onClick={toggleTheme}
-        title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+        title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+        aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       >
-        {theme === 'light' ? <FiMoon size={18} /> : <FiSun size={18} />}
+        {isDark ? <FiSun size={18} /> : <FiMoon size={18} />}
       </button>
 
       {/* ── Card ── */}

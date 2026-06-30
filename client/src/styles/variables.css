@@ -1,52 +1,50 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   BARAKA MICROCREDIT — DESIGN SYSTEM  v5  (Light-first, Poppins)
-   Primary: #123458 (Navy)  |  CTA: #16A34A (Green)  |  BG: #F8FAFC
+   BARAKA MICROCREDIT — DESIGN SYSTEM  v6
+   Poppins | Light-first | #0F172A navy | #16A34A green | #F8FAFC bg
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Primary: Navy #123458 ──────────────────────────────────────── */
-  --primary:        #123458;
-  --primary-dk:     #0D2749;
-  --primary-lt:     rgba(18, 52, 88, 0.08);
-  --primary-mid:    rgba(18, 52, 88, 0.15);
-  --primary-pale:   rgba(18, 52, 88, 0.04);
-  --primary-glow:   rgba(18, 52, 88, 0.22);
-  --shadow-primary: 0 4px 20px rgba(18,52,88,.2), 0 2px 8px rgba(18,52,88,.1);
+  /* ── Brand: Deep Navy ───────────────────────────────────────────── */
+  --primary:      #0F172A;
+  --primary-2:    #1E293B;
+  --primary-lt:   rgba(15,23,42,0.06);
+  --primary-mid:  rgba(15,23,42,0.12);
+  --primary-glow: rgba(15,23,42,0.18);
+  --shadow-primary: 0 4px 20px rgba(15,23,42,.18), 0 2px 8px rgba(15,23,42,.1);
 
-  /* ── CTA / Money / Success: Green #16A34A ───────────────────────── */
+  /* ── Green: CTA / Money / Success ───────────────────────────────── */
   --green:        #16A34A;
   --green-accent: #22C55E;
   --green-light:  #DCFCE7;
   --green-dk:     #15803D;
-  --green-lt:     rgba(22, 163, 74, 0.1);
-  --green-mid:    rgba(22, 163, 74, 0.2);
-  --green-pale:   rgba(22, 163, 74, 0.06);
-  --green-bg:     rgba(22, 163, 74, 0.08);
-  --green-border: rgba(22, 163, 74, 0.22);
-  --shadow-green: 0 4px 20px rgba(22,163,74,.28), 0 2px 8px rgba(22,163,74,.15);
+  --green-lt:     rgba(22,163,74,0.08);
+  --green-mid:    rgba(22,163,74,0.18);
+  --green-border: rgba(22,163,74,0.22);
+  --shadow-green: 0 4px 20px rgba(22,163,74,.28);
 
-  /* ── Status Colors ──────────────────────────────────────────────── */
-  --yellow:    #D97706;
-  --yellow-lt: rgba(217,119,6,.1);
-  --yellow-dk: #B45309;
-  --red:       #DC2626;
-  --red-dk:    #B91C1C;
-  --red-lt:    rgba(220,38,38,.1);
-  --orange:    #EA580C;
-  --blue:      #2563EB;
-  --blue-lt:   rgba(37,99,235,.1);
+  /* ── Status ─────────────────────────────────────────────────────── */
+  --yellow:    #F59E0B;
+  --yellow-lt: rgba(245,158,11,.1);
+  --yellow-dk: #D97706;
+  --red:       #EF4444;
+  --red-dk:    #DC2626;
+  --red-lt:    rgba(239,68,68,.1);
+  --blue:      #3B82F6;
+  --blue-lt:   rgba(59,130,246,.1);
+  --blue-dk:   #2563EB;
   --teal:      #0D9488;
   --teal-lt:   rgba(13,148,136,.1);
   --teal-dk:   #0F766E;
+  --orange:    #F97316;
 
-  /* ── Surfaces — very soft light ─────────────────────────────────── */
+  /* ── Surfaces ───────────────────────────────────────────────────── */
   --bg:            #F8FAFC;
   --surface:       #FFFFFF;
-  --surface-2:     #F8FAFC;
+  --surface-2:     #F1F5F9;
   --surface-3:     rgba(255,255,255,.92);
   --surface-solid: #FFFFFF;
 
-  /* ── Text scale (light mode — 900=dark, 50=light) ───────────────── */
+  /* ── Gray scale (light mode — 900=darkest text) ─────────────────── */
   --gray-900: #0F172A;
   --gray-800: #1E293B;
   --gray-700: #334155;
@@ -60,54 +58,133 @@
 
   /* ── Borders ────────────────────────────────────────────────────── */
   --border:        #E2E8F0;
-  --border-strong: rgba(18, 52, 88, 0.2);
+  --border-strong: #CBD5E1;
 
-  /* ── Shadows — soft for light design ───────────────────────────── */
-  --shadow-sm:    0 1px 4px rgba(18,52,88,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-md:    0 4px 16px rgba(18,52,88,.08), 0 2px 6px rgba(0,0,0,.04);
-  --shadow-lg:    0 12px 40px rgba(18,52,88,.1),  0 4px 14px rgba(0,0,0,.06);
-  --shadow-xl:    0 24px 80px rgba(18,52,88,.14), 0 8px 24px rgba(0,0,0,.06);
-  --shadow-glass: 0 4px 24px rgba(18,52,88,.08), inset 0 1px 0 rgba(255,255,255,.9);
+  /* ── Sidebar (always dark across all themes) ─────────────────────── */
+  --sidebar-bg:        #0F172A;
+  --sidebar-bg-2:      #1A2744;
+  --sidebar-text:      rgba(255,255,255,.62);
+  --sidebar-text-hover:rgba(255,255,255,.9);
+  --sidebar-active-bg: rgba(255,255,255,.1);
+  --sidebar-hover-bg:  rgba(255,255,255,.06);
+
+  /* ── Shadows ────────────────────────────────────────────────────── */
+  --shadow-xs:  0 1px 2px rgba(15,23,42,.06);
+  --shadow-sm:  0 1px 4px rgba(15,23,42,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 16px rgba(15,23,42,.08), 0 2px 6px rgba(0,0,0,.04);
+  --shadow-lg:  0 12px 40px rgba(15,23,42,.1),  0 4px 14px rgba(0,0,0,.06);
+  --shadow-xl:  0 24px 80px rgba(15,23,42,.14), 0 8px 24px rgba(0,0,0,.08);
+  --shadow-glass: 0 8px 32px rgba(15,23,42,.08), inset 0 1px 0 rgba(255,255,255,.9);
 
   /* ── Radius ─────────────────────────────────────────────────────── */
   --radius-xs:  4px;
   --radius-sm:  8px;
   --radius:     12px;
   --radius-lg:  16px;
-  --radius-xl:  22px;
+  --radius-xl:  20px;
   --radius-2xl: 28px;
 
   /* ── Motion ─────────────────────────────────────────────────────── */
-  --transition: 0.2s ease;
+  --transition: 0.18s ease;
   --spring:     0.4s cubic-bezier(.34,1.56,.64,1);
   --ease-out:   0.3s cubic-bezier(0,0,.2,1);
 
   /* ── Layout ─────────────────────────────────────────────────────── */
   --sidebar-w:           260px;
-  --sidebar-w-collapsed: 68px;
+  --sidebar-w-collapsed: 72px;
   --header-h:            64px;
 }
 
-/* ── Dark Mode override ─────────────────────────────────────────── */
-[data-theme="dark"] {
+/* ══ MORNING (default light) ════════════════════════════════════════ */
+/* Same as :root — no overrides needed */
+
+/* ══ AFTERNOON ══════════════════════════════════════════════════════ */
+[data-theme="afternoon"] {
+  --bg:       #FFFBF5;
+  --surface:  #FFFFFF;
+  --surface-2:#FEF9F0;
+  --border:   #F0E6D3;
+  --border-strong: #E0CEBA;
+  --primary:  #0F172A;
+  --gray-50:  #FFFBF5;
+  --gray-100: #FEF3E2;
+  --yellow:   #D97706;
+  --shadow-md: 0 4px 16px rgba(120,80,20,.08), 0 2px 6px rgba(0,0,0,.04);
+}
+
+/* ══ EVENING (dark — glass) ═════════════════════════════════════════ */
+[data-theme="evening"] {
   --bg:            #0A1628;
-  --surface:       rgba(255,255,255,.04);
-  --surface-2:     rgba(255,255,255,.07);
-  --surface-solid: #122040;
-  --gray-900: #F1F5F9;
-  --gray-800: rgba(241,245,249,.85);
-  --gray-700: rgba(241,245,249,.7);
-  --gray-600: rgba(241,245,249,.55);
-  --gray-500: rgba(241,245,249,.4);
-  --gray-400: rgba(241,245,249,.28);
-  --gray-300: rgba(241,245,249,.18);
-  --gray-200: rgba(241,245,249,.1);
-  --gray-100: rgba(241,245,249,.06);
-  --gray-50:  rgba(241,245,249,.03);
+  --surface:       rgba(30,41,59,.85);
+  --surface-2:     rgba(15,23,42,.7);
+  --surface-solid: #162240;
+  --surface-3:     rgba(255,255,255,.06);
+  --gray-900: #F8FAFC;
+  --gray-800: rgba(248,250,252,.88);
+  --gray-700: rgba(248,250,252,.72);
+  --gray-600: rgba(248,250,252,.56);
+  --gray-500: rgba(248,250,252,.42);
+  --gray-400: rgba(248,250,252,.28);
+  --gray-300: rgba(248,250,252,.18);
+  --gray-200: rgba(248,250,252,.1);
+  --gray-100: rgba(248,250,252,.06);
+  --gray-50:  rgba(248,250,252,.03);
   --border:        rgba(255,255,255,.1);
   --border-strong: rgba(255,255,255,.18);
-  --shadow-sm:    0 1px 4px rgba(0,0,0,.4),  0 1px 2px rgba(0,0,0,.3);
-  --shadow-md:    0 4px 16px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.35);
-  --shadow-lg:    0 12px 40px rgba(0,0,0,.6), 0 4px 14px rgba(0,0,0,.4);
+  --shadow-sm:     0 1px 4px rgba(0,0,0,.5),  0 1px 2px rgba(0,0,0,.35);
+  --shadow-md:     0 4px 16px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.35);
+  --shadow-lg:     0 12px 40px rgba(0,0,0,.6), 0 4px 14px rgba(0,0,0,.4);
+  --shadow-glass:  0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.07);
+  --primary-lt:    rgba(22,163,74,0.12);
+}
+
+/* ══ NIGHT (deep dark) ══════════════════════════════════════════════ */
+[data-theme="night"] {
+  --bg:            #030712;
+  --surface:       #0F172A;
+  --surface-2:     #111827;
+  --surface-solid: #0F172A;
+  --surface-3:     rgba(255,255,255,.04);
+  --gray-900: #F9FAFB;
+  --gray-800: rgba(249,250,251,.85);
+  --gray-700: rgba(249,250,251,.68);
+  --gray-600: rgba(249,250,251,.52);
+  --gray-500: rgba(249,250,251,.38);
+  --gray-400: rgba(249,250,251,.26);
+  --gray-300: rgba(249,250,251,.16);
+  --gray-200: rgba(249,250,251,.09);
+  --gray-100: rgba(249,250,251,.05);
+  --gray-50:  rgba(249,250,251,.02);
+  --border:        rgba(255,255,255,.08);
+  --border-strong: rgba(255,255,255,.14);
+  --shadow-sm:     0 1px 4px rgba(0,0,0,.7);
+  --shadow-md:     0 4px 16px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.5);
+  --shadow-lg:     0 12px 40px rgba(0,0,0,.7), 0 4px 14px rgba(0,0,0,.55);
+  --shadow-xl:     0 24px 80px rgba(0,0,0,.75), 0 8px 24px rgba(0,0,0,.6);
+  --shadow-glass:  0 8px 32px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.05);
+  --primary-lt:    rgba(22,163,74,0.1);
+  --green-lt:      rgba(22,163,74,0.1);
+}
+
+/* ── Backward-compat: old 'dark' theme maps to 'evening' ─────────── */
+[data-theme="dark"] {
+  --bg:            #0A1628;
+  --surface:       rgba(30,41,59,.85);
+  --surface-solid: #162240;
+  --gray-900: #F8FAFC;
+  --gray-800: rgba(248,250,252,.88);
+  --gray-700: rgba(248,250,252,.72);
+  --gray-600: rgba(248,250,252,.56);
+  --gray-500: rgba(248,250,252,.42);
+  --gray-400: rgba(248,250,252,.28);
+  --gray-300: rgba(248,250,252,.18);
+  --gray-200: rgba(248,250,252,.1);
+  --gray-100: rgba(248,250,252,.06);
+  --gray-50:  rgba(248,250,252,.03);
+  --border:        rgba(255,255,255,.1);
+  --border-strong: rgba(255,255,255,.18);
+  --shadow-sm:  0 1px 4px rgba(0,0,0,.5);
+  --shadow-md:  0 4px 16px rgba(0,0,0,.5);
+  --shadow-lg:  0 12px 40px rgba(0,0,0,.6);
   --shadow-glass: 0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.07);
 }

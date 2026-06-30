@@ -191,6 +191,12 @@ input, select, textarea {
   box-shadow: none;
 }
 
+[data-theme="evening"] input,
+[data-theme="evening"] select,
+[data-theme="evening"] textarea,
+[data-theme="night"] input,
+[data-theme="night"] select,
+[data-theme="night"] textarea,
 [data-theme="dark"] input,
 [data-theme="dark"] select,
 [data-theme="dark"] textarea {
@@ -209,6 +215,12 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgba(22,163,74,.12);
   background: var(--surface);
 }
+[data-theme="evening"] input:focus,
+[data-theme="evening"] select:focus,
+[data-theme="evening"] textarea:focus,
+[data-theme="night"] input:focus,
+[data-theme="night"] select:focus,
+[data-theme="night"] textarea:focus,
 [data-theme="dark"] input:focus,
 [data-theme="dark"] select:focus,
 [data-theme="dark"] textarea:focus {
@@ -278,6 +290,8 @@ textarea { resize: vertical; min-height: 80px; }
   padding: 1.5rem;
 }
 
+[data-theme="evening"] .login-page,
+[data-theme="night"] .login-page,
 [data-theme="dark"] .login-page {
   background: linear-gradient(135deg, #0D1B2E 0%, #0A1628 100%);
 }
@@ -356,6 +370,8 @@ textarea { resize: vertical; min-height: 80px; }
   transform: rotate(15deg);
   color: var(--green);
 }
+[data-theme="evening"] .login-theme-btn,
+[data-theme="night"] .login-theme-btn,
 [data-theme="dark"] .login-theme-btn {
   background: rgba(20,32,56,.88);
   border-color: rgba(255,255,255,.12);
@@ -380,6 +396,8 @@ textarea { resize: vertical; min-height: 80px; }
   z-index: 2;
 }
 
+[data-theme="evening"] .login-card,
+[data-theme="night"] .login-card,
 [data-theme="dark"] .login-card {
   background: rgba(15,27,48,.9);
   border: 1px solid rgba(255,255,255,.08);

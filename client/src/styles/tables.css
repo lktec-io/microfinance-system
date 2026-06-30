@@ -28,6 +28,8 @@
   z-index: 1;
 }
 
+[data-theme="evening"] .table th,
+[data-theme="night"] .table th,
 [data-theme="dark"] .table th {
   background: rgba(255,255,255,.04);
   color: rgba(255,255,255,.45);
@@ -45,6 +47,8 @@
 .table tbody tr:hover td {
   background: var(--primary-lt);
 }
+[data-theme="evening"] .table tbody tr:hover td,
+[data-theme="night"] .table tbody tr:hover td,
 [data-theme="dark"] .table tbody tr:hover td {
   background: rgba(255,255,255,.04);
 }
@@ -112,6 +116,8 @@ code {
   font-weight: 600;
   letter-spacing: .02em;
 }
+[data-theme="evening"] code,
+[data-theme="night"] code,
 [data-theme="dark"] code {
   background: rgba(255,255,255,.08);
   border-color: rgba(255,255,255,.1);

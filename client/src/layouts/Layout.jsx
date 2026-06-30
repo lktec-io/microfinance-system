@@ -14,15 +14,9 @@ const titles = {
 };
 
 const pageVariants = {
-  initial: { opacity: 0, y: 16, filter: 'blur(4px)' },
-  animate: {
-    opacity: 1, y: 0, filter: 'blur(0px)',
-    transition: { duration: 0.38, ease: [0, 0, 0.2, 1] },
-  },
-  exit: {
-    opacity: 0, y: -8, filter: 'blur(2px)',
-    transition: { duration: 0.2, ease: 'easeIn' },
-  },
+  initial: { opacity: 0, y: 14, filter: 'blur(3px)' },
+  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.34, ease: [0,0,.2,1] } },
+  exit:    { opacity: 0, y: -8, filter: 'blur(2px)', transition: { duration: 0.18, ease: 'easeIn' } },
 };
 
 export default function Layout({ children }) {
@@ -39,13 +33,10 @@ export default function Layout({ children }) {
     return () => { document.body.style.overflow = ''; };
   }, [sidebarOpen]);
 
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [location.pathname]);
+  useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
   return (
     <div className="app-shell">
-      {/* Ambient page glow — fixed behind content */}
       <div className="page-glow-bg" aria-hidden="true" />
 
       <Sidebar
