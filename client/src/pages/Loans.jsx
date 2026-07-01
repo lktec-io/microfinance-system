@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiPlus, FiEye, FiEdit2, FiX,
   FiMessageSquare, FiBell, FiAlertTriangle,
-  FiGrid, FiList, FiCalendar, FiDollarSign,
+  FiGrid, FiList, FiCalendar, FiDollarSign, FiSearch,
 } from 'react-icons/fi';
 
 const gridContainer = {
@@ -151,6 +151,9 @@ export default function Loans() {
   // SMS modal
   const [smsModal,  setSmsModal]  = useState(null); // { loan, type }
 
+  // Customer search
+  const [search, setSearch] = useState('');
+
   const fetchLoans = useCallback(async () => {
     setLoading(true);
     const [l, c] = await Promise.all([api.get('/loans'), api.get('/customers')]);
@@ -221,7 +224,11 @@ export default function Loans() {
     } finally { setEditSaving(false); }
   }
 
-  const filtered = filter === 'all' ? loans : loans.filter(l => l.status === filter);
+  const filtered = loans.filter(l => {
+    if (filter !== 'all' && l.status !== filter) return false;
+    if (search && !l.customer_name?.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
 
   return (
     <div className="page">
@@ -260,6 +267,29 @@ export default function Loans() {
           </button>
         </div>
       </div>
+
+      {/* ── Quick Customer Search ── */}
+      <motion.div
+        className="loan-search-row"
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.32, ease: [0, 0, 0.2, 1] }}
+      >
+        <div className="search-wrap" style={{ maxWidth: '420px' }}>
+          <FiSearch size={16} className="search-icon" />
+          <input
+            className="search-input search-input--icon"
+            placeholder="Search by customer name…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        {search && (
+          <span style={{ fontSize: '.82rem', color: 'var(--gray-500)', whiteSpace: 'nowrap' }}>
+            {filtered.length} result{filtered.length !== 1 ? 's' : ''}
+          </span>
+        )}
+      </motion.div>
 
       {/* ── Content ── */}
       {loading ? (
@@ -371,61 +401,63 @@ export default function Loans() {
               <h2>Create New Loan</h2>
               <button className="modal-close" onClick={() => setCreateModal(false)}><FiX size={18} /></button>
             </div>
-            {createErr && <div className="alert alert--error">{createErr}</div>}
             <form onSubmit={handleCreate} className="modal-form">
-              <div className="form-group">
-                <label>Customer *</label>
-                <select required name="customer_id" value={form.customer_id} onChange={handleFormChange}>
-                  <option value="">— Select Customer —</option>
-                  {customers.map(c => (
-                    <option key={c.id} value={c.id}>{c.full_name} ({c.phone})</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-row">
+              <div className="modal-body">
+                {createErr && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{createErr}</div>}
                 <div className="form-group">
-                  <label>Loan Amount (TZS) *</label>
-                  <input type="number" min="1" step="0.01" required
-                    name="loan_amount" value={form.loan_amount} onChange={handleFormChange} />
-                </div>
-                <div className="form-group">
-                  <label>Interest Rate (%) *</label>
-                  <input type="number" min="0" step="0.01" required
-                    name="interest_rate" value={form.interest_rate} onChange={handleFormChange} />
-                </div>
-              </div>
-              {preview && (
-                <div className="loan-preview">
-                  <div className="loan-preview-item">
-                    <span>Interest</span><strong>TZS {fmt(preview.interest)}</strong>
-                  </div>
-                  <div className="loan-preview-item loan-preview-total">
-                    <span>Total Payable</span><strong>TZS {fmt(preview.total)}</strong>
-                  </div>
-                </div>
-              )}
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Duration *</label>
-                  <input type="number" min="1" required
-                    name="duration_value" value={form.duration_value} onChange={handleFormChange} />
-                </div>
-                <div className="form-group">
-                  <label>Unit *</label>
-                  <select name="duration_unit" value={form.duration_unit} onChange={handleFormChange}>
-                    <option value="days">Days</option>
-                    <option value="weeks">Weeks</option>
-                    <option value="months">Months</option>
+                  <label>Customer *</label>
+                  <select required name="customer_id" value={form.customer_id} onChange={handleFormChange}>
+                    <option value="">— Select Customer —</option>
+                    {customers.map(c => (
+                      <option key={c.id} value={c.id}>{c.full_name} ({c.phone})</option>
+                    ))}
                   </select>
                 </div>
-              </div>
-              <div className="form-group">
-                <label>Start Date</label>
-                <input type="date" name="start_date" value={form.start_date} onChange={handleFormChange} />
-              </div>
-              <div className="form-group">
-                <label>Purpose</label>
-                <textarea rows={2} name="purpose" value={form.purpose} onChange={handleFormChange} />
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Loan Amount (TZS) *</label>
+                    <input type="number" min="1" step="0.01" required
+                      name="loan_amount" value={form.loan_amount} onChange={handleFormChange} />
+                  </div>
+                  <div className="form-group">
+                    <label>Interest Rate (%) *</label>
+                    <input type="number" min="0" step="0.01" required
+                      name="interest_rate" value={form.interest_rate} onChange={handleFormChange} />
+                  </div>
+                </div>
+                {preview && (
+                  <div className="loan-preview">
+                    <div className="loan-preview-item">
+                      <span>Interest</span><strong>TZS {fmt(preview.interest)}</strong>
+                    </div>
+                    <div className="loan-preview-item loan-preview-total">
+                      <span>Total Payable</span><strong>TZS {fmt(preview.total)}</strong>
+                    </div>
+                  </div>
+                )}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Duration *</label>
+                    <input type="number" min="1" required
+                      name="duration_value" value={form.duration_value} onChange={handleFormChange} />
+                  </div>
+                  <div className="form-group">
+                    <label>Unit *</label>
+                    <select name="duration_unit" value={form.duration_unit} onChange={handleFormChange}>
+                      <option value="days">Days</option>
+                      <option value="weeks">Weeks</option>
+                      <option value="months">Months</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Start Date</label>
+                  <input type="date" name="start_date" value={form.start_date} onChange={handleFormChange} />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label>Purpose</label>
+                  <textarea rows={2} name="purpose" value={form.purpose} onChange={handleFormChange} />
+                </div>
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn btn--ghost" onClick={() => setCreateModal(false)}>Cancel</button>
@@ -448,28 +480,30 @@ export default function Loans() {
               <h2>Edit Loan #{editModal.id}</h2>
               <button className="modal-close" onClick={() => setEditModal(null)}><FiX size={18} /></button>
             </div>
-            <div className="alert alert--info" style={{ marginBottom: '1rem', fontSize: '.84rem' }}>
-              Customer: <strong>{editModal.customer_name}</strong> — Principal: <strong>TZS {fmt(editModal.loan_amount)}</strong>
-            </div>
-            {editErr && <div className="alert alert--error">{editErr}</div>}
             <form onSubmit={handleEdit} className="modal-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Status *</label>
-                  <select required value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}>
-                    {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
+              <div className="modal-body">
+                <div className="alert alert--info" style={{ marginBottom: '.75rem', fontSize: '.84rem' }}>
+                  Customer: <strong>{editModal.customer_name}</strong> — Principal: <strong>TZS {fmt(editModal.loan_amount)}</strong>
                 </div>
-                <div className="form-group">
-                  <label>Due Date</label>
-                  <input type="date" value={editForm.due_date}
-                    onChange={e => setEditForm(f => ({ ...f, due_date: e.target.value }))} />
+                {editErr && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{editErr}</div>}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Status *</label>
+                    <select required value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}>
+                      {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Due Date</label>
+                    <input type="date" value={editForm.due_date}
+                      onChange={e => setEditForm(f => ({ ...f, due_date: e.target.value }))} />
+                  </div>
                 </div>
-              </div>
-              <div className="form-group">
-                <label>Purpose</label>
-                <textarea rows={2} value={editForm.purpose}
-                  onChange={e => setEditForm(f => ({ ...f, purpose: e.target.value }))} />
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label>Purpose</label>
+                  <textarea rows={2} value={editForm.purpose}
+                    onChange={e => setEditForm(f => ({ ...f, purpose: e.target.value }))} />
+                </div>
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn btn--ghost" onClick={() => setEditModal(null)}>Cancel</button>

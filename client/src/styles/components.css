@@ -55,11 +55,17 @@
   font-weight: 600;
   letter-spacing: .02em;
 }
-.badge--green  { background: var(--green-light); color: var(--green-dk); border: 1px solid var(--green-border); }
-.badge--blue   { background: var(--primary-lt);  color: var(--primary);  border: 1px solid var(--border-strong); }
-.badge--red    { background: var(--red-lt);       color: var(--red-dk);   border: 1px solid rgba(239,68,68,.2); }
-.badge--yellow { background: var(--yellow-lt);    color: var(--yellow-dk);border: 1px solid rgba(245,158,11,.25); }
-.badge--teal   { background: var(--teal-lt);      color: var(--teal-dk);  border: 1px solid rgba(13,148,136,.22); }
+.badge--green   { background: var(--green-light); color: var(--green-dk);  border: 1px solid var(--green-border); }
+.badge--blue    { background: var(--primary-lt);  color: var(--primary);   border: 1px solid var(--border-strong); }
+.badge--red     { background: var(--red-lt);      color: var(--red-dk);    border: 1px solid rgba(239,68,68,.2); }
+.badge--yellow  { background: var(--yellow-lt);   color: var(--yellow-dk); border: 1px solid rgba(245,158,11,.25); }
+.badge--teal    { background: var(--teal-lt);     color: var(--teal-dk);   border: 1px solid rgba(13,148,136,.22); }
+.badge--orange  { background: rgba(249,115,22,.1);color: var(--orange);    border: 1px solid rgba(249,115,22,.2); }
+.badge--gray    { background: var(--gray-100);    color: var(--gray-600);  border: 1px solid var(--border); }
+.badge--active  { background: var(--green-light); color: var(--green-dk);  border: 1px solid var(--green-border); }
+.badge--paid    { background: var(--green-light); color: var(--green-dk);  border: 1px solid var(--green-border); }
+.badge--pending { background: var(--yellow-lt);   color: var(--yellow-dk); border: 1px solid rgba(245,158,11,.25); }
+.badge--overdue { background: var(--red-lt);      color: var(--red-dk);    border: 1px solid rgba(239,68,68,.2); }
 
 /* ══════════════════════════════════════════════════════════════════
    STATUS BADGE
@@ -165,7 +171,14 @@
 .modal-body::-webkit-scrollbar { width: 5px; }
 .modal-body::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 3px; }
 
-.modal-form { display: flex; flex-direction: column; gap: .06rem; }
+/* Form fills remaining modal height; body scrolls, footer sticks */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
 
 /* Sticky footer */
 .modal-actions {

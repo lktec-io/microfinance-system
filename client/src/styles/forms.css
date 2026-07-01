@@ -720,6 +720,75 @@ textarea { resize: vertical; min-height: 80px; }
 .icon-btn:disabled { opacity: .3; pointer-events: none; }
 
 /* ══════════════════════════════════════════════════════════════════
+   PASSWORD FIELD WRAPPER
+   ══════════════════════════════════════════════════════════════════ */
+.pw-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.pw-wrap input {
+  width: 100%;
+  padding-right: 2.85rem;
+}
+.pw-toggle {
+  position: absolute;
+  right: .65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--gray-400);
+  display: grid;
+  place-items: center;
+  padding: .28rem;
+  border-radius: 5px;
+  transition: color var(--transition), background var(--transition);
+  flex-shrink: 0;
+  line-height: 0;
+}
+.pw-toggle:hover { color: var(--gray-700); background: var(--gray-100); }
+
+/* ══════════════════════════════════════════════════════════════════
+   SEARCH BAR — consistent across all pages
+   ══════════════════════════════════════════════════════════════════ */
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+  max-width: 360px;
+}
+/* Ensure icon is always vertically centered */
+.search-wrap .search-icon,
+.search-icon {
+  position: absolute;
+  left: .9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+.search-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .58rem .9rem;
+  color: var(--gray-700);
+  font-size: .9rem;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+.search-input--icon { padding-left: 2.6rem; }
+.search-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(22,163,74,.1);
+}
+.search-input::placeholder { color: var(--gray-400); font-size: .875rem; }
+
+/* ══════════════════════════════════════════════════════════════════
    RESPONSIVE
    ══════════════════════════════════════════════════════════════════ */
 @media (max-width: 600px) {

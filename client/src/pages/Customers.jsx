@@ -218,34 +218,36 @@ export default function Customers() {
                 <h2>{modal === 'add' ? 'Add Customer' : 'Edit Customer'}</h2>
                 <button className="modal-close" onClick={() => setModal(null)} aria-label="Close"><FiX size={18} /></button>
               </div>
-              {error && <div className="alert alert--error">{error}</div>}
               <form onSubmit={handleSave} className="modal-form">
-                <div className="form-group">
-                  <label>Full Name *</label>
-                  <input required value={form.full_name}
-                    onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} />
-                </div>
-                <div className="form-row">
+                <div className="modal-body">
+                  {error && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{error}</div>}
                   <div className="form-group">
-                    <label>Phone *</label>
-                    <input required value={form.phone}
-                      onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+                    <label>Full Name *</label>
+                    <input required value={form.full_name}
+                      onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Phone *</label>
+                      <input required value={form.phone}
+                        onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+                    </div>
+                    <div className="form-group">
+                      <label>ID Number</label>
+                      <input value={form.id_number}
+                        onChange={e => setForm(f => ({ ...f, id_number: e.target.value }))} />
+                    </div>
                   </div>
                   <div className="form-group">
-                    <label>ID Number</label>
-                    <input value={form.id_number}
-                      onChange={e => setForm(f => ({ ...f, id_number: e.target.value }))} />
+                    <label>Address *</label>
+                    <textarea required rows={2} value={form.address}
+                      onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
                   </div>
-                </div>
-                <div className="form-group">
-                  <label>Address *</label>
-                  <textarea required rows={2} value={form.address}
-                    onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
-                </div>
-                <div className="form-group">
-                  <label>Registration Date</label>
-                  <input type="date" value={form.registration_date}
-                    onChange={e => setForm(f => ({ ...f, registration_date: e.target.value }))} />
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Registration Date</label>
+                    <input type="date" value={form.registration_date}
+                      onChange={e => setForm(f => ({ ...f, registration_date: e.target.value }))} />
+                  </div>
                 </div>
                 <div className="modal-actions">
                   <button type="button" className="btn btn--ghost" onClick={() => setModal(null)}>Cancel</button>
@@ -263,10 +265,14 @@ export default function Customers() {
         {delId && (
           <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
             <motion.div className="modal modal--sm" variants={modalPanel}>
-              <h2>Delete Customer?</h2>
-              <p style={{ margin: '1rem 0', color: 'var(--gray-600)' }}>
-                This action cannot be undone. Customers with loans cannot be deleted.
-              </p>
+              <div className="modal-header">
+                <h2>Delete Customer?</h2>
+              </div>
+              <div className="modal-body">
+                <p style={{ color: 'var(--gray-600)' }}>
+                  This action cannot be undone. Customers with loans cannot be deleted.
+                </p>
+              </div>
               <div className="modal-actions">
                 <button className="btn btn--ghost" onClick={() => setDelId(null)}>Cancel</button>
                 <button className="btn btn--danger" onClick={handleDelete}>Delete</button>

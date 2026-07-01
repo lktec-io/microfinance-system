@@ -234,37 +234,37 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   STAT GRID (6 cards, 3 columns)
+   STAT GRID (4 summary cards, 2×2 on tablet, 1 col mobile)
    ══════════════════════════════════════════════════════════════════ */
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
-/* Stat card tweaks for premium look */
+/* Stat card — elegant, thin border-radius */
 .stat-card {
-  border-radius: 20px !important;
+  border-radius: 12px !important;
 }
 .stat-value {
-  font-size: 1.7rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: var(--gray-900);
   letter-spacing: -.04em;
   line-height: 1.15;
-  margin-bottom: .25rem;
+  margin-bottom: .2rem;
 }
 .stat-label {
-  font-size: .74rem;
+  font-size: .73rem;
   font-weight: 600;
   color: var(--gray-500);
   text-transform: uppercase;
   letter-spacing: .07em;
-  margin-bottom: .15rem;
+  margin-bottom: .12rem;
 }
 .stat-sub {
-  font-size: .8rem;
+  font-size: .78rem;
   color: var(--gray-400);
   font-weight: 400;
 }
@@ -428,6 +428,27 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   LOAN PAGE — QUICK SEARCH ROW
+   ══════════════════════════════════════════════════════════════════ */
+.loan-search-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.loan-search-row .search-wrap {
+  flex: 1;
+  min-width: 200px;
+  max-width: 420px;
+}
+.loan-search-row span {
+  font-size: .8rem;
+  color: var(--gray-500);
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════════════════════════
    OVERDUE ALERT
    ══════════════════════════════════════════════════════════════════ */
 .alert-banner--warning {
@@ -446,22 +467,16 @@
    RESPONSIVE
    ══════════════════════════════════════════════════════════════════ */
 @media (max-width: 1080px) {
-  .stat-grid       { grid-template-columns: repeat(2, 1fr); }
+  .stat-grid        { grid-template-columns: repeat(2, 1fr); }
   .dashboard-bottom { grid-template-columns: 1fr; }
-}
-@media (max-width: 860px) {
-  .hero-metrics    { flex-direction: column; gap: 0; }
-  .hero-metric-divider { width: 100%; height: 1px; }
-  .hero-metric     { padding: .8rem 1.1rem; }
 }
 @media (max-width: 700px) {
   .dashboard-hero  { padding: 1.5rem 1.4rem 1.35rem; }
   .hero-top        { flex-direction: column; }
   .hero-actions    { align-self: flex-end; }
   .hero-greeting   { font-size: 1.35rem; }
-  .hero-metrics    { border-radius: var(--radius-sm); }
 }
 @media (max-width: 500px) {
-  .stat-grid       { grid-template-columns: 1fr; }
-  .hero-user       { flex-direction: column; align-items: flex-start; gap: .7rem; }
+  .stat-grid { grid-template-columns: 1fr; }
+  .hero-user { flex-direction: column; align-items: flex-start; gap: .7rem; }
 }
