@@ -46,6 +46,7 @@ export default function LoanDetail() {
   const [editErr,    setEditErr]   = useState('');
 
   async function fetchLoan() {
+    if (!id || id === 'undefined') return;
     try {
       const { data } = await api.get(`/loans/${id}`);
       setLoan(data);
@@ -56,7 +57,13 @@ export default function LoanDetail() {
     }
   }
 
-  useEffect(() => { fetchLoan(); }, [id]);
+  useEffect(() => {
+    if (!id || id === 'undefined') {
+      navigate('/loans', { replace: true });
+      return;
+    }
+    fetchLoan();
+  }, [id]);
 
   function openPayment() {
     setForm({ amount: '', payment_date: new Date().toISOString().slice(0, 10), notes: '' });

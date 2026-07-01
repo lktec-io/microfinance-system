@@ -1,30 +1,49 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiUsers, FiUserPlus, FiShield, FiUser,
-  FiGrid, FiList, FiEye, FiEyeOff,
-  FiEdit2, FiTrash2, FiX,
+  FiEye, FiEyeOff, FiEdit2, FiTrash2, FiX, FiSearch,
 } from 'react-icons/fi';
-import api from '../api';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
-import Skeleton from '../components/common/Skeleton';
+import api           from '../api';
+import { useAuth }   from '../context/AuthContext';
+import { useToast }  from '../context/ToastContext';
+import Skeleton      from '../components/common/Skeleton';
 
 const EMPTY = { name: '', email: '', password: '', role: 'staff', is_active: 1 };
 
-export default function Users() {
-  const { user: me } = useAuth();
-  const { showToast } = useToast();
-  const [users,    setUsers]    = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [modal,    setModal]    = useState(null);
-  const [form,     setForm]     = useState(EMPTY);
-  const [editId,   setEditId]   = useState(null);
-  const [saving,   setSaving]   = useState(false);
-  const [error,    setError]    = useState('');
-  const [delId,    setDelId]    = useState(null);
-  const [viewMode, setViewMode] = useState('list');
-  const [showPw,   setShowPw]   = useState(false);
+const cardContainer = {
+  hidden:  { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.07, delayChildren: 0.05 },
+  },
+};
+const cardItem = {
+  hidden:  { opacity: 0, y: 20, scale: 0.97 },
+  visible: {
+    opacity: 1, y: 0, scale: 1,
+    transition: { type: 'spring', stiffness: 300, damping: 26 },
+  },
+};
 
+export default function Users() {
+  const { user: me }  = useAuth();
+  const { showToast } = useToast();
+
+  /* ── State (all business logic preserved) ─────────────────────── */
+  const [users,        setUsers]        = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [modal,        setModal]        = useState(null);
+  const [form,         setForm]         = useState(EMPTY);
+  const [editId,       setEditId]       = useState(null);
+  const [saving,       setSaving]       = useState(false);
+  const [error,        setError]        = useState('');
+  const [delId,        setDelId]        = useState(null);
+  const [showPw,       setShowPw]       = useState(false);
+  const [search,       setSearch]       = useState('');
+  const [activeFilter, setActiveFilter] = useState('all');
+
+  /* ── Data fetching ─────────────────────────────────────────────── */
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     const { data } = await api.get('/auth/users');
@@ -34,6 +53,7 @@ export default function Users() {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
+  /* ── CRUD handlers (unchanged) ─────────────────────────────────── */
   function openAdd() {
     setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('add');
   }
@@ -73,218 +93,283 @@ export default function Users() {
     }
   }
 
+  /* ── Derived stats ─────────────────────────────────────────────── */
+  const stats = useMemo(() => ({
+    total:    users.length,
+    admins:   users.filter(u => u.role === 'admin').length,
+    staff:    users.filter(u => u.role === 'staff').length,
+    active:   users.filter(u => u.is_active).length,
+  }), [users]);
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    return users.filter(u => {
+      if (q && !(u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q))) return false;
+      if (activeFilter === 'admin')    return u.role === 'admin';
+      if (activeFilter === 'staff')    return u.role === 'staff';
+      if (activeFilter === 'active')   return  u.is_active;
+      if (activeFilter === 'inactive') return !u.is_active;
+      return true;
+    });
+  }, [users, search, activeFilter]);
+
+  const FILTERS = [
+    { key: 'all',      label: `All (${stats.total})`                   },
+    { key: 'admin',    label: `Admin (${stats.admins})`                 },
+    { key: 'staff',    label: `Staff (${stats.staff})`                  },
+    { key: 'active',   label: `Active (${stats.active})`                },
+    { key: 'inactive', label: `Inactive (${stats.total - stats.active})` },
+  ];
+
+  /* ════════════════════════════════════════════════════════════════ */
   return (
     <div className="page">
-      <div className="page-toolbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
-          <FiUsers size={22} style={{ color: 'var(--primary)' }} />
-          <h2 className="page-section-title" style={{ margin: 0 }}>Staff Accounts</h2>
+
+      {/* ── Page header ── */}
+      <div className="users-page-header">
+        <div>
+          <h1 className="users-page-title">
+            <FiUsers size={22} /> Staff Accounts
+          </h1>
+          <p className="users-page-subtitle">
+            Manage system users and access permissions
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}>
-          <div className="view-toggle">
-            <button
-              className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}
-              onClick={() => setViewMode('list')}
-            >
-              List <FiList size={15} />
-            </button>
-            <button
-              className={`view-toggle-btn${viewMode === 'grid' ? ' active' : ''}`}
-              onClick={() => setViewMode('grid')}
-            >
-              Grid <FiGrid size={15} />
-            </button>
+        <motion.button
+          className="btn btn--primary"
+          onClick={openAdd}
+          whileHover={{ scale: 1.03, transition: { type: 'spring', stiffness: 340, damping: 26 } }}
+          whileTap={{ scale: 0.97 }}
+        >
+          <FiUserPlus size={16} /> Add User
+        </motion.button>
+      </div>
+
+      {/* ── Stats bar ── */}
+      <motion.div
+        className="users-stats-bar"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.38, ease: [0, 0, 0.2, 1] }}
+      >
+        {[
+          { label: 'Total Users',    val: stats.total,               color: 'var(--primary)' },
+          { label: 'Administrators', val: stats.admins,              color: 'var(--teal)'    },
+          { label: 'Staff Members',  val: stats.staff,               color: 'var(--green)'   },
+          { label: 'Active',         val: stats.active,              color: '#22C55E'        },
+        ].map(s => (
+          <div key={s.label} className="users-stat-tile">
+            <span className="users-stat-num" style={{ color: s.color }}>{s.val}</span>
+            <span className="users-stat-lbl">{s.label}</span>
           </div>
-          <button className="btn btn--primary" onClick={openAdd}>
-            <FiUserPlus size={16} /> Add User
-          </button>
+        ))}
+      </motion.div>
+
+      {/* ── Search + filter chips ── */}
+      <div className="users-search-row">
+        <div className="users-search-wrap">
+          <FiSearch size={15} />
+          <input
+            className="users-search-input"
+            placeholder="Search by name or email…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="users-filter-chips">
+          {FILTERS.map(f => (
+            <button
+              key={f.key}
+              className={`users-filter-chip${activeFilter === f.key ? ' users-filter-chip--active' : ''}`}
+              onClick={() => setActiveFilter(f.key)}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
       </div>
 
+      {/* ── User card grid ── */}
       {loading ? (
         <div className="card"><Skeleton rows={4} cols={5} /></div>
-      ) : viewMode === 'grid' ? (
-        users.length === 0
-          ? <div className="card"><p className="empty-msg text-center">No users found</p></div>
-          : (
-            <div className="users-grid">
-              {users.map(u => (
-                <div key={u.id} className="user-card">
-                  <div className="user-card-avatar">
-                    {u.role === 'admin'
-                      ? <FiShield size={22} />
-                      : <FiUser size={22} />
-                    }
-                  </div>
-                  <div className="user-card-name">
-                    {u.name}
-                    {u.id === me?.id && (
-                      <span style={{ marginLeft: '.35rem', fontSize: '.7rem', color: 'var(--primary)', fontWeight: 700 }}>you</span>
-                    )}
-                  </div>
-                  <div className="user-card-email">{u.email}</div>
-                  <div className="user-card-badges">
-                    <span className={`badge badge--${u.role === 'admin' ? 'blue' : 'gray'}`}>{u.role}</span>
-                    <span className={`badge badge--${u.is_active ? 'green' : 'red'}`}>
-                      {u.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '.74rem', color: 'var(--gray-400)', marginTop: '.1rem' }}>
-                    Joined {u.created_at?.slice(0, 10)}
-                  </div>
-                  <div className="user-card-actions">
-                    <button className="icon-btn icon-btn--edit" onClick={() => openEdit(u)} title="Edit user">
-                      <FiEdit2 size={16} />
-                    </button>
-                    {u.id !== me?.id && (
-                      <button className="icon-btn icon-btn--del" onClick={() => setDelId(u.id)} title="Delete user">
-                        <FiTrash2 size={16} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )
-      ) : (
+      ) : filtered.length === 0 ? (
         <div className="card">
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>#</th><th>Name</th><th>Email</th>
-                  <th>Role</th><th>Status</th><th>Joined</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.length === 0
-                  ? <tr><td colSpan={7} className="text-center">No users found</td></tr>
-                  : users.map((u, i) => (
-                    <tr key={u.id}>
-                      <td style={{ color: 'var(--gray-400)', fontSize: '.8rem' }}>{i + 1}</td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
-                          <span className="user-avatar-sm">
-                            {u.role === 'admin'
-                              ? <FiShield size={14} />
-                              : <FiUser size={14} />
-                            }
-                          </span>
-                          <div>
-                            <strong>{u.name}</strong>
-                            {u.id === me?.id && (
-                              <span style={{ marginLeft: '.4rem', fontSize: '.72rem', color: 'var(--primary)', fontWeight: 600 }}>you</span>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td style={{ color: 'var(--gray-600)' }}>{u.email}</td>
-                      <td>
-                        <span className={`badge badge--${u.role === 'admin' ? 'blue' : 'gray'}`}>{u.role}</span>
-                      </td>
-                      <td>
-                        <span className={`badge badge--${u.is_active ? 'green' : 'red'}`}>
-                          {u.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td style={{ color: 'var(--gray-500)', fontSize: '.85rem' }}>{u.created_at?.slice(0, 10)}</td>
-                      <td>
-                        <div className="icon-btns">
-                          <button className="icon-btn icon-btn--edit" onClick={() => openEdit(u)} title="Edit user">
-                            <FiEdit2 size={15} />
-                          </button>
-                          {u.id !== me?.id && (
-                            <button className="icon-btn icon-btn--del" onClick={() => setDelId(u.id)} title="Delete user">
-                              <FiTrash2 size={15} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                }
-              </tbody>
-            </table>
-          </div>
+          <p className="empty-msg" style={{ padding: '2.5rem', textAlign: 'center' }}>
+            {search || activeFilter !== 'all'
+              ? 'No users match your filters'
+              : 'No users found'}
+          </p>
         </div>
+      ) : (
+        <motion.div
+          className="users-grid-premium"
+          variants={cardContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          {filtered.map(u => {
+            const initials = u.name
+              ? u.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+              : '??';
+            const isMe = u.id === me?.id;
+
+            return (
+              <motion.div
+                key={u.id}
+                className={`user-card-premium user-card-premium--${u.role}`}
+                variants={cardItem}
+                whileHover={{
+                  y: -5,
+                  boxShadow: '0 16px 48px rgba(15,23,42,.14)',
+                  transition: { type: 'spring', stiffness: 320, damping: 26 },
+                }}
+              >
+                <div className={`user-avatar-premium user-avatar-premium--${u.role}`}>
+                  {u.role === 'admin' ? <FiShield size={18} /> : initials}
+                </div>
+                <div className="user-name-premium">
+                  {u.name}
+                  {isMe && <span className="you-tag">you</span>}
+                </div>
+                <div className="user-email-premium">{u.email}</div>
+                <div className="user-badges-premium">
+                  <span className={`badge badge--${u.role === 'admin' ? 'blue' : 'gray'}`}>
+                    {u.role}
+                  </span>
+                  <span className={`badge badge--${u.is_active ? 'green' : 'red'}`}>
+                    {u.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                <div className="user-joined-premium">
+                  Joined {u.created_at?.slice(0, 10) || '—'}
+                </div>
+                <div className="user-actions-premium">
+                  <motion.button
+                    className="icon-btn icon-btn--edit"
+                    onClick={() => openEdit(u)}
+                    title="Edit user"
+                    whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.92 }}
+                  >
+                    <FiEdit2 size={15} />
+                  </motion.button>
+                  {!isMe && (
+                    <motion.button
+                      className="icon-btn icon-btn--del"
+                      onClick={() => setDelId(u.id)}
+                      title="Delete user"
+                      whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.92 }}
+                    >
+                      <FiTrash2 size={15} />
+                    </motion.button>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
       )}
 
-      {modal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>{modal === 'add' ? 'Add User' : 'Edit User'}</h2>
-              <button className="modal-close" onClick={() => setModal(null)} aria-label="Close"><FiX size={18} /></button>
-            </div>
-            {error && <div className="alert alert--error">{error}</div>}
-            <form onSubmit={handleSave} className="modal-form">
-              <div className="form-group">
-                <label>Full Name *</label>
-                <input required value={form.name}
-                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-              </div>
-              <div className="form-group">
-                <label>Email *</label>
-                <input type="email" required value={form.email}
-                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-              </div>
-              <div className="form-group">
-                <label>{modal === 'add' ? 'Password *' : 'New Password (leave blank to keep)'}</label>
-                <div className="pw-wrap">
-                  <input
-                    type={showPw ? 'text' : 'password'}
-                    required={modal === 'add'}
-                    value={form.password}
-                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                  />
-                  <button type="button" className="pw-toggle" onClick={() => setShowPw(v => !v)} tabIndex={-1}>
-                    {showPw ? <FiEyeOff size={18} /> : <FiEye size={18} />}
-                  </button>
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Role</label>
-                  <select value={form.role}
-                    onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-                    <option value="staff">Staff</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Status</label>
-                  <select value={form.is_active}
-                    onChange={e => setForm(f => ({ ...f, is_active: Number(e.target.value) }))}>
-                    <option value={1}>Active</option>
-                    <option value={0}>Inactive</option>
-                  </select>
-                </div>
-              </div>
-              <div className="modal-actions">
-                <button type="button" className="btn btn--ghost" onClick={() => setModal(null)}>Cancel</button>
-                <button type="submit" className="btn btn--primary" disabled={saving}>
-                  {saving ? 'Saving…' : 'Save'}
+      {/* ── Add / Edit modal ── */}
+      <AnimatePresence>
+        {modal && (
+          <motion.div className="modal-overlay"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className="modal"
+              initial={{ opacity: 0, scale: 0.92, y: 24 }}
+              animate={{ opacity: 1, scale: 1,    y: 0  }}
+              exit={{    opacity: 0, scale: 0.92, y: 16  }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+            >
+              <div className="modal-header">
+                <h2>{modal === 'add' ? 'Add User' : 'Edit User'}</h2>
+                <button className="modal-close" onClick={() => setModal(null)} aria-label="Close">
+                  <FiX size={18} />
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+              {error && <div className="alert alert--error">{error}</div>}
+              <form onSubmit={handleSave} className="modal-form">
+                <div className="form-group">
+                  <label>Full Name *</label>
+                  <input required value={form.name}
+                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                </div>
+                <div className="form-group">
+                  <label>Email *</label>
+                  <input type="email" required value={form.email}
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+                </div>
+                <div className="form-group">
+                  <label>
+                    {modal === 'add' ? 'Password *' : 'New Password (leave blank to keep)'}
+                  </label>
+                  <div className="pw-wrap">
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      required={modal === 'add'}
+                      value={form.password}
+                      onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                    />
+                    <button type="button" className="pw-toggle"
+                      onClick={() => setShowPw(v => !v)} tabIndex={-1}>
+                      {showPw ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                    </button>
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Role</label>
+                    <select value={form.role}
+                      onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
+                      <option value="staff">Staff</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select value={form.is_active}
+                      onChange={e => setForm(f => ({ ...f, is_active: Number(e.target.value) }))}>
+                      <option value={1}>Active</option>
+                      <option value={0}>Inactive</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="btn btn--ghost"
+                    onClick={() => setModal(null)}>Cancel</button>
+                  <button type="submit" className="btn btn--primary" disabled={saving}>
+                    {saving ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {delId && (
-        <div className="modal-overlay">
-          <div className="modal modal--sm">
-            <h2>Delete User?</h2>
-            <p style={{ margin: '1rem 0', color: 'var(--gray-600)' }}>
-              This will permanently remove the account.
-            </p>
-            <div className="modal-actions">
-              <button className="btn btn--ghost" onClick={() => setDelId(null)}>Cancel</button>
-              <button className="btn btn--danger" onClick={handleDelete}>Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── Delete confirm modal ── */}
+      <AnimatePresence>
+        {delId && (
+          <motion.div className="modal-overlay"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className="modal modal--sm"
+              initial={{ opacity: 0, scale: 0.9, y: 16 }}
+              animate={{ opacity: 1, scale: 1,   y: 0  }}
+              exit={{    opacity: 0, scale: 0.9           }}
+              transition={{ type: 'spring', stiffness: 340, damping: 28 }}
+            >
+              <h2>Delete User?</h2>
+              <p style={{ margin: '1rem 0', color: 'var(--gray-600)' }}>
+                This will permanently remove the account.
+              </p>
+              <div className="modal-actions">
+                <button className="btn btn--ghost" onClick={() => setDelId(null)}>Cancel</button>
+                <button className="btn btn--danger" onClick={handleDelete}>Delete</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
