@@ -31,6 +31,9 @@ body.theme-switching *::after {
               border-color 300ms ease, box-shadow 300ms ease !important;
 }
 
+/* Body scroll lock when a modal is open */
+body.modal-open { overflow: hidden; }
+
 a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
 button { cursor: none; font-family: inherit; }

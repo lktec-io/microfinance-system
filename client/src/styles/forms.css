@@ -791,13 +791,25 @@ textarea { resize: vertical; min-height: 80px; }
 /* ══════════════════════════════════════════════════════════════════
    RESPONSIVE
    ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .page-toolbar {
+    flex-wrap: wrap;
+    gap: .6rem;
+  }
+  .page-toolbar > div {
+    flex-wrap: wrap;
+  }
+}
 @media (max-width: 600px) {
   .form-row { grid-template-columns: 1fr; }
   .page-toolbar { flex-direction: column; align-items: stretch; }
   .search-wrap { max-width: 100%; }
   .filter-tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: .25rem; }
   .login-card { padding: 2rem 1.5rem; }
+  .loan-search-row { flex-direction: column; align-items: stretch; }
+  .loan-search-row .search-wrap { max-width: 100%; }
 }
 @media (max-width: 380px) {
   .login-card { padding: 1.75rem 1.25rem; }
+  .icon-btns { gap: .18rem; }
 }

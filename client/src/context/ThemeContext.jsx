@@ -1,21 +1,19 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
 export const THEMES = [
-  { id: 'morning',   label: 'Morning',   desc: 'Soft white & navy',     dot: '#F8FAFC', accent: '#16A34A' },
-  { id: 'afternoon', label: 'Afternoon', desc: 'Warm white & golden',   dot: '#FFFBF5', accent: '#F59E0B' },
-  { id: 'evening',   label: 'Evening',   desc: 'Dark navy & glass',     dot: '#0A1628', accent: '#22C55E' },
-  { id: 'night',     label: 'Night',     desc: 'Deep dark professional', dot: '#030712', accent: '#16A34A' },
+  { id: 'morning',   label: 'Morning',   desc: 'Clean & bright',  dot: '#F8FAFC', accent: '#16A34A' },
+  { id: 'afternoon', label: 'Afternoon', desc: 'Warm & golden',   dot: '#FFFBF5', accent: '#F59E0B' },
+  { id: 'evening',   label: 'Evening',   desc: 'Dark & premium',  dot: '#0A1628', accent: '#22C55E' },
 ];
 
 const DARK_THEMES = new Set(['evening', 'night', 'dark']);
-
 const ThemeContext = createContext(null);
 
 function resolveTheme(stored) {
-  if (!stored) return 'morning';
-  if (stored === 'light') return 'morning';
-  if (stored === 'dark')  return 'evening';
-  return stored;
+  if (!stored || stored === 'light') return 'morning';
+  if (stored === 'dark' || stored === 'night') return 'evening';
+  if (THEMES.find(t => t.id === stored)) return stored;
+  return 'morning';
 }
 
 export function ThemeProvider({ children }) {
@@ -33,7 +31,7 @@ export function ThemeProvider({ children }) {
   const setTheme = useCallback((next) => {
     document.body.classList.add('theme-switching');
     setThemeRaw(next);
-    setTimeout(() => document.body.classList.remove('theme-switching'), 350);
+    setTimeout(() => document.body.classList.remove('theme-switching'), 400);
   }, []);
 
   const toggleTheme = useCallback(() => {
