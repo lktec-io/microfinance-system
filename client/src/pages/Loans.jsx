@@ -29,7 +29,8 @@ import api          from '../api';
 import { fmt }      from '../utils/format';
 import StatusBadge  from '../components/common/StatusBadge';
 import Skeleton     from '../components/common/Skeleton';
-import SmsSendModal from '../components/common/SmsSendModal';
+import SmsSendModal  from '../components/common/SmsSendModal';
+import ModalPortal   from '../components/common/ModalPortal';
 
 const EMPTY_FORM = {
   customer_id: '', loan_amount: '', interest_rate: '',
@@ -392,139 +393,141 @@ export default function Loans() {
         </div>
       )}
 
-      {/* ── Create Loan Modal ── */}
-      <AnimatePresence>
-      {createModal && (
-        <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
-          <motion.div className="modal modal--lg" variants={modalPanel}>
-            <div className="modal-header">
-              <h2>Create New Loan</h2>
-              <button className="modal-close" onClick={() => setCreateModal(false)}><FiX size={18} /></button>
-            </div>
-            <form onSubmit={handleCreate} className="modal-form">
-              <div className="modal-body">
-                {createErr && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{createErr}</div>}
-                <div className="form-group">
-                  <label>Customer *</label>
-                  <select required name="customer_id" value={form.customer_id} onChange={handleFormChange}>
-                    <option value="">— Select Customer —</option>
-                    {customers.map(c => (
-                      <option key={c.id} value={c.id}>{c.full_name} ({c.phone})</option>
-                    ))}
-                  </select>
+      <ModalPortal>
+        {/* ── Create Loan Modal ── */}
+        <AnimatePresence>
+          {createModal && (
+            <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
+              <motion.div className="modal modal--lg" variants={modalPanel}>
+                <div className="modal-header">
+                  <h2>Create New Loan</h2>
+                  <button className="modal-close" onClick={() => setCreateModal(false)}><FiX size={18} /></button>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Loan Amount (TZS) *</label>
-                    <input type="number" min="1" step="0.01" required
-                      name="loan_amount" value={form.loan_amount} onChange={handleFormChange} />
-                  </div>
-                  <div className="form-group">
-                    <label>Interest Rate (%) *</label>
-                    <input type="number" min="0" step="0.01" required
-                      name="interest_rate" value={form.interest_rate} onChange={handleFormChange} />
-                  </div>
-                </div>
-                {preview && (
-                  <div className="loan-preview">
-                    <div className="loan-preview-item">
-                      <span>Interest</span><strong>TZS {fmt(preview.interest)}</strong>
+                <form onSubmit={handleCreate} className="modal-form">
+                  <div className="modal-body">
+                    {createErr && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{createErr}</div>}
+                    <div className="form-group">
+                      <label>Customer *</label>
+                      <select required name="customer_id" value={form.customer_id} onChange={handleFormChange}>
+                        <option value="">— Select Customer —</option>
+                        {customers.map(c => (
+                          <option key={c.id} value={c.id}>{c.full_name} ({c.phone})</option>
+                        ))}
+                      </select>
                     </div>
-                    <div className="loan-preview-item loan-preview-total">
-                      <span>Total Payable</span><strong>TZS {fmt(preview.total)}</strong>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Loan Amount (TZS) *</label>
+                        <input type="number" min="1" step="0.01" required
+                          name="loan_amount" value={form.loan_amount} onChange={handleFormChange} />
+                      </div>
+                      <div className="form-group">
+                        <label>Interest Rate (%) *</label>
+                        <input type="number" min="0" step="0.01" required
+                          name="interest_rate" value={form.interest_rate} onChange={handleFormChange} />
+                      </div>
+                    </div>
+                    {preview && (
+                      <div className="loan-preview">
+                        <div className="loan-preview-item">
+                          <span>Interest</span><strong>TZS {fmt(preview.interest)}</strong>
+                        </div>
+                        <div className="loan-preview-item loan-preview-total">
+                          <span>Total Payable</span><strong>TZS {fmt(preview.total)}</strong>
+                        </div>
+                      </div>
+                    )}
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Duration *</label>
+                        <input type="number" min="1" required
+                          name="duration_value" value={form.duration_value} onChange={handleFormChange} />
+                      </div>
+                      <div className="form-group">
+                        <label>Unit *</label>
+                        <select name="duration_unit" value={form.duration_unit} onChange={handleFormChange}>
+                          <option value="days">Days</option>
+                          <option value="weeks">Weeks</option>
+                          <option value="months">Months</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Start Date</label>
+                      <input type="date" name="start_date" value={form.start_date} onChange={handleFormChange} />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label>Purpose</label>
+                      <textarea rows={2} name="purpose" value={form.purpose} onChange={handleFormChange} />
                     </div>
                   </div>
-                )}
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Duration *</label>
-                    <input type="number" min="1" required
-                      name="duration_value" value={form.duration_value} onChange={handleFormChange} />
+                  <div className="modal-actions">
+                    <button type="button" className="btn btn--ghost" onClick={() => setCreateModal(false)}>Cancel</button>
+                    <button type="submit" className="btn btn--primary" disabled={saving}>
+                      {saving ? 'Creating…' : 'Create Loan'}
+                    </button>
                   </div>
-                  <div className="form-group">
-                    <label>Unit *</label>
-                    <select name="duration_unit" value={form.duration_unit} onChange={handleFormChange}>
-                      <option value="days">Days</option>
-                      <option value="weeks">Weeks</option>
-                      <option value="months">Months</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Start Date</label>
-                  <input type="date" name="start_date" value={form.start_date} onChange={handleFormChange} />
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label>Purpose</label>
-                  <textarea rows={2} name="purpose" value={form.purpose} onChange={handleFormChange} />
-                </div>
-              </div>
-              <div className="modal-actions">
-                <button type="button" className="btn btn--ghost" onClick={() => setCreateModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn--primary" disabled={saving}>
-                  {saving ? 'Creating…' : 'Create Loan'}
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
-      </AnimatePresence>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* ── Edit Loan Modal ── */}
-      <AnimatePresence>
-      {editModal && (
-        <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
-          <motion.div className="modal" variants={modalPanel}>
-            <div className="modal-header">
-              <h2>Edit Loan #{editModal.id}</h2>
-              <button className="modal-close" onClick={() => setEditModal(null)}><FiX size={18} /></button>
-            </div>
-            <form onSubmit={handleEdit} className="modal-form">
-              <div className="modal-body">
-                <div className="alert alert--info" style={{ marginBottom: '.75rem', fontSize: '.84rem' }}>
-                  Customer: <strong>{editModal.customer_name}</strong> — Principal: <strong>TZS {fmt(editModal.loan_amount)}</strong>
+        {/* ── Edit Loan Modal ── */}
+        <AnimatePresence>
+          {editModal && (
+            <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
+              <motion.div className="modal" variants={modalPanel}>
+                <div className="modal-header">
+                  <h2>Edit Loan #{editModal.id}</h2>
+                  <button className="modal-close" onClick={() => setEditModal(null)}><FiX size={18} /></button>
                 </div>
-                {editErr && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{editErr}</div>}
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Status *</label>
-                    <select required value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}>
-                      {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
+                <form onSubmit={handleEdit} className="modal-form">
+                  <div className="modal-body">
+                    <div className="alert alert--info" style={{ marginBottom: '.75rem', fontSize: '.84rem' }}>
+                      Customer: <strong>{editModal.customer_name}</strong> — Principal: <strong>TZS {fmt(editModal.loan_amount)}</strong>
+                    </div>
+                    {editErr && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{editErr}</div>}
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Status *</label>
+                        <select required value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}>
+                          {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Due Date</label>
+                        <input type="date" value={editForm.due_date}
+                          onChange={e => setEditForm(f => ({ ...f, due_date: e.target.value }))} />
+                      </div>
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label>Purpose</label>
+                      <textarea rows={2} value={editForm.purpose}
+                        onChange={e => setEditForm(f => ({ ...f, purpose: e.target.value }))} />
+                    </div>
                   </div>
-                  <div className="form-group">
-                    <label>Due Date</label>
-                    <input type="date" value={editForm.due_date}
-                      onChange={e => setEditForm(f => ({ ...f, due_date: e.target.value }))} />
+                  <div className="modal-actions">
+                    <button type="button" className="btn btn--ghost" onClick={() => setEditModal(null)}>Cancel</button>
+                    <button type="submit" className="btn btn--primary" disabled={editSaving}>
+                      {editSaving ? 'Saving…' : 'Save Changes'}
+                    </button>
                   </div>
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label>Purpose</label>
-                  <textarea rows={2} value={editForm.purpose}
-                    onChange={e => setEditForm(f => ({ ...f, purpose: e.target.value }))} />
-                </div>
-              </div>
-              <div className="modal-actions">
-                <button type="button" className="btn btn--ghost" onClick={() => setEditModal(null)}>Cancel</button>
-                <button type="submit" className="btn btn--primary" disabled={editSaving}>
-                  {editSaving ? 'Saving…' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
-      </AnimatePresence>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* ── SMS Send Modal ── */}
-      {smsModal && (
-        <SmsSendModal
-          loan={smsModal.loan}
-          type={smsModal.type}
-          onClose={() => setSmsModal(null)}
-        />
-      )}
+        {/* ── SMS Send Modal ── */}
+        {smsModal && (
+          <SmsSendModal
+            loan={smsModal.loan}
+            type={smsModal.type}
+            onClose={() => setSmsModal(null)}
+          />
+        )}
+      </ModalPortal>
     </div>
   );
 }

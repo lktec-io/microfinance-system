@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ModalPortal from './ModalPortal';
 import {
   FiMessageSquare, FiBell, FiAlertTriangle, FiX,
   FiCheckCircle, FiAlertCircle, FiSend,
@@ -98,6 +99,7 @@ export default function SmsSendModal({ loan, type, onClose }) {
   }
 
   return (
+    <ModalPortal>
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal modal--sm sms-confirm-modal">
 
@@ -175,5 +177,6 @@ export default function SmsSendModal({ loan, type, onClose }) {
 
       </div>
     </div>
+    </ModalPortal>
   );
 }

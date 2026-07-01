@@ -8,6 +8,7 @@ import api           from '../api';
 import { useAuth }   from '../context/AuthContext';
 import { useToast }  from '../context/ToastContext';
 import Skeleton      from '../components/common/Skeleton';
+import ModalPortal   from '../components/common/ModalPortal';
 
 const EMPTY = { name: '', email: '', password: '', role: 'staff', is_active: 1 };
 
@@ -269,112 +270,114 @@ export default function Users() {
         </motion.div>
       )}
 
-      {/* ── Add / Edit modal ── */}
-      <AnimatePresence>
-        {modal && (
-          <motion.div className="modal-overlay"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div className="modal"
-              initial={{ opacity: 0, scale: 0.92, y: 24 }}
-              animate={{ opacity: 1, scale: 1,    y: 0  }}
-              exit={{    opacity: 0, scale: 0.92, y: 16  }}
-              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-            >
-              <div className="modal-header">
-                <h2>{modal === 'add' ? 'Add User' : 'Edit User'}</h2>
-                <button className="modal-close" onClick={() => setModal(null)} aria-label="Close">
-                  <FiX size={18} />
-                </button>
-              </div>
-              <form onSubmit={handleSave} className="modal-form">
-                <div className="modal-body">
-                  {error && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{error}</div>}
-                  <div className="form-group">
-                    <label>Full Name *</label>
-                    <input required value={form.name}
-                      onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-                  </div>
-                  <div className="form-group">
-                    <label>Email *</label>
-                    <input type="email" required value={form.email}
-                      onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-                  </div>
-                  <div className="form-group">
-                    <label>
-                      {modal === 'add' ? 'Password *' : 'New Password (leave blank to keep)'}
-                    </label>
-                    <div className="pw-wrap">
-                      <input
-                        type={showPw ? 'text' : 'password'}
-                        required={modal === 'add'}
-                        value={form.password}
-                        onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                      />
-                      <button type="button" className="pw-toggle"
-                        onClick={() => setShowPw(v => !v)} tabIndex={-1}>
-                        {showPw ? <FiEyeOff size={18} /> : <FiEye size={18} />}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="form-row" style={{ marginBottom: 0 }}>
-                    <div className="form-group">
-                      <label>Role</label>
-                      <select value={form.role}
-                        onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-                        <option value="staff">Staff</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label>Status</label>
-                      <select value={form.is_active}
-                        onChange={e => setForm(f => ({ ...f, is_active: Number(e.target.value) }))}>
-                        <option value={1}>Active</option>
-                        <option value={0}>Inactive</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div className="modal-actions">
-                  <button type="button" className="btn btn--ghost"
-                    onClick={() => setModal(null)}>Cancel</button>
-                  <button type="submit" className="btn btn--primary" disabled={saving}>
-                    {saving ? 'Saving…' : 'Save'}
+      <ModalPortal>
+        {/* ── Add / Edit modal ── */}
+        <AnimatePresence>
+          {modal && (
+            <motion.div className="modal-overlay"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <motion.div className="modal"
+                initial={{ opacity: 0, scale: 0.92, y: 24 }}
+                animate={{ opacity: 1, scale: 1,    y: 0  }}
+                exit={{    opacity: 0, scale: 0.92, y: 16  }}
+                transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+              >
+                <div className="modal-header">
+                  <h2>{modal === 'add' ? 'Add User' : 'Edit User'}</h2>
+                  <button className="modal-close" onClick={() => setModal(null)} aria-label="Close">
+                    <FiX size={18} />
                   </button>
                 </div>
-              </form>
+                <form onSubmit={handleSave} className="modal-form">
+                  <div className="modal-body">
+                    {error && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{error}</div>}
+                    <div className="form-group">
+                      <label>Full Name *</label>
+                      <input required value={form.name}
+                        onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                    </div>
+                    <div className="form-group">
+                      <label>Email *</label>
+                      <input type="email" required value={form.email}
+                        onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+                    </div>
+                    <div className="form-group">
+                      <label>
+                        {modal === 'add' ? 'Password *' : 'New Password (leave blank to keep)'}
+                      </label>
+                      <div className="pw-wrap">
+                        <input
+                          type={showPw ? 'text' : 'password'}
+                          required={modal === 'add'}
+                          value={form.password}
+                          onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                        />
+                        <button type="button" className="pw-toggle"
+                          onClick={() => setShowPw(v => !v)} tabIndex={-1}>
+                          {showPw ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="form-row" style={{ marginBottom: 0 }}>
+                      <div className="form-group">
+                        <label>Role</label>
+                        <select value={form.role}
+                          onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
+                          <option value="staff">Staff</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Status</label>
+                        <select value={form.is_active}
+                          onChange={e => setForm(f => ({ ...f, is_active: Number(e.target.value) }))}>
+                          <option value={1}>Active</option>
+                          <option value={0}>Inactive</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="modal-actions">
+                    <button type="button" className="btn btn--ghost"
+                      onClick={() => setModal(null)}>Cancel</button>
+                    <button type="submit" className="btn btn--primary" disabled={saving}>
+                      {saving ? 'Saving…' : 'Save'}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
 
-      {/* ── Delete confirm modal ── */}
-      <AnimatePresence>
-        {delId && (
-          <motion.div className="modal-overlay"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div className="modal modal--sm"
-              initial={{ opacity: 0, scale: 0.9, y: 16 }}
-              animate={{ opacity: 1, scale: 1,   y: 0  }}
-              exit={{    opacity: 0, scale: 0.9           }}
-              transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-            >
-              <div className="modal-header">
-                <h2>Delete User?</h2>
-              </div>
-              <div className="modal-body">
-                <p style={{ color: 'var(--gray-600)' }}>
-                  This will permanently remove the account.
-                </p>
-              </div>
-              <div className="modal-actions">
-                <button className="btn btn--ghost" onClick={() => setDelId(null)}>Cancel</button>
-                <button className="btn btn--danger" onClick={handleDelete}>Delete</button>
-              </div>
+        {/* ── Delete confirm modal ── */}
+        <AnimatePresence>
+          {delId && (
+            <motion.div className="modal-overlay"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <motion.div className="modal modal--sm"
+                initial={{ opacity: 0, scale: 0.9, y: 16 }}
+                animate={{ opacity: 1, scale: 1,   y: 0  }}
+                exit={{    opacity: 0, scale: 0.9           }}
+                transition={{ type: 'spring', stiffness: 340, damping: 28 }}
+              >
+                <div className="modal-header">
+                  <h2>Delete User?</h2>
+                </div>
+                <div className="modal-body">
+                  <p style={{ color: 'var(--gray-600)' }}>
+                    This will permanently remove the account.
+                  </p>
+                </div>
+                <div className="modal-actions">
+                  <button className="btn btn--ghost" onClick={() => setDelId(null)}>Cancel</button>
+                  <button className="btn btn--danger" onClick={handleDelete}>Delete</button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </ModalPortal>
 
     </div>
   );
