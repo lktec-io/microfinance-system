@@ -25,47 +25,53 @@ async function testConnection() {
 }
 
 async function runMigrations() {
-  // Safely add a column — silently skip if it already exists
-  const addColumn = async (table, col, def) => {
+  // Each migration is isolated — a failure logs a warning but NEVER stops the server
+  const safe = async (label, fn) => {
     try {
-      await pool.query(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
-      console.log(`✅  Migration: ${table}.${col} added`);
+      await fn();
+      console.log(`✅  Migration OK: ${label}`);
     } catch (err) {
-      if (err.code !== 'ER_DUP_FIELDNAME') throw err;
+      console.warn(`⚠️  Migration skipped (${label}): ${err.message}`);
     }
   };
 
-  // Auth: password-reset token columns
-  await addColumn('users', 'reset_password_token',   'VARCHAR(64)  NULL DEFAULT NULL');
-  await addColumn('users', 'reset_password_expires', 'DATETIME     NULL DEFAULT NULL');
+  // Auth: password-reset token columns (added for forgot-password feature)
+  await safe('users.reset_password_token', () =>
+    pool.query('ALTER TABLE users ADD COLUMN reset_password_token VARCHAR(64) NULL DEFAULT NULL')
+  );
+  await safe('users.reset_password_expires', () =>
+    pool.query('ALTER TABLE users ADD COLUMN reset_password_expires DATETIME NULL DEFAULT NULL')
+  );
 
-  // SMS: create sms_logs table if it was never migrated
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS sms_logs (
-      id              INT           PRIMARY KEY AUTO_INCREMENT,
-      phone           VARCHAR(20)   NOT NULL,
-      customer_id     INT           DEFAULT NULL,
-      loan_id         INT           DEFAULT NULL,
-      message_type    ENUM('thank_you','reminder','overdue') NOT NULL DEFAULT 'reminder',
-      message         TEXT          NOT NULL,
-      status          ENUM('sent','failed','pending')        NOT NULL DEFAULT 'pending',
-      beem_request_id VARCHAR(100)  DEFAULT NULL,
-      error           TEXT          DEFAULT NULL,
-      retries         TINYINT       NOT NULL DEFAULT 0,
-      sent_at         TIMESTAMP     NULL,
-      created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      CONSTRAINT fk_smslog_customer FOREIGN KEY (customer_id)
-        REFERENCES customers(id) ON DELETE SET NULL ON UPDATE CASCADE,
-      CONSTRAINT fk_smslog_loan FOREIGN KEY (loan_id)
-        REFERENCES loans(id) ON DELETE SET NULL ON UPDATE CASCADE,
-      INDEX idx_sms_status   (status),
-      INDEX idx_sms_type     (message_type),
-      INDEX idx_sms_created  (created_at),
-      INDEX idx_sms_customer (customer_id),
-      INDEX idx_sms_loan     (loan_id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-  `);
+  // SMS: create sms_logs table if the manual migration was never run
+  await safe('create sms_logs table', () =>
+    pool.query(`
+      CREATE TABLE IF NOT EXISTS sms_logs (
+        id              INT           PRIMARY KEY AUTO_INCREMENT,
+        phone           VARCHAR(20)   NOT NULL,
+        customer_id     INT           DEFAULT NULL,
+        loan_id         INT           DEFAULT NULL,
+        message_type    ENUM('thank_you','reminder','overdue') NOT NULL DEFAULT 'reminder',
+        message         TEXT          NOT NULL,
+        status          ENUM('sent','failed','pending')        NOT NULL DEFAULT 'pending',
+        beem_request_id VARCHAR(100)  DEFAULT NULL,
+        error           TEXT          DEFAULT NULL,
+        retries         TINYINT       NOT NULL DEFAULT 0,
+        sent_at         TIMESTAMP     NULL,
+        created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_smslog_customer FOREIGN KEY (customer_id)
+          REFERENCES customers(id) ON DELETE SET NULL ON UPDATE CASCADE,
+        CONSTRAINT fk_smslog_loan FOREIGN KEY (loan_id)
+          REFERENCES loans(id) ON DELETE SET NULL ON UPDATE CASCADE,
+        INDEX idx_sms_status   (status),
+        INDEX idx_sms_type     (message_type),
+        INDEX idx_sms_created  (created_at),
+        INDEX idx_sms_customer (customer_id),
+        INDEX idx_sms_loan     (loan_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
+  );
 }
 
 module.exports = { pool, testConnection, runMigrations };

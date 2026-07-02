@@ -1,5 +1,6 @@
 const svc    = require('../services/reportService');
 const logger = require('../utils/logger');
+const { asyncHandler } = require('../middleware/errorHandler');
 
 const SUMMARY_DEFAULT = {
   customers: 0, total_loans: 0, loans_amount: 0,
@@ -7,51 +8,60 @@ const SUMMARY_DEFAULT = {
   active_loans: 0, overdue_loans: 0,
   loan_status: { active: 0, pending: 0, paid: 0, overdue: 0 },
 };
-const RECENT_DEFAULT  = { repayments: [], customers: [], loans: [] };
+const RECENT_DEFAULT = { repayments: [], customers: [], loans: [] };
 
-async function getSummary(_req, res) {
+function safeSend(res, data) {
+  if (!res.headersSent) res.json(data);
+}
+
+const getSummary = asyncHandler(async (_req, res) => {
   try {
-    res.json(await svc.getSummary());
+    const data = await svc.getSummary();
+    safeSend(res, data);
   } catch (err) {
     logger.error('getSummary failed', err);
-    res.json(SUMMARY_DEFAULT);
+    safeSend(res, SUMMARY_DEFAULT);
   }
-}
+});
 
-async function getRecent(_req, res) {
+const getRecent = asyncHandler(async (_req, res) => {
   try {
-    res.json(await svc.getRecent());
+    const data = await svc.getRecent();
+    safeSend(res, data);
   } catch (err) {
     logger.error('getRecent failed', err);
-    res.json(RECENT_DEFAULT);
+    safeSend(res, RECENT_DEFAULT);
   }
-}
+});
 
-async function getDaily(_req, res) {
+const getDaily = asyncHandler(async (_req, res) => {
   try {
-    res.json(await svc.getDaily());
+    const data = await svc.getDaily();
+    safeSend(res, data);
   } catch (err) {
     logger.error('getDaily failed', err);
-    res.json({ loans: [], repayments: [] });
+    safeSend(res, { loans: [], repayments: [] });
   }
-}
+});
 
-async function getMonthly(_req, res) {
+const getMonthly = asyncHandler(async (_req, res) => {
   try {
-    res.json(await svc.getMonthly());
+    const data = await svc.getMonthly();
+    safeSend(res, data);
   } catch (err) {
     logger.error('getMonthly failed', err);
-    res.json({ loans: [], repayments: [] });
+    safeSend(res, { loans: [], repayments: [] });
   }
-}
+});
 
-async function getOverdue(_req, res) {
+const getOverdue = asyncHandler(async (_req, res) => {
   try {
-    res.json(await svc.getOverdue());
+    const data = await svc.getOverdue();
+    safeSend(res, data);
   } catch (err) {
     logger.error('getOverdue failed', err);
-    res.json([]);
+    safeSend(res, []);
   }
-}
+});
 
 module.exports = { getSummary, getRecent, getDaily, getMonthly, getOverdue };

@@ -1,5 +1,15 @@
 require('dotenv').config();
 
+// ── Process-level safety net — prevents server crash on unhandled errors ──
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err.message, err.stack);
+  // Do NOT exit — keep serving requests
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason instanceof Error ? reason.message : reason);
+  // Do NOT exit — keep serving requests
+});
+
 const express    = require('express');
 const cors       = require('cors');
 const { testConnection, runMigrations } = require('./config/database');
