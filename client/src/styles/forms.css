@@ -850,3 +850,9 @@ textarea { resize: vertical; min-height: 80px; }
   .login-card { padding: 1.75rem 1.25rem; }
   .icon-btns { gap: .18rem; }
 }
+@media (max-width: 320px) {
+  .login-card { padding: 1.5rem 1rem; }
+  .filter-tab { padding: .32rem .65rem; font-size: .78rem; }
+  .page-toolbar { gap: .4rem; }
+  .search-wrap { min-width: 0; }
+}

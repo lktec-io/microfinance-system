@@ -46,7 +46,11 @@ export default function LoanDetail() {
   const [editErr,    setEditErr]   = useState('');
 
   async function fetchLoan() {
-    if (!id || id === 'undefined') return;
+    if (!id || id === 'undefined') {
+      setLoading(false);
+      navigate('/loans', { replace: true });
+      return;
+    }
     try {
       const { data } = await api.get(`/loans/${id}`);
       setLoan(data);

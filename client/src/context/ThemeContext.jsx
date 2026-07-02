@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 export const THEMES = [
   { id: 'morning',   label: 'Morning',   desc: 'Clean & bright',  dot: '#F8FAFC', accent: '#16A34A' },
   { id: 'afternoon', label: 'Afternoon', desc: 'Warm & golden',   dot: '#FFFBF5', accent: '#F59E0B' },
-  { id: 'evening',   label: 'Evening',   desc: 'Dark & premium',  dot: '#0A1628', accent: '#22C55E' },
+  { id: 'night',     label: 'Night',     desc: 'Dark & premium',  dot: '#030712', accent: '#22C55E' },
 ];
 
 const DARK_THEMES = new Set(['evening', 'night', 'dark']);
@@ -11,7 +11,7 @@ const ThemeContext = createContext(null);
 
 function resolveTheme(stored) {
   if (!stored || stored === 'light') return 'morning';
-  if (stored === 'dark' || stored === 'night') return 'evening';
+  if (stored === 'dark' || stored === 'evening') return 'night';
   if (THEMES.find(t => t.id === stored)) return stored;
   return 'morning';
 }
@@ -35,7 +35,7 @@ export function ThemeProvider({ children }) {
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme(isDark ? 'morning' : 'evening');
+    setTheme(isDark ? 'morning' : 'night');
   }, [isDark, setTheme]);
 
   return (

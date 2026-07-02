@@ -31,7 +31,7 @@ const CMD_LINKS = [
   { to: '/users',      label: 'User Management', Icon: FiShield,     desc: 'Admin only'          },
 ];
 
-const THEME_ICONS = { morning: FiSun, afternoon: FiCloud, evening: FiMoon };
+const THEME_ICONS = { morning: FiSun, afternoon: FiCloud, night: FiMoon };
 
 const panelVariants = {
   hidden: { opacity: 0, y: -10, scale: 0.96 },

@@ -764,4 +764,13 @@
 @media (max-width: 360px) {
   .customer-grid         { grid-template-columns: 1fr; }
   .modal-overlay         { padding: .4rem; }
+  .users-stats-bar       { grid-template-columns: 1fr; }
+  .toast                 { min-width: 0; width: calc(100vw - 1rem); }
+}
+@media (max-width: 320px) {
+  .modal-overlay         { padding: .25rem; }
+  .modal-header          { padding: .85rem .9rem .7rem; }
+  .modal-body            { padding: .85rem .9rem; }
+  .modal-actions         { padding: .75rem .9rem; gap: .4rem; }
+  .skeleton-stats        { grid-template-columns: 1fr; }
 }

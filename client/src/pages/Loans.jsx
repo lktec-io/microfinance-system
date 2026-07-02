@@ -315,7 +315,7 @@ export default function Loans() {
             <motion.div key={l.id} variants={gridItem} whileHover={{ y: -4, transition: { type: 'spring', stiffness: 340, damping: 26 } }}>
               <LoanCard
                 loan={l}
-                onView={() => navigate(`/loans/${l.id}`)}
+                onView={() => l.id && navigate(`/loans/${l.id}`)}
                 onEdit={() => openEdit(l)}
                 onSms={(type) => setSmsModal({ loan: l, type })}
               />
@@ -358,7 +358,7 @@ export default function Loans() {
                       <div className="icon-btns">
                         <button
                           className="icon-btn icon-btn--view"
-                          onClick={() => navigate(`/loans/${l.id}`)}
+                          onClick={() => l.id && navigate(`/loans/${l.id}`)}
                           title="View Details"
                         ><FiEye size={14} /></button>
                         <button
