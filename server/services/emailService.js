@@ -1,17 +1,41 @@
-const nodemailer = require('nodemailer');
+// Lazy-load nodemailer so a missing module never crashes the server at startup.
+// If nodemailer is not installed, all other API routes continue working normally.
+// Only the forgot-password endpoint returns a 503 until `npm install` is run.
 
-const transporter = nodemailer.createTransport({
-  host:   process.env.EMAIL_HOST,
-  port:   Number(process.env.EMAIL_PORT) || 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+let _transporter = null;
+let _initError   = null;
+
+function getTransporter() {
+  if (_transporter) return _transporter;
+  if (_initError)   throw _initError;
+
+  try {
+    const nodemailer = require('nodemailer');
+    _transporter = nodemailer.createTransport({
+      host:   process.env.EMAIL_HOST,
+      port:   Number(process.env.EMAIL_PORT) || 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+    return _transporter;
+  } catch (err) {
+    _initError = new Error(
+      `Email service unavailable (nodemailer not installed). ` +
+      `Run: cd server && npm install`
+    );
+    _initError.code = 'EMAIL_UNAVAILABLE';
+    console.warn('⚠️  ' + _initError.message);
+    throw _initError;
+  }
+}
 
 async function sendResetEmail(to, name, resetUrl) {
+  const transporter = getTransporter(); // throws EMAIL_UNAVAILABLE if nodemailer missing
   const firstName = name ? name.split(' ')[0] : 'User';
+
   await transporter.sendMail({
     from:    process.env.EMAIL_FROM,
     to,
