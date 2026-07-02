@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiEye, FiEyeOff, FiMail, FiLock, FiShield, FiMoon, FiSun } from 'react-icons/fi';
 import { useAuth }  from '../context/AuthContext';
@@ -24,17 +24,18 @@ export default function Login() {
   const { login }              = useAuth();
   const navigate               = useNavigate();
   const { isDark, toggleTheme } = useTheme();
-  const [form, setForm]        = useState({ email: '', password: '' });
-  const [error, setError]      = useState('');
-  const [loading, setLoading]  = useState(false);
-  const [showPw, setShowPw]    = useState(false);
+  const [form, setForm]          = useState({ email: '', password: '' });
+  const [error, setError]        = useState('');
+  const [loading, setLoading]    = useState(false);
+  const [showPw, setShowPw]      = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      await login(form.email, form.password);
+      await login(form.email, form.password, rememberMe);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Check your credentials.');
@@ -142,6 +143,20 @@ export default function Login() {
                 {showPw ? <FiEyeOff size={17} /> : <FiEye size={17} />}
               </button>
             </div>
+          </div>
+
+          <div className="login-row-between">
+            <label className="login-remember">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+              />
+              Remember me
+            </label>
+            <Link to="/forgot-password" className="login-forgot-link">
+              Forgot password?
+            </Link>
           </div>
 
           <motion.button

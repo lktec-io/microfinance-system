@@ -57,12 +57,40 @@ async function deleteUserById(id) {
   await pool.query('DELETE FROM users WHERE id = ?', [id]);
 }
 
-function signToken(user) {
+function signToken(user, rememberMe = false) {
+  const expiresIn = rememberMe ? '7d' : (process.env.JWT_EXPIRES_IN || '8h');
   return jwt.sign(
     { id: user.id, name: user.name, email: user.email, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
+    { expiresIn }
   );
+}
+
+async function setResetToken(userId, hashedToken, expires) {
+  await pool.query(
+    'UPDATE users SET reset_password_token = ?, reset_password_expires = ? WHERE id = ?',
+    [hashedToken, expires, userId]
+  );
+}
+
+async function findUserByResetToken(hashedToken) {
+  const [rows] = await pool.query(
+    'SELECT * FROM users WHERE reset_password_token = ? AND reset_password_expires > NOW()',
+    [hashedToken]
+  );
+  return rows[0] || null;
+}
+
+async function clearResetToken(userId) {
+  await pool.query(
+    'UPDATE users SET reset_password_token = NULL, reset_password_expires = NULL WHERE id = ?',
+    [userId]
+  );
+}
+
+async function updatePassword(userId, newPassword) {
+  const hash = await bcrypt.hash(newPassword, 10);
+  await pool.query('UPDATE users SET password = ? WHERE id = ?', [hash, userId]);
 }
 
 async function verifyPassword(plain, hashed) {
@@ -73,4 +101,5 @@ module.exports = {
   findUserByEmail, findUserById, emailExists, createUser,
   getAllUsers, updateUserById, deleteUserById,
   signToken, verifyPassword,
+  setResetToken, findUserByResetToken, clearResetToken, updatePassword,
 };

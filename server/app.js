@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
-const { testConnection }      = require('./config/database');
+const { testConnection, runMigrations } = require('./config/database');
 const { startOverdueUpdater } = require('./utils/overdueUpdater');
 const { sanitizeBody }        = require('./middleware/validate');
 
@@ -46,9 +46,11 @@ app.use((err, _req, res, _next) => {
 });
 
 // ── Start ────────────────────────────────────────────────────
-testConnection().then(() => {
-  startOverdueUpdater();
-  app.listen(PORT, () =>
-    console.log(`🚀  Server running on http://localhost:${PORT} [${process.env.NODE_ENV || 'development'}]`)
-  );
-});
+testConnection()
+  .then(() => runMigrations())
+  .then(() => {
+    startOverdueUpdater();
+    app.listen(PORT, () =>
+      console.log(`🚀  Server running on http://localhost:${PORT} [${process.env.NODE_ENV || 'development'}]`)
+    );
+  });

@@ -7,7 +7,9 @@ import ProtectedRoute           from './components/ProtectedRoute';
 import Layout                   from './layouts/Layout';
 import CustomCursor             from './components/common/CustomCursor';
 
-import Login      from './pages/Login';
+import Login          from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword  from './pages/ResetPassword';
 import Dashboard  from './pages/Dashboard';
 import Customers  from './pages/Customers';
 import Loans      from './pages/Loans';
@@ -33,7 +35,9 @@ export default function App() {
             <CustomCursor />
             <BrowserRouter>
               <Routes>
-                <Route path="/login"      element={<Login />} />
+                <Route path="/login"                 element={<Login />} />
+                <Route path="/forgot-password"       element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
                 <Route path="/"           element={<Protected><Dashboard /></Protected>} />
                 <Route path="/customers"  element={<Protected><Customers /></Protected>} />
                 <Route path="/loans"      element={<Protected><Loans /></Protected>} />

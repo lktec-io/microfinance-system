@@ -44,6 +44,29 @@ function rateLimitLogin(req, res, next) {
   next();
 }
 
+// Rate-limit for forgot-password (5 attempts per 15 min per IP)
+const forgotAttempts = new Map();
+const FORGOT_MAX = 5;
+
+function rateLimitForgotPassword(req, res, next) {
+  const ip  = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  const rec = forgotAttempts.get(ip) || { count: 0, start: now };
+
+  if (now - rec.start > WINDOW_MS) {
+    rec.count = 0;
+    rec.start = now;
+  }
+
+  rec.count++;
+  forgotAttempts.set(ip, rec);
+
+  if (rec.count > FORGOT_MAX) {
+    return res.status(429).json({ message: 'Too many requests. Please try again later.' });
+  }
+  next();
+}
+
 // Validate required fields helper
 function requireFields(...fields) {
   return (req, res, next) => {
@@ -58,4 +81,4 @@ function requireFields(...fields) {
   };
 }
 
-module.exports = { sanitizeBody, rateLimitLogin, requireFields };
+module.exports = { sanitizeBody, rateLimitLogin, rateLimitForgotPassword, requireFields };

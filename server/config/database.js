@@ -24,4 +24,17 @@ async function testConnection() {
   }
 }
 
-module.exports = { pool, testConnection };
+async function runMigrations() {
+  const addColumn = async (col, def) => {
+    try {
+      await pool.query(`ALTER TABLE users ADD COLUMN ${col} ${def}`);
+      console.log(`✅  Migration: added column '${col}'`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_FIELDNAME') throw err;
+    }
+  };
+  await addColumn('reset_password_token',   'VARCHAR(64)  NULL DEFAULT NULL');
+  await addColumn('reset_password_expires', 'DATETIME     NULL DEFAULT NULL');
+}
+
+module.exports = { pool, testConnection, runMigrations };

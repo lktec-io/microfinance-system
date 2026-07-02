@@ -521,6 +521,43 @@ textarea { resize: vertical; min-height: 80px; }
   font-weight: 500;
 }
 
+/* ── Remember Me row + Forgot link ── */
+.login-row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .85rem;
+}
+.login-remember {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .85rem;
+  color: var(--gray-600);
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+.login-remember input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--green);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.login-forgot-link {
+  font-size: .83rem;
+  font-weight: 500;
+  color: var(--primary);
+  opacity: .75;
+  transition: opacity .18s;
+  text-decoration: none;
+}
+.login-forgot-link:hover {
+  opacity: 1;
+  text-decoration: none;
+}
+
 /* ── Login brand stats (unused now, kept for compat) ── */
 .login-brand-stat-val  { font-size: 1.2rem; font-weight: 600; color: var(--primary); }
 .login-brand-stat-label { font-size: .7rem; color: var(--gray-500); }
