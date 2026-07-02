@@ -74,8 +74,44 @@ async function setResetToken(userId, hashedToken, expires) {
 }
 
 async function findUserByResetToken(hashedToken) {
+  // Step 1: check if the token exists at all (no expiry filter) so we can
+  // distinguish "wrong token" from "correct token but expired".
+  const [dbg] = await pool.query(
+    `SELECT id,
+            reset_password_expires        AS expires,
+            NOW()                         AS mysql_now,
+            UTC_TIMESTAMP()               AS utc_now,
+            reset_password_expires > NOW()            AS ok_now,
+            reset_password_expires > UTC_TIMESTAMP()  AS ok_utc
+     FROM users
+     WHERE reset_password_token = ?`,
+    [hashedToken]
+  );
+
+  if (dbg.length === 0) {
+    console.error('[reset-token] ❌ No user found for this token hash — possible token mismatch or already cleared');
+  } else {
+    const r = dbg[0];
+    console.log(
+      `[reset-token] 🔍 Token found (userId=${r.id})` +
+      ` | expires=${r.expires}` +
+      ` | NOW()=${r.mysql_now}` +
+      ` | UTC_TIMESTAMP()=${r.utc_now}` +
+      ` | ok_with_NOW=${r.ok_now}` +
+      ` | ok_with_UTC=${r.ok_utc}`
+    );
+    if (!r.ok_now && r.ok_utc) {
+      console.error('[reset-token] ⚠️  TIMEZONE BUG: NOW() is not UTC — NOW() rejects valid token but UTC_TIMESTAMP() accepts it');
+    }
+    if (!r.ok_utc) {
+      console.error('[reset-token] ⏰ Token is genuinely expired (past UTC_TIMESTAMP())');
+    }
+  }
+
+  // Step 2: Use UTC_TIMESTAMP() so the comparison is always UTC vs UTC,
+  // regardless of MySQL server timezone or session timezone setting.
   const [rows] = await pool.query(
-    'SELECT * FROM users WHERE reset_password_token = ? AND reset_password_expires > NOW()',
+    'SELECT * FROM users WHERE reset_password_token = ? AND reset_password_expires > UTC_TIMESTAMP()',
     [hashedToken]
   );
   return rows[0] || null;

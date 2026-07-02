@@ -82,9 +82,15 @@ const resetPassword = asyncHandler(async (req, res) => {
   }
 
   const hashed = tokenSvc.hashToken(token);
-  const user   = await svc.findUserByResetToken(hashed);
+  // Log first 8 chars only — enough to cross-reference without exposing the full token
+  console.log(`[reset-password] token_len=${token?.length} hash_prefix=${hashed?.slice(0,8)}`);
 
-  if (!user) return fail(res, 'Reset link is invalid or has expired. Please request a new one.', 400);
+  const user = await svc.findUserByResetToken(hashed);
+
+  if (!user) {
+    console.error('[reset-password] ❌ findUserByResetToken returned null — see service log above for details');
+    return fail(res, 'Reset link is invalid or has expired. Please request a new one.', 400);
+  }
 
   await svc.updatePassword(user.id, password);
   await svc.clearResetToken(user.id);
