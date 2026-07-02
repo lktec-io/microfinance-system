@@ -26,6 +26,8 @@ export function NotificationProvider({ children }) {
   const dismissedRef = useRef(new Set(getLS(DISMISSED_KEY)));
 
   const fetchNotifs = useCallback(async () => {
+    const hasToken = !!(localStorage.getItem('mf_token') || sessionStorage.getItem('mf_token'));
+    if (!hasToken) return;
     try {
       const [sumRes, recRes] = await Promise.allSettled([
         api.get('/reports/summary'),
