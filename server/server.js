@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const express    = require('express');
 const cors       = require('cors');
-const { testConnection }    = require('./config/database');
+const { testConnection, runMigrations } = require('./config/database');
 const { sanitizeBody }      = require('./middleware/validate');
 const { globalErrorHandler } = require('./middleware/errorHandler');
 const logger                = require('./utils/logger');
@@ -48,12 +48,18 @@ app.use((_req, res) => res.status(404).json({ message: 'Route not found' }));
 app.use(globalErrorHandler);
 
 // ── Start ─────────────────────────────────────────────────────
-testConnection().then(() => {
-  overdueJob.start();
-  smsJobs.start();
-  app.listen(PORT, () =>
-    logger.success(`Server running → https://microfinance.nardio.online:${PORT} [${process.env.NODE_ENV || 'development'}]`)
-  );
-});
+testConnection()
+  .then(() => runMigrations())
+  .then(() => {
+    overdueJob.start();
+    smsJobs.start();
+    app.listen(PORT, () =>
+      logger.success(`Server running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`)
+    );
+  })
+  .catch((err) => {
+    logger.error('Fatal startup error', err);
+    process.exit(1);
+  });
 
 module.exports = app; // for testing

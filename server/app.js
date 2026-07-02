@@ -53,4 +53,8 @@ testConnection()
     app.listen(PORT, () =>
       console.log(`🚀  Server running on http://localhost:${PORT} [${process.env.NODE_ENV || 'development'}]`)
     );
+  })
+  .catch((err) => {
+    console.error('Fatal startup error:', err.message);
+    process.exit(1);
   });
