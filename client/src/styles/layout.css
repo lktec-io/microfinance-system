@@ -81,13 +81,13 @@
   transition: width 0.28s cubic-bezier(0,0,.2,1);
 }
 
-/* Top green accent */
+/* Top accent — varies by theme via --sidebar-accent */
 .sidebar::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #16A34A 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--sidebar-accent, #22C55E) 50%, transparent 100%);
   pointer-events: none;
   z-index: 1;
 }
@@ -246,9 +246,9 @@
   position: absolute;
   left: 0; top: 22%; bottom: 22%;
   width: 3px;
-  background: #22C55E;
+  background: var(--sidebar-accent, #22C55E);
   border-radius: 0 3px 3px 0;
-  box-shadow: 0 0 8px rgba(34,197,94,.6);
+  box-shadow: 0 0 8px rgba(34,197,94,.5);
 }
 
 .sidebar-icon {
@@ -258,7 +258,7 @@
   color: inherit;
   opacity: .8;
 }
-.sidebar-link--active .sidebar-icon { opacity: 1; color: #22C55E; }
+.sidebar-link--active .sidebar-icon { opacity: 1; color: var(--sidebar-accent, #22C55E); }
 
 .sidebar-link-label { min-width: 0; white-space: nowrap; overflow: hidden; }
 .sidebar--collapsed .sidebar-link-label { display: none; }
@@ -560,10 +560,8 @@
 
 [data-theme="evening"] .header,
 [data-theme="night"] .header {
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom-color: var(--border);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
 .header-menu-btn {
@@ -1177,4 +1175,273 @@
   .page { padding: .7rem .55rem; }
   .header-icon-btn { width: 32px; height: 32px; }
   .header-title { font-size: .875rem; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PER-THEME HEADER GRADIENTS & ATMOSPHERE
+   ══════════════════════════════════════════════════════════════════ */
+[data-theme="morning"] .header {
+  background: linear-gradient(90deg, rgba(255,255,255,.98) 0%, rgba(239,246,255,.98) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom-color: #DBEAFE;
+}
+[data-theme="afternoon"] .header {
+  background: linear-gradient(90deg, rgba(255,255,255,.98) 0%, rgba(255,251,245,.98) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom-color: #F0E6D3;
+}
+[data-theme="night"] .header {
+  background: rgba(2,11,24,.82);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-bottom-color: rgba(34,211,238,.1);
+  box-shadow: 0 1px 0 rgba(34,211,238,.06), var(--shadow-xs);
+}
+
+/* ── Page ambient glow per theme ── */
+[data-theme="morning"] .page-glow-bg::before {
+  background: radial-gradient(circle, rgba(14,165,233,.07) 0%, transparent 65%);
+}
+[data-theme="morning"] .page-glow-bg::after {
+  background: radial-gradient(circle, rgba(56,189,248,.05) 0%, transparent 65%);
+}
+[data-theme="afternoon"] .page-glow-bg::before {
+  background: radial-gradient(circle, rgba(245,158,11,.05) 0%, transparent 65%);
+}
+[data-theme="night"] .page-glow-bg::before {
+  background: radial-gradient(circle, rgba(34,211,238,.06) 0%, transparent 65%);
+}
+[data-theme="night"] .page-glow-bg::after {
+  background: radial-gradient(circle, rgba(59,130,246,.05) 0%, transparent 65%);
+}
+
+/* ── Morning light ray overlay on main area ── */
+.main-area::before {
+  content: '';
+  position: fixed;
+  top: 0; left: var(--sidebar-w);
+  right: 0;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+[data-theme="morning"] .main-area::before {
+  background: linear-gradient(115deg,
+    transparent 20%,
+    var(--theme-ray, rgba(56,189,248,.06)) 50%,
+    transparent 80%);
+  opacity: 1;
+  animation: morningRay 18s ease-in-out 3s infinite;
+}
+[data-theme="afternoon"] .main-area::before {
+  background: linear-gradient(115deg,
+    transparent 20%,
+    var(--theme-ray, rgba(251,191,36,.05)) 50%,
+    transparent 80%);
+  opacity: 1;
+  animation: afternoonGold 22s ease-in-out 4s infinite;
+}
+
+/* ── Night: card glass enhancements ── */
+[data-theme="night"] .card,
+[data-theme="night"] .stat-card,
+[data-theme="night"] .loan-card,
+[data-theme="night"] .customer-card,
+[data-theme="night"] .user-card-premium,
+[data-theme="night"] .repayment-card {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-color: rgba(34,211,238,.1);
+}
+[data-theme="night"] .card:hover,
+[data-theme="night"] .stat-card--link:hover {
+  border-color: rgba(34,211,238,.22);
+  box-shadow: 0 4px 24px rgba(34,211,238,.08), var(--shadow-md);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PREMIUM SEGMENTED THEME SWITCHER
+   ══════════════════════════════════════════════════════════════════ */
+.theme-seg {
+  display: flex;
+  align-items: center;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: 99px;
+  padding: 3px;
+  gap: 2px;
+  position: relative;
+  flex-shrink: 0;
+}
+[data-theme="night"] .theme-seg {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(34,211,238,.18);
+}
+
+.theme-seg-opt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .3rem .7rem;
+  border-radius: 99px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  color: var(--gray-500);
+  font-size: .74rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.22s ease;
+  z-index: 1;
+}
+.theme-seg-opt--active { color: var(--gray-800); font-weight: 600; }
+[data-theme="night"] .theme-seg-opt--active { color: var(--cyan); }
+.theme-seg-opt:hover:not(.theme-seg-opt--active) { color: var(--gray-700); }
+
+.theme-seg-indicator {
+  position: absolute;
+  inset: 0;
+  background: var(--surface);
+  border-radius: 99px;
+  box-shadow: var(--shadow-sm);
+  z-index: 0;
+}
+[data-theme="night"] .theme-seg-indicator {
+  background: rgba(34,211,238,.12);
+  box-shadow: 0 0 12px rgba(34,211,238,.14);
+}
+[data-theme="morning"] .theme-seg-indicator {
+  background: var(--surface);
+  box-shadow: 0 1px 6px rgba(14,165,233,.12);
+}
+[data-theme="afternoon"] .theme-seg-indicator {
+  background: var(--surface);
+  box-shadow: 0 1px 6px rgba(245,158,11,.12);
+}
+
+.theme-seg-icon {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.theme-seg-label {
+  position: relative;
+  z-index: 1;
+}
+
+/* Hide labels on medium screens, icons only */
+@media (max-width: 1080px) {
+  .theme-seg-label { display: none; }
+  .theme-seg-opt { padding: .3rem .5rem; }
+}
+/* Full collapse on mobile — single icon pill */
+@media (max-width: 600px) {
+  .theme-seg { gap: 1px; padding: 2px; }
+  .theme-seg-opt { padding: .28rem .42rem; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PREMIUM NOTIFICATION BELL ANIMATION
+   ══════════════════════════════════════════════════════════════════ */
+.notif-bell-btn {
+  transform-origin: top center;
+}
+.notif-badge {
+  animation: badgePulse 2.4s ease-in-out infinite;
+}
+
+/* ── Night theme notification panel ── */
+[data-theme="night"] .notif-panel {
+  background: rgba(8,18,36,.92);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-color: rgba(34,211,238,.14);
+  box-shadow: 0 20px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(34,211,238,.08);
+}
+[data-theme="morning"] .notif-panel {
+  background: rgba(255,255,255,.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: #DBEAFE;
+  box-shadow: 0 16px 60px rgba(14,165,233,.12), var(--shadow-xl);
+}
+[data-theme="afternoon"] .notif-panel {
+  background: rgba(255,255,255,.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 16px 60px rgba(120,80,20,.1), var(--shadow-xl);
+}
+
+/* ── Notification confirm-clear row ── */
+.notif-confirm-row {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  animation: fadeIn .18s ease both;
+}
+.notif-confirm-text {
+  font-size: .72rem;
+  color: var(--gray-600);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.notif-confirm-yes {
+  font-size: .7rem;
+  font-weight: 600;
+  font-family: inherit;
+  background: var(--red-lt);
+  border: 1px solid rgba(239,68,68,.25);
+  color: var(--red);
+  border-radius: 5px;
+  padding: .15rem .45rem;
+  transition: background var(--transition);
+}
+.notif-confirm-yes:hover { background: rgba(239,68,68,.2); }
+.notif-confirm-no {
+  font-size: .7rem;
+  font-weight: 500;
+  font-family: inherit;
+  background: var(--gray-100);
+  border: 1px solid var(--border);
+  color: var(--gray-600);
+  border-radius: 5px;
+  padding: .15rem .45rem;
+  transition: background var(--transition);
+}
+.notif-confirm-no:hover { background: var(--gray-200); }
+
+/* Night: enhanced notification cards */
+[data-theme="night"] .notif-card:hover {
+  background: rgba(34,211,238,.04);
+}
+[data-theme="night"] .notif-card--unread {
+  background: rgba(34,211,238,.06);
+}
+[data-theme="night"] .notif-panel-header,
+[data-theme="night"] .notif-panel-footer {
+  border-color: rgba(34,211,238,.1);
+}
+[data-theme="night"] .notif-hdr-btn:hover {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.12);
+  color: var(--gray-300);
+}
+
+/* Night: theme-seg active glow */
+[data-theme="night"] .header-icon-btn:hover {
+  background: rgba(34,211,238,.1);
+  border-color: rgba(34,211,238,.2);
+  color: var(--cyan);
+}
+[data-theme="night"] .header-icon-btn--active {
+  background: rgba(34,211,238,.12);
+  border-color: rgba(34,211,238,.25);
+  color: var(--cyan);
 }

@@ -93,23 +93,65 @@
   --sidebar-w:           260px;
   --sidebar-w-collapsed: 72px;
   --header-h:            64px;
+
+  /* ── Per-theme atmosphere (overridden per theme block) ──────────── */
+  --theme-glow:    rgba(22,163,74,.06);
+  --theme-ray:     rgba(22,163,74,.04);
+  --theme-ambient: rgba(15,23,42,.03);
+  --sidebar-accent:#22C55E;
+  --cyan:          #22D3EE;
+  --neon-green:    #4ADE80;
 }
 
-/* ══ MORNING (default light) ════════════════════════════════════════ */
-/* Same as :root — no overrides needed */
+/* ══ MORNING ════════════════════════════════════════════════════════ */
+[data-theme="morning"] {
+  --bg:            #EFF6FF;
+  --surface:       #FFFFFF;
+  --surface-2:     #F0F9FF;
+  --surface-3:     rgba(255,255,255,.96);
+  --surface-solid: #FFFFFF;
+  --border:        #DBEAFE;
+  --border-strong: #BAE6FD;
+  --gray-50:       #EFF6FF;
+  --gray-100:      #DBEAFE;
+  --shadow-sm:     0 1px 4px rgba(14,165,233,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:     0 4px 16px rgba(14,165,233,.10), 0 2px 6px rgba(0,0,0,.04);
+  --shadow-glass:  0 8px 32px rgba(14,165,233,.08), inset 0 1px 0 rgba(255,255,255,.95);
+  /* atmosphere */
+  --theme-glow:    rgba(14,165,233,.08);
+  --theme-ray:     rgba(56,189,248,.06);
+  --theme-ambient: rgba(14,165,233,.04);
+  /* sidebar — morning blue */
+  --sidebar-bg:        #1B3D6B;
+  --sidebar-bg-2:      #1E4A7C;
+  --sidebar-active-bg: rgba(56,189,248,.2);
+  --sidebar-hover-bg:  rgba(255,255,255,.07);
+  --sidebar-accent:    #38BDF8;
+}
 
 /* ══ AFTERNOON ══════════════════════════════════════════════════════ */
 [data-theme="afternoon"] {
-  --bg:       #FFFBF5;
-  --surface:  #FFFFFF;
-  --surface-2:#FEF9F0;
-  --border:   #F0E6D3;
+  --bg:            #FFFBF5;
+  --surface:       #FFFFFF;
+  --surface-2:     #FEF9F0;
+  --surface-solid: #FFFFFF;
+  --border:        #F0E6D3;
   --border-strong: #E0CEBA;
-  --primary:  #0F172A;
-  --gray-50:  #FFFBF5;
-  --gray-100: #FEF3E2;
-  --yellow:   #D97706;
-  --shadow-md: 0 4px 16px rgba(120,80,20,.08), 0 2px 6px rgba(0,0,0,.04);
+  --primary:       #0F172A;
+  --gray-50:       #FFFBF5;
+  --gray-100:      #FEF3E2;
+  --yellow:        #D97706;
+  --shadow-md:     0 4px 16px rgba(120,80,20,.08), 0 2px 6px rgba(0,0,0,.04);
+  /* atmosphere */
+  --theme-glow:    rgba(245,158,11,.07);
+  --theme-ray:     rgba(251,191,36,.05);
+  --theme-ambient: rgba(245,158,11,.03);
+  /* sidebar — warm navy */
+  --sidebar-bg:        #1A2E52;
+  --sidebar-bg-2:      #1E3561;
+  --sidebar-active-bg: rgba(245,158,11,.18);
+  --sidebar-hover-bg:  rgba(255,255,255,.07);
+  --sidebar-accent:    #F59E0B;
 }
 
 /* ══ EVENING (dark — glass) ═════════════════════════════════════════ */
@@ -138,12 +180,12 @@
   --primary-lt:    rgba(22,163,74,0.12);
 }
 
-/* ══ NIGHT (deep dark) ══════════════════════════════════════════════ */
+/* ══ NIGHT (flagship dark) ══════════════════════════════════════════ */
 [data-theme="night"] {
-  --bg:            #030712;
-  --surface:       #0F172A;
-  --surface-2:     #111827;
-  --surface-solid: #0F172A;
+  --bg:            #020B18;
+  --surface:       rgba(13,25,48,.88);
+  --surface-2:     rgba(8,18,36,.9);
+  --surface-solid: #0D1930;
   --surface-3:     rgba(255,255,255,.04);
   --gray-900: #F9FAFB;
   --gray-800: rgba(249,250,251,.85);
@@ -161,9 +203,18 @@
   --shadow-md:     0 4px 16px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.5);
   --shadow-lg:     0 12px 40px rgba(0,0,0,.7), 0 4px 14px rgba(0,0,0,.55);
   --shadow-xl:     0 24px 80px rgba(0,0,0,.75), 0 8px 24px rgba(0,0,0,.6);
-  --shadow-glass:  0 8px 32px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.05);
+  --shadow-glass:  0 8px 32px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.06);
   --primary-lt:    rgba(22,163,74,0.1);
   --green-lt:      rgba(22,163,74,0.1);
+  /* night atmosphere */
+  --theme-glow:    rgba(34,211,238,.08);
+  --theme-ray:     rgba(34,211,238,.05);
+  --theme-ambient: rgba(59,130,246,.05);
+  --cyan:          #22D3EE;
+  --neon-green:    #4ADE80;
+  /* night sidebar — add cyan active */
+  --sidebar-active-bg: rgba(34,211,238,.1);
+  --sidebar-accent:    #22D3EE;
 }
 
 /* ── Backward-compat: old 'dark' theme maps to 'evening' ─────────── */

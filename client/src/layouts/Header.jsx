@@ -35,24 +35,29 @@ const THEME_ICONS = { morning: FiSun, afternoon: FiCloud, night: FiMoon };
 
 const panelVariants = {
   hidden: { opacity: 0, y: -10, scale: 0.96 },
-  visible: { opacity: 1, y: 0,  scale: 1,    transition: { duration: 0.18, ease: [0, 0, 0.2, 1] } },
-  exit:    { opacity: 0, y: -8, scale: 0.96, transition: { duration: 0.14 } },
+  visible: { opacity: 1, y: 0,  scale: 1,    transition: { duration: 0.2, ease: [0, 0, 0.2, 1] } },
+  exit:    { opacity: 0, y: -8, scale: 0.96, transition: { duration: 0.15 } },
+};
+
+/* Bell ring animation — triggered when unread > 0 */
+const bellRingAnim = {
+  rotate: [0, -14, 12, -10, 8, -4, 3, 0],
+  transition: { duration: 0.7, ease: 'easeInOut', repeat: Infinity, repeatDelay: 5 },
 };
 
 export default function Header({ title, onMenuClick, collapsed }) {
   const { user, logout, isAdmin }           = useAuth();
-  const { theme, setTheme, isDark, THEMES } = useTheme();
+  const { theme, setTheme, THEMES }         = useTheme();
   const { notifs, unread, markRead, markAllRead, remove, removeAll, refresh } = useNotifications();
   const navigate = useNavigate();
 
   const notifRef = useRef(null);
-  const themeRef = useRef(null);
   const cmdRef   = useRef(null);
 
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [themeOpen, setThemeOpen] = useState(false);
-  const [cmdOpen,   setCmdOpen]   = useState(false);
-  const [cmdQuery,  setCmdQuery]  = useState('');
+  const [notifOpen,    setNotifOpen]    = useState(false);
+  const [cmdOpen,      setCmdOpen]      = useState(false);
+  const [cmdQuery,     setCmdQuery]     = useState('');
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const initials = user?.name
     ? user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -61,18 +66,24 @@ export default function Header({ title, onMenuClick, collapsed }) {
   /* Close panels on outside click */
   useEffect(() => {
     function handler(e) {
-      if (notifOpen && notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
-      if (themeOpen && themeRef.current && !themeRef.current.contains(e.target)) setThemeOpen(false);
-      if (cmdOpen   && cmdRef.current   && !cmdRef.current.contains(e.target))   setCmdOpen(false);
+      if (notifOpen && notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
+        setConfirmClear(false);
+      }
+      if (cmdOpen && cmdRef.current && !cmdRef.current.contains(e.target)) setCmdOpen(false);
     }
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [notifOpen, themeOpen, cmdOpen]);
+  }, [notifOpen, cmdOpen]);
 
   /* ESC key */
   useEffect(() => {
     const fn = (e) => {
-      if (e.key === 'Escape') { setCmdOpen(false); setNotifOpen(false); setThemeOpen(false); }
+      if (e.key === 'Escape') {
+        setCmdOpen(false);
+        setNotifOpen(false);
+        setConfirmClear(false);
+      }
     };
     document.addEventListener('keydown', fn);
     return () => document.removeEventListener('keydown', fn);
@@ -91,13 +102,12 @@ export default function Header({ title, onMenuClick, collapsed }) {
   const handleNotifToggle = useCallback(() => {
     setNotifOpen(v => {
       if (!v) refresh();
+      if (v) setConfirmClear(false);
       return !v;
     });
   }, [refresh]);
 
   function handleLogout() { logout(); navigate('/login'); }
-
-  const ThemeIcon = THEME_ICONS[theme] || (isDark ? FiMoon : FiSun);
 
   const filtered = cmdQuery.trim()
     ? CMD_LINKS.filter(l =>
@@ -135,13 +145,19 @@ export default function Header({ title, onMenuClick, collapsed }) {
           {/* ── NOTIFICATION CENTER ──────────────────────── */}
           <div className="notif-wrap" ref={notifRef}>
             <motion.button
-              className={`header-icon-btn${notifOpen ? ' header-icon-btn--active' : ''}`}
+              className={`header-icon-btn notif-bell-btn${notifOpen ? ' header-icon-btn--active' : ''}`}
               onClick={handleNotifToggle}
               aria-label="Notifications"
               whileHover={{ scale: 1.07 }}
               whileTap={{ scale: 0.93 }}
             >
-              <FiBell size={17} />
+              <motion.span
+                style={{ display: 'flex', alignItems: 'center', transformOrigin: 'top center' }}
+                animate={unread > 0 ? bellRingAnim : { rotate: 0 }}
+              >
+                <FiBell size={17} />
+              </motion.span>
+
               <AnimatePresence>
                 {unread > 0 && (
                   <motion.span
@@ -174,20 +190,44 @@ export default function Header({ title, onMenuClick, collapsed }) {
                         <span className="notif-unread-chip">{unread} new</span>
                       )}
                     </div>
+
                     <div className="notif-panel-btns">
-                      {unread > 0 && (
+                      {unread > 0 && !confirmClear && (
                         <button className="notif-hdr-btn" onClick={markAllRead} title="Mark all as read">
                           <FiCheck size={12} /> All read
                         </button>
                       )}
+
+                      {/* Confirm-clear flow */}
                       {notifs.length > 0 && (
-                        <button className="notif-hdr-btn notif-hdr-btn--danger" onClick={removeAll} title="Clear all">
-                          <FiTrash2 size={12} /> Clear
+                        confirmClear ? (
+                          <div className="notif-confirm-row">
+                            <span className="notif-confirm-text">Clear all?</span>
+                            <button
+                              className="notif-confirm-yes"
+                              onClick={() => { removeAll(); setConfirmClear(false); }}
+                            >Yes</button>
+                            <button
+                              className="notif-confirm-no"
+                              onClick={() => setConfirmClear(false)}
+                            >No</button>
+                          </div>
+                        ) : (
+                          <button
+                            className="notif-hdr-btn notif-hdr-btn--danger"
+                            onClick={() => setConfirmClear(true)}
+                            title="Clear all"
+                          >
+                            <FiTrash2 size={12} /> Clear
+                          </button>
+                        )
+                      )}
+
+                      {!confirmClear && (
+                        <button className="notif-hdr-btn" onClick={() => setNotifOpen(false)}>
+                          <FiX size={12} />
                         </button>
                       )}
-                      <button className="notif-hdr-btn" onClick={() => setNotifOpen(false)}>
-                        <FiX size={12} />
-                      </button>
                     </div>
                   </div>
 
@@ -211,7 +251,7 @@ export default function Header({ title, onMenuClick, collapsed }) {
                               style={{ borderLeftColor: cfg.border }}
                               initial={{ opacity: 0, x: -14 }}
                               animate={{ opacity: 1,  x: 0  }}
-                              exit={{ opacity: 0, x: 14, height: 0, paddingTop: 0, paddingBottom: 0, marginBottom: 0 }}
+                              exit={{ opacity: 0, x: 14, height: 0, paddingTop: 0, paddingBottom: 0 }}
                               transition={{ delay: i * 0.04, duration: 0.22, ease: [0, 0, 0.2, 1] }}
                               layout
                             >
@@ -266,64 +306,31 @@ export default function Header({ title, onMenuClick, collapsed }) {
             </AnimatePresence>
           </div>
 
-          {/* ── THEME SELECTOR ───────────────────────────── */}
-          <div className="theme-selector-wrap" ref={themeRef}>
-            <motion.button
-              className={`header-icon-btn header-theme-btn${themeOpen ? ' header-icon-btn--active' : ''}`}
-              onClick={() => setThemeOpen(v => !v)}
-              aria-label="Change theme"
-              title={`Theme: ${theme}`}
-              whileHover={{ scale: 1.07 }}
-              whileTap={{ scale: 0.93 }}
-            >
-              <ThemeIcon size={17} />
-            </motion.button>
-
-            <AnimatePresence>
-              {themeOpen && (
-                <motion.div
-                  className="theme-panel"
-                  variants={panelVariants}
-                  initial="hidden" animate="visible" exit="exit"
+          {/* ── PREMIUM SEGMENTED THEME SWITCHER ─────────── */}
+          <div className="theme-seg">
+            {THEMES.map((t) => {
+              const TIcon = THEME_ICONS[t.id] || FiSun;
+              const isActive = theme === t.id;
+              return (
+                <motion.button
+                  key={t.id}
+                  className={`theme-seg-opt${isActive ? ' theme-seg-opt--active' : ''}`}
+                  onClick={() => setTheme(t.id)}
+                  title={t.label}
+                  whileTap={{ scale: 0.92 }}
                 >
-                  <div className="theme-panel-title">Appearance</div>
-                  {THEMES.map(t => {
-                    const TIcon = THEME_ICONS[t.id] || FiSun;
-                    const active = theme === t.id;
-                    return (
-                      <motion.button
-                        key={t.id}
-                        className={`theme-option${active ? ' theme-option--active' : ''}`}
-                        onClick={() => { setTheme(t.id); setThemeOpen(false); }}
-                        whileHover={{ x: 3 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-                      >
-                        <div className="theme-icon-wrap" style={{
-                          background: t.id === 'evening' ? '#0A1628' : t.dot,
-                          border: `1.5px solid ${active ? t.accent : 'var(--border)'}`,
-                        }}>
-                          <TIcon size={13} style={{ color: t.accent }} />
-                        </div>
-                        <div className="theme-option-info">
-                          <span className="theme-option-name">{t.label}</span>
-                          <span className="theme-option-desc">{t.desc}</span>
-                        </div>
-                        {active && (
-                          <motion.span
-                            className="theme-check"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: 'spring', stiffness: 500, damping: 22 }}
-                          >
-                            <FiCheck size={13} />
-                          </motion.span>
-                        )}
-                      </motion.button>
-                    );
-                  })}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  {isActive && (
+                    <motion.div
+                      className="theme-seg-indicator"
+                      layoutId="theme-pill"
+                      transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                    />
+                  )}
+                  <TIcon size={13} className="theme-seg-icon" />
+                  <span className="theme-seg-label">{t.label}</span>
+                </motion.button>
+              );
+            })}
           </div>
 
           {/* Admin shield */}
