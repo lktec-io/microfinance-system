@@ -7,7 +7,10 @@ function stamp() {
 const logger = {
   info:    (msg) => console.log(`[${stamp()}] ${levels.info}  ${msg}`),
   warn:    (msg) => console.warn(`[${stamp()}] ${levels.warn} ${msg}`),
-  error:   (msg, err) => console.error(`[${stamp()}] ${levels.error} ${msg}`, err?.message || ''),
+  error:   (msg, err) => {
+    console.error(`[${stamp()}] ${levels.error} ${msg}`, err?.message || '');
+    if (err?.stack) console.error(err.stack);
+  },
   success: (msg) => console.log(`[${stamp()}] ${levels.success} ${msg}`),
 };
 

@@ -1,46 +1,100 @@
 // Lazy-load nodemailer so a missing module never crashes the server at startup.
 // If nodemailer is not installed, all other API routes continue working normally.
-// Only the forgot-password endpoint returns a 503 until `npm install` is run.
+// Only the forgot-password endpoint is affected until `npm install` is run.
 
 let _transporter = null;
 let _initError   = null;
+
+const REQUIRED_ENV = ['EMAIL_HOST', 'EMAIL_PORT', 'EMAIL_USER', 'EMAIL_PASS', 'EMAIL_FROM'];
 
 function getTransporter() {
   if (_transporter) return _transporter;
   if (_initError)   throw _initError;
 
   try {
+    // Validate env vars before attempting to create the transporter
+    const missing = REQUIRED_ENV.filter(k => !process.env[k]);
+    if (missing.length > 0) {
+      throw Object.assign(
+        new Error(`Email service: missing environment variable(s): ${missing.join(', ')}`),
+        { code: 'EMAIL_ENV_MISSING' }
+      );
+    }
+
     const nodemailer = require('nodemailer');
+    const port   = Number(process.env.EMAIL_PORT) || 587;
+    const secure = port === 465; // SSL for 465, STARTTLS for 587
+
     _transporter = nodemailer.createTransport({
       host:   process.env.EMAIL_HOST,
-      port:   Number(process.env.EMAIL_PORT) || 587,
-      secure: false,
+      port,
+      secure,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
+
+    console.log(
+      `[email] Transporter ready — host=${process.env.EMAIL_HOST}` +
+      ` port=${port} secure=${secure} user=${process.env.EMAIL_USER}`
+    );
     return _transporter;
   } catch (err) {
-    _initError = new Error(
-      `Email service unavailable (nodemailer not installed). ` +
-      `Run: cd server && npm install`
-    );
-    _initError.code = 'EMAIL_UNAVAILABLE';
-    console.warn('⚠️  ' + _initError.message);
-    throw _initError;
+    _initError = err;
+    console.error('[email] ❌ Failed to initialise transporter:', err.message);
+    throw err;
   }
 }
 
 async function sendResetEmail(to, name, resetUrl) {
-  const transporter = getTransporter(); // throws EMAIL_UNAVAILABLE if nodemailer missing
-  const firstName = name ? name.split(' ')[0] : 'User';
+  const transporter = getTransporter();
+  const firstName   = name ? name.split(' ')[0] : 'User';
 
-  await transporter.sendMail({
-    from:    process.env.EMAIL_FROM,
-    to,
-    subject: 'Reset Your Password — Baraka Microcredit',
-    html: `<!DOCTYPE html>
+  // Step 1: Verify SMTP connection and authentication BEFORE sending.
+  // This surfaces auth failures, bad credentials, or connectivity issues clearly.
+  console.log(`[email] Verifying SMTP connection (host=${process.env.EMAIL_HOST} port=${process.env.EMAIL_PORT})...`);
+  try {
+    await transporter.verify();
+    console.log('[email] ✅ SMTP connection verified');
+  } catch (err) {
+    console.error('[email] ❌ SMTP verify failed');
+    console.error(`[email]   message     : ${err.message}`);
+    console.error(`[email]   code        : ${err.code        || 'n/a'}`);
+    console.error(`[email]   responseCode: ${err.responseCode || 'n/a'}`);
+    console.error(`[email]   command     : ${err.command      || 'n/a'}`);
+    if (err.stack) console.error(err.stack);
+    // Reset cached transporter so the next request retries (transient failures can recover)
+    _transporter = null;
+    throw Object.assign(
+      new Error(`SMTP verification failed: ${err.message}`),
+      { code: err.code || 'SMTP_VERIFY_FAILED', responseCode: err.responseCode }
+    );
+  }
+
+  // Step 2: Send the email
+  console.log(`[email] Sending reset email to ${to}...`);
+  try {
+    const info = await transporter.sendMail({
+      from:    process.env.EMAIL_FROM,
+      to,
+      subject: 'Reset Your Password — Baraka Microcredit',
+      html:    buildResetEmailHtml(firstName, resetUrl),
+    });
+    console.log(`[email] ✅ Email sent — messageId=${info.messageId} response="${info.response}"`);
+  } catch (err) {
+    console.error('[email] ❌ sendMail failed');
+    console.error(`[email]   message     : ${err.message}`);
+    console.error(`[email]   code        : ${err.code        || 'n/a'}`);
+    console.error(`[email]   responseCode: ${err.responseCode || 'n/a'}`);
+    console.error(`[email]   command     : ${err.command      || 'n/a'}`);
+    if (err.stack) console.error(err.stack);
+    throw err;
+  }
+}
+
+function buildResetEmailHtml(firstName, resetUrl) {
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -89,8 +143,7 @@ async function sendResetEmail(to, name, resetUrl) {
     </div>
   </div>
 </body>
-</html>`,
-  });
+</html>`;
 }
 
 module.exports = { sendResetEmail };
