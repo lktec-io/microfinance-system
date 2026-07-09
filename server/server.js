@@ -18,6 +18,7 @@ const { globalErrorHandler } = require('./middleware/errorHandler');
 const logger                = require('./utils/logger');
 const overdueJob            = require('./cron/overdueJob');
 const smsJobs               = require('./cron/smsJobs');
+const emailSvc              = require('./services/emailService');
 
 const app  = express();
 const PORT = process.env.PORT || 8004;
@@ -60,6 +61,7 @@ app.use(globalErrorHandler);
 // ── Start ─────────────────────────────────────────────────────
 testConnection()
   .then(() => runMigrations())
+  .then(() => emailSvc.verifySmtp())   // SMTP health check — never blocks startup
   .then(() => {
     overdueJob.start();
     smsJobs.start();
