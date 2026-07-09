@@ -61,7 +61,6 @@ app.use(globalErrorHandler);
 // ── Start ─────────────────────────────────────────────────────
 testConnection()
   .then(() => runMigrations())
-  .then(() => emailSvc.verifySmtp())   // SMTP health check — never blocks startup
   .then(() => {
     overdueJob.start();
     smsJobs.start();
