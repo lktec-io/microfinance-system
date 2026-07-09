@@ -55,49 +55,18 @@ const forgotPassword = asyncHandler(async (req, res) => {
   // Always return the same generic response — never leak whether email exists
   if (!email) return res.json({ message: GENERIC_RESET_MSG });
 
-  // Step 1: Database lookup
-  let user;
-  try {
-    user = await svc.findUserByEmail(email);
-  } catch (dbErr) {
-    console.error('[forgot-password] ❌ Database lookup failed:', dbErr.message);
-    if (dbErr.stack) console.error(dbErr.stack);
-    return fail(res, 'A server error occurred. Please try again later.', 500);
-  }
-  if (!user) {
-    console.log(`[forgot-password] No active user found for email: ${email} — returning generic response`);
-    return res.json({ message: GENERIC_RESET_MSG });
-  }
+  const user = await svc.findUserByEmail(email);
+  if (!user) return res.json({ message: GENERIC_RESET_MSG });
 
-  // Step 2: Token generation
-  let rawToken, hashed, expires;
-  try {
-    ({ rawToken, hashed, expires } = tokenSvc.generateResetToken());
-    console.log(`[forgot-password] Token generated for userId=${user.id}`);
-  } catch (cryptoErr) {
-    console.error('[forgot-password] ❌ Token generation failed:', cryptoErr.message);
-    if (cryptoErr.stack) console.error(cryptoErr.stack);
-    return fail(res, 'A server error occurred. Please try again later.', 500);
-  }
+  const { rawToken, hashed, expires } = tokenSvc.generateResetToken();
+  await svc.setResetToken(user.id, hashed, expires);
 
-  // Step 3: Persist token to database
-  try {
-    await svc.setResetToken(user.id, hashed, expires);
-    console.log(`[forgot-password] Reset token saved for userId=${user.id} expires=${expires.toISOString()}`);
-  } catch (dbErr) {
-    console.error('[forgot-password] ❌ Database error while saving reset token:', dbErr.message);
-    if (dbErr.stack) console.error(dbErr.stack);
-    return fail(res, 'A server error occurred. Please try again later.', 500);
-  }
-
-  // Step 4: Send email
   const resetUrl = `${process.env.CLIENT_URL}/reset-password/${rawToken}`;
   try {
     await emailSvc.sendResetEmail(user.email, user.name, resetUrl);
-    console.log(`[forgot-password] ✅ Reset email sent to ${user.email}`);
   } catch (emailErr) {
-    console.error('[forgot-password] ❌ Email send failed:', emailErr.message);
-    try { await svc.clearResetToken(user.id); } catch (_) {}
+    console.error('Reset email failed:', emailErr.message);
+    await svc.clearResetToken(user.id);
     return fail(res, 'Failed to send reset email. Please try again later.', 500);
   }
 
