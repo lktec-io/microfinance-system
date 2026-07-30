@@ -10,6 +10,7 @@ import {
 import { useAuth }          from '../context/AuthContext';
 import { useTheme }         from '../context/ThemeContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useProfileImage }  from '../context/ProfileContext';
 
 /* ── Notification type config ───────────────────────────────────── */
 const NOTIF_CFG = {
@@ -49,19 +50,50 @@ export default function Header({ title, onMenuClick, open, collapsed }) {
   const { user, logout, isAdmin }           = useAuth();
   const { theme, setTheme, THEMES }         = useTheme();
   const { notifs, unread, markRead, markAllRead, remove, removeAll, refresh } = useNotifications();
+  const { profileImg, setProfileImg }       = useProfileImage();
   const navigate = useNavigate();
 
-  const notifRef = useRef(null);
-  const cmdRef   = useRef(null);
+  const notifRef    = useRef(null);
+  const cmdRef      = useRef(null);
+  const fileInputRef = useRef(null);
 
   const [notifOpen,    setNotifOpen]    = useState(false);
   const [cmdOpen,      setCmdOpen]      = useState(false);
   const [cmdQuery,     setCmdQuery]     = useState('');
   const [confirmClear, setConfirmClear] = useState(false);
+  const [uploading,    setUploading]    = useState(false);
 
   const initials = user?.name
     ? user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : '?';
+
+  async function handleFileSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    if (file.size > 3 * 1024 * 1024) return;
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const preset    = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    setUploading(true);
+    try {
+      if (cloudName && preset) {
+        const form = new FormData();
+        form.append('file', file);
+        form.append('upload_preset', preset);
+        const res  = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: form });
+        const data = await res.json();
+        if (data.secure_url) setProfileImg(data.secure_url);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (ev) => setProfileImg(ev.target.result);
+        reader.readAsDataURL(file);
+      }
+    } catch (err) {
+      console.error('Profile upload error:', err);
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  }
 
   /* Close panels on outside click */
   useEffect(() => {
@@ -355,16 +387,33 @@ export default function Header({ title, onMenuClick, open, collapsed }) {
             <FiLogOut size={16} />
           </motion.button>
 
-          {/* Profile chip */}
+          {/* Profile chip — click to change photo */}
           {user && (
-            <div className="header-user">
+            <div
+              className="header-user"
+              onClick={() => fileInputRef.current?.click()}
+              title="Click to change profile photo"
+              style={{ cursor: 'pointer' }}
+            >
               <div className="header-user-info">
                 <span className="header-user-name">{user.name}</span>
                 <span className="header-user-role">{user.role}</span>
               </div>
               <div className="header-avatar" aria-hidden="true">
-                <span style={{ fontSize: '.75rem', fontWeight: 700 }}>{initials}</span>
+                {uploading
+                  ? <FiRefreshCw size={13} style={{ animation: 'spin .8s linear infinite' }} />
+                  : profileImg
+                  ? <img src={profileImg} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                  : <span style={{ fontSize: '.75rem', fontWeight: 700 }}>{initials}</span>
+                }
               </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                style={{ display: 'none' }}
+                onChange={handleFileSelect}
+              />
             </div>
           )}
 

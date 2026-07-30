@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useProfileImage } from '../context/ProfileContext';
 import {
   FiHome, FiUsers, FiDollarSign, FiCreditCard,
   FiBarChart2, FiShield, FiLogOut, FiX,
@@ -78,6 +79,7 @@ function BrandLogo({ small }) {
 /* ── DESKTOP SIDEBAR ── */
 function DesktopSidebar({ collapsed, onToggle }) {
   const { user, logout, isAdmin } = useAuth();
+  const { profileImg } = useProfileImage();
   const navigate = useNavigate();
   function handleLogout() { logout(); navigate('/login'); }
 
@@ -137,8 +139,11 @@ function DesktopSidebar({ collapsed, onToggle }) {
       <div className="sidebar-footer">
         <div className="sidebar-user">
           <motion.div className="sidebar-avatar"
-            whileHover={{ scale: 1.06 }} transition={{ type: 'spring', stiffness: 380, damping: 22 }}>
-            {user?.name?.[0]?.toUpperCase()}
+            whileHover={{ scale: 1.06 }} transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+            style={profileImg ? { padding: 0, overflow: 'hidden' } : {}}>
+            {profileImg
+              ? <img src={profileImg} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+              : user?.name?.[0]?.toUpperCase()}
           </motion.div>
           {!collapsed && (
             <div className="sidebar-user-info">
@@ -162,6 +167,7 @@ function DesktopSidebar({ collapsed, onToggle }) {
 /* ── MOBILE SIDEBAR (premium right-slide drawer) ── */
 function MobileSidebar({ open, onClose }) {
   const { user, logout, isAdmin } = useAuth();
+  const { profileImg } = useProfileImage();
   const navigate = useNavigate();
 
   function handleLogout() { logout(); navigate('/login'); onClose(); }
@@ -259,8 +265,11 @@ function MobileSidebar({ open, onClose }) {
             {/* Footer */}
             <div className="sidebar-drawer-footer">
               <div className="sidebar-drawer-user">
-                <div className="sidebar-drawer-avatar">
-                  {user?.name?.[0]?.toUpperCase()}
+                <div className="sidebar-drawer-avatar"
+                  style={profileImg ? { padding: 0, overflow: 'hidden' } : {}}>
+                  {profileImg
+                    ? <img src={profileImg} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                    : user?.name?.[0]?.toUpperCase()}
                 </div>
                 <div className="sidebar-drawer-user-info">
                   <div className="sidebar-drawer-user-name">{user?.name}</div>

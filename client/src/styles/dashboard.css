@@ -464,11 +464,29 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   CHARTS SECTION
+   ══════════════════════════════════════════════════════════════════ */
+.dashboard-charts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.chart-empty-msg {
+  text-align: center;
+  color: var(--gray-400);
+  font-size: .875rem;
+  padding: 2.5rem 1rem;
+  margin: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════
    RESPONSIVE
    ══════════════════════════════════════════════════════════════════ */
 @media (max-width: 1080px) {
   .stat-grid        { grid-template-columns: repeat(2, 1fr); }
   .dashboard-bottom { grid-template-columns: 1fr; }
+  .dashboard-charts { grid-template-columns: 1fr; }
 }
 @media (max-width: 700px) {
   .dashboard-hero  { padding: 1.5rem 1.4rem 1.35rem; }

@@ -838,6 +838,118 @@
   .customer-card { padding: 1.1rem 1rem 1rem; }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   DASHBOARD GRID — 2-col card layout (reports tables etc.)
+   ══════════════════════════════════════════════════════════════════ */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+@media (max-width: 900px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   REPORTS PAGE — Premium header, tabs, chart grid
+   ══════════════════════════════════════════════════════════════════ */
+.rpt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.rpt-header-left {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+}
+.rpt-header-icon {
+  width: 46px; height: 46px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--primary), #334155);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(15,23,42,.25);
+}
+.rpt-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  letter-spacing: -.04em;
+  line-height: 1.2;
+  margin: 0 0 .12rem;
+}
+.rpt-subtitle {
+  font-size: .82rem;
+  font-weight: 300;
+  color: var(--gray-500);
+  margin: 0;
+}
+.rpt-header-actions {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Tab pills */
+.rpt-tabs {
+  display: flex;
+  gap: .45rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.rpt-tab {
+  display: flex;
+  align-items: center;
+  gap: .42rem;
+  padding: .46rem 1.05rem;
+  border-radius: 99px;
+  font-size: .84rem;
+  font-weight: 500;
+  font-family: inherit;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--gray-600);
+  transition: background var(--transition), color var(--transition),
+              border-color var(--transition), box-shadow var(--transition);
+}
+.rpt-tab:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-lt);
+}
+.rpt-tab--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(15,23,42,.22);
+}
+
+/* Chart grid (2 col) */
+.rpt-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 0;
+}
+@media (max-width: 768px) {
+  .rpt-chart-grid { grid-template-columns: 1fr; }
+  .rpt-header { flex-direction: column; align-items: flex-start; }
+  .rpt-header-actions { width: 100%; justify-content: flex-end; }
+  .rpt-title { font-size: 1.3rem; }
+}
+@media (max-width: 480px) {
+  .rpt-tabs { gap: .3rem; }
+  .rpt-tab { font-size: .78rem; padding: .38rem .8rem; }
+  .rpt-title { font-size: 1.15rem; }
+}
+
 /* ── Responsive — modals, skeletons, layout ── */
 @media (max-width: 768px) {
   .skeleton-stats        { grid-template-columns: repeat(2, 1fr); }

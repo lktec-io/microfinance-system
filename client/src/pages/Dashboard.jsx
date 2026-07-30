@@ -8,11 +8,12 @@ import {
   FiAlertTriangle, FiTrendingUp, FiRefreshCw,
   FiActivity, FiArrowRight, FiPercent, FiBarChart2,
 } from 'react-icons/fi';
-import api            from '../api';
-import { fmt }        from '../utils/format';
-import { useAuth }    from '../context/AuthContext';
-import StatCard       from '../components/common/StatCard';
-import { SkeletonStats } from '../components/common/Skeleton';
+import api                        from '../api';
+import { fmt, fmtShort }          from '../utils/format';
+import { useAuth }                 from '../context/AuthContext';
+import { useProfileImage }         from '../context/ProfileContext';
+import StatCard                    from '../components/common/StatCard';
+import { SkeletonStats }           from '../components/common/Skeleton';
 
 /* ── Animation variants ─────────────────────────────────────────────── */
 const pageIn = {
@@ -36,6 +37,105 @@ const FLOAT_ICONS = [
   { Icon: FiPercent,    top: '70%',  right: '18%', opacity: 0.08, delay: 1.8 },
   { Icon: FiActivity,   top: '82%',  right: '36%', opacity: 0.05, delay: 0.9 },
 ];
+
+/* ── SVG Line Chart ─────────────────────────────────────────────── */
+function LineChart({ data = [], yKey = 'total_collected', color = '#22C55E', gradId = 'lcg' }) {
+  const W = 500, H = 160, pad = { t: 16, r: 12, b: 34, l: 50 };
+  const iW = W - pad.l - pad.r, iH = H - pad.t - pad.b;
+  if (!data.length) return <p className="chart-empty-msg">No data yet</p>;
+  const vals  = data.map(d => Number(d[yKey]) || 0);
+  const maxV  = Math.max(...vals, 1);
+  const pts   = data.map((d, i) => ({
+    x: pad.l + (data.length > 1 ? i / (data.length - 1) : 0.5) * iW,
+    y: pad.t + iH - (vals[i] / maxV) * iH,
+    month: String(d.month || '').slice(5, 7),
+  }));
+  const linePath = pts.reduce((acc, p, i) => {
+    if (i === 0) return `M ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+    const prev = pts[i - 1], cx = ((prev.x + p.x) / 2).toFixed(1);
+    return `${acc} C ${cx} ${prev.y.toFixed(1)} ${cx} ${p.y.toFixed(1)} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+  }, '');
+  const fillPath = pts.length
+    ? `${linePath} L ${pts[pts.length-1].x.toFixed(1)} ${(pad.t+iH).toFixed(1)} L ${pts[0].x.toFixed(1)} ${(pad.t+iH).toFixed(1)} Z`
+    : '';
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map(f => ({ y: pad.t + iH*(1-f), label: fmtShort(f*maxV) }));
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.01" />
+        </linearGradient>
+        <clipPath id={`clip-${gradId}`}><rect x={pad.l} y={pad.t} width={iW} height={iH} /></clipPath>
+      </defs>
+      {yTicks.map((t, i) => (
+        <g key={i}>
+          <line x1={pad.l} y1={t.y} x2={pad.l+iW} y2={t.y} stroke="var(--border)" strokeWidth="1" strokeDasharray="3 4" />
+          <text x={pad.l-5} y={t.y+4} textAnchor="end" fill="var(--gray-400)" fontSize="8" fontFamily="Poppins,sans-serif">{t.label}</text>
+        </g>
+      ))}
+      {fillPath && <path d={fillPath} fill={`url(#${gradId})`} clipPath={`url(#clip-${gradId})`} />}
+      <motion.path d={linePath} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round"
+        initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
+        transition={{ duration: 1.3, ease: [0.16,1,0.3,1], delay: 0.15 }} />
+      {pts.map((p, i) => (
+        <motion.circle key={i} cx={p.x} cy={p.y} r="3.5" fill={color} stroke="var(--surface)" strokeWidth="2"
+          initial={{ scale: 0 }} animate={{ scale: 1 }}
+          transition={{ delay: 0.2 + (i/Math.max(pts.length-1,1))*0.8, duration: 0.25 }}
+          style={{ transformOrigin: `${p.x}px ${p.y}px` }} />
+      ))}
+      {pts.filter((_, i) => pts.length <= 6 || i % Math.ceil(pts.length/6) === 0 || i === pts.length-1)
+        .map((p, i) => (
+          <text key={i} x={p.x} y={H-6} textAnchor="middle" fill="var(--gray-400)" fontSize="9" fontFamily="Poppins,sans-serif">{p.month}</text>
+        ))}
+    </svg>
+  );
+}
+
+/* ── SVG Bar Chart ──────────────────────────────────────────────── */
+function BarChart({ data = [], yKey = 'total_issued', color = '#2563EB', gradId = 'bcg' }) {
+  const W = 500, H = 160, pad = { t: 16, r: 12, b: 34, l: 50 };
+  const iW = W - pad.l - pad.r, iH = H - pad.t - pad.b;
+  if (!data.length) return <p className="chart-empty-msg">No data yet</p>;
+  const vals  = data.map(d => Number(d[yKey]) || 0);
+  const maxV  = Math.max(...vals, 1);
+  const slotW = iW / data.length;
+  const barW  = Math.max(8, slotW * 0.58);
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map(f => ({ y: pad.t + iH*(1-f), label: fmtShort(f*maxV) }));
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.85" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.35" />
+        </linearGradient>
+      </defs>
+      {yTicks.map((t, i) => (
+        <g key={i}>
+          <line x1={pad.l} y1={t.y} x2={pad.l+iW} y2={t.y} stroke="var(--border)" strokeWidth="1" strokeDasharray="3 4" />
+          <text x={pad.l-5} y={t.y+4} textAnchor="end" fill="var(--gray-400)" fontSize="8" fontFamily="Poppins,sans-serif">{t.label}</text>
+        </g>
+      ))}
+      {data.map((d, i) => {
+        const h = (vals[i] / maxV) * iH;
+        const x = pad.l + i * slotW + (slotW - barW) / 2;
+        return (
+          <g key={i}>
+            <motion.rect x={x} width={barW} rx="3" ry="3" fill={`url(#${gradId})`}
+              initial={{ y: pad.t + iH, height: 0 }}
+              animate={{ y: pad.t + iH - h, height: h }}
+              transition={{ delay: i * 0.06, duration: 0.55, ease: [0.16,1,0.3,1] }} />
+            {(data.length <= 12 || i % Math.ceil(data.length/6) === 0) && (
+              <text x={x + barW/2} y={H-6} textAnchor="middle" fill="var(--gray-400)" fontSize="9" fontFamily="Poppins,sans-serif">
+                {String(d.month || '').slice(5,7)}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
 
 /* ── Data defaults ───────────────────────────────────────────────────── */
 const SUMMARY_DEFAULT = {
@@ -226,9 +326,12 @@ export default function Dashboard() {
 
   const [summary,    setSummary]    = useState(SUMMARY_DEFAULT);
   const [recent,     setRecent]     = useState(RECENT_DEFAULT);
+  const [monthly,    setMonthly]    = useState({ loans: [], repayments: [] });
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+
+  const { profileImg } = useProfileImage();
 
   const loadData = useCallback(async () => {
     setError(null);
@@ -267,6 +370,11 @@ export default function Dashboard() {
           customers:  raw?.customers  || [],
           loans:      raw?.loans      || [],
         });
+      }
+
+      if (settled[2].status === 'fulfilled') {
+        const raw = settled[2].value?.data;
+        setMonthly({ loans: raw?.loans || [], repayments: raw?.repayments || [] });
       }
     } catch (err) {
       console.error('Dashboard load failed:', err);
@@ -358,7 +466,12 @@ export default function Dashboard() {
           <div className="hero-top">
             {/* User identity + greeting */}
             <div className="hero-user">
-              <div className="hero-avatar">{avatarLetters}</div>
+              <div className="hero-avatar">
+                {profileImg
+                  ? <img src={profileImg} alt={firstName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                  : avatarLetters
+                }
+              </div>
               <div>
                 <div className="hero-eyebrow">Welcome Back</div>
                 <div className="hero-greeting">
@@ -446,6 +559,27 @@ export default function Dashboard() {
           variants={fadeUp}
         />
       </motion.div>
+
+      {/* ════════════════════════════════════════════════════════════════
+          CHARTS — Collection Trend + Monthly Disbursements
+          ════════════════════════════════════════════════════════════════ */}
+      <div className="dashboard-charts">
+        <motion.section className="card" variants={sectionReveal} style={{ marginBottom: 0 }}>
+          <div className="card-header">
+            <h2 className="card-title"><FiTrendingUp size={15} /> Collection Trend</h2>
+            <span style={{ fontSize: '.75rem', color: 'var(--gray-400)', fontWeight: 300 }}>Monthly</span>
+          </div>
+          <LineChart data={monthly.repayments} yKey="total_collected" color="#22C55E" gradId="col-trend" />
+        </motion.section>
+
+        <motion.section className="card" variants={sectionReveal} style={{ marginBottom: 0 }}>
+          <div className="card-header">
+            <h2 className="card-title"><FiBarChart2 size={15} /> Loan Disbursements</h2>
+            <span style={{ fontSize: '.75rem', color: 'var(--gray-400)', fontWeight: 300 }}>Monthly</span>
+          </div>
+          <BarChart data={monthly.loans} yKey="total_issued" color="#2563EB" gradId="mo-disb" />
+        </motion.section>
+      </div>
 
       {/* ════════════════════════════════════════════════════════════════
           PIE CHART + ACTIVITY FEED
