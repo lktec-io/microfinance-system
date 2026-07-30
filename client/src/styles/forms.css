@@ -7,7 +7,7 @@
   gap: .45rem;
   padding: .58rem 1.3rem;
   border-radius: var(--radius-sm);
-  font-size: .925rem;
+  font-size: 0.9375rem;   /* 15px */
   font-weight: 500;
   line-height: 1;
   transition: background var(--transition), box-shadow var(--transition),
@@ -168,7 +168,7 @@
 }
 
 label {
-  font-size: .8rem;
+  font-size: 0.875rem;    /* 14px */
   font-weight: 500;
   color: var(--gray-600);
   letter-spacing: .01em;
@@ -181,7 +181,7 @@ input, select, textarea {
   border: 1.5px solid var(--border-strong);
   border-radius: var(--radius-sm);
   color: var(--gray-800);
-  font-size: .9rem;
+  font-size: 0.9375rem;   /* 15px */
   font-weight: 400;
   line-height: 1.5;
   transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
@@ -247,14 +247,14 @@ textarea { resize: vertical; min-height: 80px; }
 
 /* ── Page Section Title ── */
 .page-section-title {
-  font-size: 1.05rem;
+  font-size: 1.375rem;    /* 22px section title */
   font-weight: 600;
   color: var(--gray-800);
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: .5rem;
-  letter-spacing: -.02em;
+  letter-spacing: -.025em;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -631,7 +631,7 @@ textarea { resize: vertical; min-height: 80px; }
   border-radius: var(--radius-sm);
   padding: .58rem .9rem;
   color: var(--gray-700);
-  font-size: .9rem;
+  font-size: 0.9375rem;
   transition: border-color var(--transition), box-shadow var(--transition);
   outline: none;
 }
@@ -640,7 +640,7 @@ textarea { resize: vertical; min-height: 80px; }
   border-color: var(--green);
   box-shadow: 0 0 0 3px rgba(22,163,74,.1);
 }
-.search-input::placeholder { color: var(--gray-400); font-size: .875rem; }
+.search-input::placeholder { color: var(--gray-400); font-size: 0.875rem; }
 
 .view-toggle {
   display: flex;
@@ -707,7 +707,7 @@ textarea { resize: vertical; min-height: 80px; }
 .filter-tab {
   padding: .42rem .9rem;
   border-radius: 99px;
-  font-size: .84rem;
+  font-size: 0.875rem;    /* 14px */
   font-weight: 500;
   font-family: inherit;
   border: 1.5px solid var(--border);
@@ -814,7 +814,7 @@ textarea { resize: vertical; min-height: 80px; }
   border-radius: var(--radius-sm);
   padding: .58rem .9rem;
   color: var(--gray-700);
-  font-size: .9rem;
+  font-size: 0.9375rem;
   transition: border-color var(--transition), box-shadow var(--transition);
   outline: none;
 }
@@ -823,7 +823,7 @@ textarea { resize: vertical; min-height: 80px; }
   border-color: var(--green);
   box-shadow: 0 0 0 3px rgba(22,163,74,.1);
 }
-.search-input::placeholder { color: var(--gray-400); font-size: .875rem; }
+.search-input::placeholder { color: var(--gray-400); font-size: 0.875rem; }
 
 /* ══════════════════════════════════════════════════════════════════
    RESPONSIVE
@@ -836,6 +836,12 @@ textarea { resize: vertical; min-height: 80px; }
   .page-toolbar > div {
     flex-wrap: wrap;
   }
+  .page-section-title { font-size: 1.25rem; }          /* 20px tablet */
+}
+@media (max-width: 480px) {
+  .page-section-title { font-size: 1.125rem; }         /* 18px mobile */
+  .btn { font-size: 0.875rem; }
+  label { font-size: 0.8125rem; }
 }
 @media (max-width: 600px) {
   .form-row { grid-template-columns: 1fr; }

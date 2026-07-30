@@ -33,13 +33,13 @@
   margin-bottom: 1rem;
 }
 .card-title {
-  font-size: .975rem;
+  font-size: 1.125rem;    /* 18px card title */
   font-weight: 600;
   color: var(--gray-800);
   display: flex;
   align-items: center;
   gap: .42rem;
-  letter-spacing: -.015em;
+  letter-spacing: -.02em;
   margin-bottom: 0;
 }
 
@@ -142,7 +142,7 @@
   flex-shrink: 0;
 }
 .modal-header h2 {
-  font-size: 1rem;
+  font-size: 1.125rem;    /* 18px card/modal title */
   font-weight: 600;
   color: var(--gray-800);
   letter-spacing: -.02em;
@@ -323,41 +323,107 @@
 .loan-card-actions { display: flex; gap: .3rem; flex-wrap: wrap; }
 
 /* ══════════════════════════════════════════════════════════════════
-   CUSTOMER CARDS
+   CUSTOMER CARDS — Premium Fintech Grid
    ══════════════════════════════════════════════════════════════════ */
-.customer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+
+/* 4-col desktop grid — responsive columns via media queries below */
+.customer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  align-items: stretch;   /* equal height rows */
+}
+
 .customer-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 1.35rem 1.1rem;
+  padding: 1.5rem 1.25rem 1.25rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: .35rem;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition), border-color var(--transition);
+  transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
+  min-height: 0;          /* allow grid to control height */
 }
 [data-theme="evening"] .customer-card,
 [data-theme="night"] .customer-card { background: var(--surface); border-color: var(--border); }
-.customer-card:hover { box-shadow: var(--shadow-md); border-color: var(--border-strong); }
+.customer-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
 .customer-card-avatar {
-  width: 48px; height: 48px;
+  width: 54px; height: 54px;
   background: linear-gradient(135deg, var(--primary) 0%, #22C55E 100%);
   border-radius: 50%;
   display: grid;
   place-items: center;
   color: #fff;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  margin-bottom: .25rem;
-  box-shadow: 0 4px 14px rgba(15,23,42,.22);
+  margin-bottom: .85rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(15,23,42,.22);
 }
-.customer-card-name    { font-size: .9rem; font-weight: 600; color: var(--gray-800); }
-.customer-card-phone   { font-size: .8rem; color: var(--gray-500); }
-.customer-card-address { font-size: .76rem; color: var(--gray-400); max-width: 170px; line-height: 1.4; }
-.customer-card-actions { display: flex; gap: .45rem; margin-top: .45rem; }
+
+.customer-card-name {
+  font-size: 1rem;        /* 16px */
+  font-weight: 600;
+  color: var(--gray-800);
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: .22rem;
+  letter-spacing: -.01em;
+}
+
+.customer-card-phone {
+  font-size: 0.875rem;    /* 14px */
+  font-weight: 400;
+  color: var(--gray-500);
+  margin-bottom: .18rem;
+}
+
+.customer-card-id {
+  font-size: 0.8125rem;   /* 13px helper */
+  font-weight: 300;
+  color: var(--gray-400);
+  margin-bottom: .22rem;
+}
+
+.customer-card-address {
+  font-size: 0.8125rem;   /* 13px helper */
+  font-weight: 300;
+  color: var(--gray-400);
+  width: 100%;
+  line-height: 1.45;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: .35rem;
+}
+
+/* Badge inside card */
+.customer-card .badge {
+  margin: .3rem 0 0;
+  flex-shrink: 0;
+}
+
+/* Actions pushed to card bottom */
+.customer-card-actions {
+  display: flex;
+  gap: .5rem;
+  margin-top: auto;
+  padding-top: .9rem;
+  width: 100%;
+  justify-content: center;
+  border-top: 1px solid var(--border);
+}
 
 /* ══════════════════════════════════════════════════════════════════
    TABLE AVATAR
@@ -521,16 +587,17 @@
   flex-wrap: wrap;
 }
 .users-page-title {
-  font-size: 1.55rem;
+  font-size: 2rem;        /* 32px page title */
   font-weight: 700;
   color: var(--gray-900);
   letter-spacing: -.04em;
-  margin-bottom: .2rem;
+  line-height: 1.2;
+  margin-bottom: .25rem;
 }
 .users-page-subtitle {
-  font-size: .875rem;
+  font-size: 0.9375rem;   /* 15px description */
   color: var(--gray-500);
-  font-weight: 400;
+  font-weight: 300;
 }
 .users-page-actions {
   display: flex;
@@ -566,8 +633,8 @@
   line-height: 1;
 }
 .users-stat-lbl {
-  font-size: .76rem;
-  font-weight: 500;
+  font-size: 0.8125rem;   /* 13px helper */
+  font-weight: 300;
   color: var(--gray-500);
   text-transform: uppercase;
   letter-spacing: .07em;
@@ -736,7 +803,27 @@
   justify-content: center;
 }
 
-/* ── Responsive ── */
+/* ══════════════════════════════════════════════════════════════════
+   CUSTOMER GRID — Responsive column breakpoints
+   Desktop: 4 col | Laptop: 3 col | Tablet: 2 col | Mobile: 1 col
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 1280px) {
+  .customer-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1024px) {
+  .customer-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+}
+@media (max-width: 600px) {
+  .customer-grid {
+    grid-template-columns: 1fr;
+    gap: .85rem;
+  }
+  .customer-card {
+    padding: 1.25rem 1.5rem 1.1rem;
+  }
+}
+
+/* ── Responsive — modals, skeletons, layout ── */
 @media (max-width: 768px) {
   .skeleton-stats        { grid-template-columns: repeat(2, 1fr); }
   .modal-overlay         { padding: .65rem; }
@@ -747,8 +834,8 @@
   .users-stats-bar       { grid-template-columns: repeat(2, 1fr); }
   .users-page-header     { flex-direction: column; align-items: stretch; }
   .users-page-actions    { justify-content: flex-end; }
-  .customer-grid         { grid-template-columns: repeat(auto-fill, minmax(min(170px, 100%), 1fr)); }
   .loan-grid             { grid-template-columns: 1fr; }
+  .users-page-title      { font-size: 1.75rem; }       /* 28px tablet */
 }
 @media (max-width: 480px) {
   .users-stats-bar       { grid-template-columns: repeat(2, 1fr); }
@@ -756,13 +843,12 @@
   .users-search-row      { flex-direction: column; align-items: stretch; }
   .users-search-wrap     { max-width: 100%; }
   .users-filter-chips    { gap: .25rem; }
-  .users-filter-chip     { font-size: .73rem; padding: .25rem .6rem; }
+  .users-filter-chip     { font-size: 0.8125rem; padding: .25rem .6rem; }
   .stat-card-inner       { gap: .6rem; }
-  .customer-grid         { grid-template-columns: 1fr 1fr; }
   .modal                 { border-radius: var(--radius-lg); }
+  .users-page-title      { font-size: 1.5rem; }        /* 24px mobile */
 }
 @media (max-width: 360px) {
-  .customer-grid         { grid-template-columns: 1fr; }
   .modal-overlay         { padding: .4rem; }
   .users-stats-bar       { grid-template-columns: 1fr; }
   .toast                 { min-width: 0; width: calc(100vw - 1rem); }

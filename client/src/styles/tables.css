@@ -8,7 +8,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: .925rem;
+  font-size: 0.9375rem;   /* 15px */
   color: var(--gray-700);
 }
 
@@ -16,11 +16,11 @@
   background: var(--gray-50);
   padding: .72rem 1rem;
   text-align: left;
-  font-size: .75rem;
+  font-size: 0.9375rem;   /* 15px */
   font-weight: 600;
   color: var(--gray-500);
   text-transform: uppercase;
-  letter-spacing: .07em;
+  letter-spacing: .05em;
   white-space: nowrap;
   border-bottom: 1.5px solid var(--border);
   position: sticky;
@@ -97,7 +97,8 @@
 
 /* ── Small text in table ── */
 .table small {
-  font-size: .77rem;
+  font-size: 0.8125rem;   /* 13px helper text */
+  font-weight: 300;
   color: var(--gray-400);
   display: block;
   margin-top: .12rem;
@@ -127,5 +128,9 @@ code {
 @media (max-width: 768px) {
   .table { min-width: 600px; }
   .table th,
-  .table td { padding: .65rem .75rem; }
+  .table td { padding: .65rem .75rem; font-size: 0.875rem; }
+}
+@media (max-width: 480px) {
+  .table th,
+  .table td { font-size: 0.875rem; padding: .55rem .65rem; }
 }

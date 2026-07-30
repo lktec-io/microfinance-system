@@ -146,9 +146,7 @@ export default function Customers() {
                   <div className="customer-card-name">{c.full_name}</div>
                   <div className="customer-card-phone">{c.phone}</div>
                   {c.id_number && (
-                    <div style={{ fontSize: '.76rem', color: 'var(--gray-400)' }}>
-                      ID: {c.id_number}
-                    </div>
+                    <div className="customer-card-id">ID: {c.id_number}</div>
                   )}
                   <div className="customer-card-address">{c.address}</div>
                   <span className="badge badge--blue" style={{ marginTop: '.2rem' }}>
