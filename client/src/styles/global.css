@@ -8,6 +8,7 @@ html {
   cursor: none;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -206,3 +207,21 @@ img { max-width: 100%; display: block; }
 ::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
 * { scrollbar-width: thin; scrollbar-color: var(--gray-300) transparent; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   PRINT PREVENTION
+   ══════════════════════════════════════════════════════════════════════ */
+@media print {
+  body { display: none !important; }
+  .security-watermark { display: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   TAB BLUR — Hides sensitive content when tab loses focus
+   ══════════════════════════════════════════════════════════════════════ */
+.tab-blurred {
+  filter: blur(8px) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  transition: filter 0.35s ease !important;
+}

@@ -45,7 +45,7 @@ const bellRingAnim = {
   transition: { duration: 0.7, ease: 'easeInOut', repeat: Infinity, repeatDelay: 5 },
 };
 
-export default function Header({ title, onMenuClick, collapsed }) {
+export default function Header({ title, onMenuClick, open, collapsed }) {
   const { user, logout, isAdmin }           = useAuth();
   const { theme, setTheme, THEMES }         = useTheme();
   const { notifs, unread, markRead, markAllRead, remove, removeAll, refresh } = useNotifications();
@@ -119,7 +119,11 @@ export default function Header({ title, onMenuClick, collapsed }) {
   return (
     <>
       <header className={`header${collapsed ? ' header--collapsed' : ''}`}>
-        <button className="header-menu-btn" onClick={onMenuClick} aria-label="Open menu">
+        <button
+          className={`header-menu-btn${open ? ' header-menu-btn--open' : ''}`}
+          onClick={onMenuClick}
+          aria-label={open ? 'Close menu' : 'Open menu'}
+        >
           <span /><span /><span />
         </button>
 

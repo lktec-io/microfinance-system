@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import Sidebar from './Sidebar';
-import Header  from './Header';
+import Sidebar           from './Sidebar';
+import Header            from './Header';
+import SecurityWatermark from '../components/common/SecurityWatermark';
+import { useSecurityGuard } from '../hooks/useSecurityGuard';
 
 const titles = {
   '/':           'Dashboard',
@@ -22,7 +24,21 @@ const pageVariants = {
 export default function Layout({ children }) {
   const [sidebarOpen,      setSidebarOpen]      = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const location = useLocation();
+  const location    = useLocation();
+  const mainAreaRef = useRef(null);
+
+  useSecurityGuard();
+
+  /* Tab blur — blur sensitive content when tab is hidden */
+  useEffect(() => {
+    function handleVisibility() {
+      const el = mainAreaRef.current;
+      if (!el) return;
+      el.classList.toggle('tab-blurred', document.hidden);
+    }
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
 
   const title = Object.entries(titles).find(([k]) =>
     location.pathname.startsWith(k) && (k === '/' ? location.pathname === '/' : true)
@@ -39,6 +55,8 @@ export default function Layout({ children }) {
     <div className="app-shell">
       <div className="page-glow-bg" aria-hidden="true" />
 
+      <SecurityWatermark />
+
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -46,10 +64,11 @@ export default function Layout({ children }) {
         onToggle={() => setSidebarCollapsed(c => !c)}
       />
 
-      <div className={`main-area${sidebarCollapsed ? ' main-area--collapsed' : ''}`}>
+      <div ref={mainAreaRef} className={`main-area${sidebarCollapsed ? ' main-area--collapsed' : ''}`}>
         <Header
           title={title}
           onMenuClick={() => setSidebarOpen(true)}
+          open={sidebarOpen}
           collapsed={sidebarCollapsed}
         />
         <AnimatePresence mode="wait" initial={false}>

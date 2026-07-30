@@ -854,5 +854,17 @@ textarea { resize: vertical; min-height: 80px; }
   .login-card { padding: 1.5rem 1rem; }
   .filter-tab { padding: .32rem .65rem; font-size: .78rem; }
   .page-toolbar { gap: .4rem; }
-  .search-wrap { min-width: 0; }
+  .search-wrap { min-width: 0; min-width: 0 !important; }
+  .view-toggle-btn span { display: none; } /* icons only at 320px */
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   AUTOFILL PREVENTION — override browser autofill yellow tint
+   ══════════════════════════════════════════════════════════════════ */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset !important;
+  -webkit-text-fill-color: var(--gray-800) !important;
+  transition: background-color 9999s ease-in-out 0s;
 }

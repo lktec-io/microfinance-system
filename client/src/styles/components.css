@@ -325,7 +325,7 @@
 /* ══════════════════════════════════════════════════════════════════
    CUSTOMER CARDS
    ══════════════════════════════════════════════════════════════════ */
-.customer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+.customer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
 .customer-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -747,7 +747,7 @@
   .users-stats-bar       { grid-template-columns: repeat(2, 1fr); }
   .users-page-header     { flex-direction: column; align-items: stretch; }
   .users-page-actions    { justify-content: flex-end; }
-  .customer-grid         { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+  .customer-grid         { grid-template-columns: repeat(auto-fill, minmax(min(170px, 100%), 1fr)); }
   .loan-grid             { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {

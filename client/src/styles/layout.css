@@ -15,7 +15,7 @@
   overflow-x: hidden;
   overflow-y: auto;
   height: 100vh;
-  transition: margin-left 0.28s cubic-bezier(0,0,.2,1);
+  transition: margin-left 0.28s cubic-bezier(0,0,.2,1), filter 0.35s ease;
   position: relative;
 }
 .main-area--collapsed { margin-left: var(--sidebar-w-collapsed); }
@@ -579,9 +579,24 @@
   width: 18px; height: 2px;
   background: var(--gray-600);
   border-radius: 1px;
-  transition: background var(--transition);
+  transition: background var(--transition), transform 0.22s ease, opacity 0.18s ease, width 0.18s ease;
+  transform-origin: center;
 }
 .header-menu-btn:hover span { background: var(--green); }
+
+/* Hamburger → X when sidebar is open */
+.header-menu-btn--open span:nth-child(1) {
+  transform: translateY(6.5px) rotate(45deg);
+  background: var(--green);
+}
+.header-menu-btn--open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.header-menu-btn--open span:nth-child(3) {
+  transform: translateY(-6.5px) rotate(-45deg);
+  background: var(--green);
+}
 
 /* Page title */
 .header-title {
