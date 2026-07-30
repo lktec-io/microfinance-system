@@ -104,7 +104,7 @@
 }
 .hero-eyebrow {
   font-size: 0.8125rem;   /* 13px helper */
-  font-weight: 300;
+  font-weight: 400;
   color: rgba(255,255,255,.42);
   text-transform: uppercase;
   letter-spacing: .12em;
@@ -226,7 +226,7 @@
 }
 .hero-metric-lbl {
   font-size: 0.8125rem;   /* 13px helper */
-  font-weight: 300;
+  font-weight: 400;
   color: rgba(255,255,255,.38);
   text-transform: uppercase;
   letter-spacing: .07em;
@@ -258,7 +258,7 @@
 }
 .stat-label {
   font-size: 0.8125rem;   /* 13px helper */
-  font-weight: 300;
+  font-weight: 400;
   color: var(--gray-500);
   text-transform: uppercase;
   letter-spacing: .07em;
@@ -266,7 +266,7 @@
 }
 .stat-sub {
   font-size: 0.8125rem;   /* 13px helper */
-  font-weight: 300;
+  font-weight: 400;
   color: var(--gray-400);
 }
 
@@ -480,6 +480,68 @@
   margin: 0;
 }
 
+/* ── Chart interactive tooltip ── */
+.chart-tooltip {
+  background: var(--gray-900);
+  color: #fff;
+  border-radius: 8px;
+  padding: .45rem .7rem;
+  font-size: .8rem;
+  font-weight: 500;
+  box-shadow: 0 8px 28px rgba(0,0,0,.3);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+  line-height: 1.4;
+}
+[data-theme="morning"] .chart-tooltip,
+[data-theme="day"]     .chart-tooltip {
+  background: var(--gray-800);
+}
+.chart-tooltip-month {
+  font-size: .68rem;
+  color: rgba(255,255,255,.5);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: .1rem;
+}
+.chart-tooltip-value {
+  font-size: .95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.chart-tooltip-pct {
+  font-size: .72rem;
+  margin-top: .1rem;
+}
+.chart-tooltip-pct.pos { color: #4ade80; }
+.chart-tooltip-pct.neg { color: #f87171; }
+
+/* ── Pie chart selection detail panel ── */
+.pie-selection-panel {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  background: var(--primary-lt);
+  border-radius: var(--radius);
+  padding: .55rem .8rem;
+  margin: .35rem 0 .5rem;
+  overflow: hidden;
+}
+.pie-sel-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.pie-sel-info { display: flex; flex-direction: column; gap: .05rem; }
+.pie-sel-label { font-size: .8rem; font-weight: 600; color: var(--gray-800); }
+.pie-sel-value { font-size: .75rem; color: var(--gray-600); }
+.pie-sel-pct   { font-size: .7rem;  color: var(--gray-400); }
+
+/* ── Legend interactive states ── */
+.pie-legend-item--hidden  { opacity: 0.5; }
+.pie-legend-item--selected { background: var(--primary-lt); border-radius: 8px; }
+
 /* ══════════════════════════════════════════════════════════════════
    RESPONSIVE
    ══════════════════════════════════════════════════════════════════ */
@@ -507,9 +569,13 @@
 @media (max-width: 400px) {
   .dashboard-hero  { padding: 1.1rem 1rem 1rem; }
   .hero-greeting   { font-size: 1.1rem; }
-  .hero-datetime   { font-size: 0.875rem; font-weight: 300; }  /* 14px */
+  .hero-datetime   { font-size: 0.875rem; font-weight: 400; }  /* 14px */
   .hero-top        { margin-bottom: 1.25rem; }
   .stat-value      { font-size: 1.3rem; }
+}
+/* 320–374px → 1-col; 375-389px → 1-col; 390px+ stays 2-col (set above) */
+@media (max-width: 389px) {
+  .stat-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 360px) {
   .stat-grid       { gap: .65rem; }

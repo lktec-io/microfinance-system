@@ -339,7 +339,7 @@
 .sidebar-user-role {
   display: block;
   font-size: 0.8125rem;
-  font-weight: 300;
+  font-weight: 400;
   color: rgba(255,255,255,.38);
   text-transform: capitalize;
   margin-top: .06rem;
@@ -1284,7 +1284,7 @@
 .header-user:hover { border-color: var(--border-strong); box-shadow: var(--shadow-xs); }
 .header-user-info { text-align: right; line-height: 1.2; }
 .header-user-name { display: block; font-size: 0.875rem; font-weight: 600; color: var(--gray-800); white-space: nowrap; }
-.header-user-role { display: block; font-size: 0.8125rem; font-weight: 300; color: var(--gray-500); text-transform: capitalize; }
+.header-user-role { display: block; font-size: 0.8125rem; font-weight: 400; color: var(--gray-500); text-transform: capitalize; }
 .header-avatar {
   width: 32px; height: 32px;
   background: linear-gradient(135deg, var(--primary) 0%, #1E3A5F 100%);

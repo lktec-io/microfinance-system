@@ -56,7 +56,7 @@ function MiniLineChart({ data = [], yKey, color = '#22C55E', gradId }) {
       {yTicks.map((t, i) => (
         <g key={i}>
           <line x1={pad.l} y1={t.y} x2={pad.l+iW} y2={t.y} stroke="var(--border)" strokeWidth="1" strokeDasharray="3 4" />
-          <text x={pad.l-4} y={t.y+4} textAnchor="end" fill="var(--gray-400)" fontSize="8" fontFamily="Poppins,sans-serif">{t.label}</text>
+          <text x={pad.l-4} y={t.y+4} textAnchor="end" fill="var(--gray-400)" fontSize="8" fontFamily="inherit">{t.label}</text>
         </g>
       ))}
       <path d={fillPath} fill={`url(#${gradId})`} clipPath={`url(#rclip-${gradId})`} />
@@ -65,7 +65,7 @@ function MiniLineChart({ data = [], yKey, color = '#22C55E', gradId }) {
         transition={{ duration: 1.2, ease: [0.16,1,0.3,1], delay: 0.1 }} />
       {pts.filter((_, i) => pts.length <= 8 || i % Math.ceil(pts.length/8) === 0 || i === pts.length-1)
         .map((p, i) => (
-          <text key={i} x={p.x} y={H-4} textAnchor="middle" fill="var(--gray-400)" fontSize="8.5" fontFamily="Poppins,sans-serif">{p.lbl}</text>
+          <text key={i} x={p.x} y={H-4} textAnchor="middle" fill="var(--gray-400)" fontSize="8.5" fontFamily="inherit">{p.lbl}</text>
         ))}
     </svg>
   );
@@ -92,7 +92,7 @@ function MiniBarChart({ data = [], yKey, color = '#2563EB', gradId }) {
       {yTicks.map((t, i) => (
         <g key={i}>
           <line x1={pad.l} y1={t.y} x2={pad.l+iW} y2={t.y} stroke="var(--border)" strokeWidth="1" strokeDasharray="3 4" />
-          <text x={pad.l-4} y={t.y+4} textAnchor="end" fill="var(--gray-400)" fontSize="8" fontFamily="Poppins,sans-serif">{t.label}</text>
+          <text x={pad.l-4} y={t.y+4} textAnchor="end" fill="var(--gray-400)" fontSize="8" fontFamily="inherit">{t.label}</text>
         </g>
       ))}
       {data.map((d, i) => {
@@ -105,7 +105,7 @@ function MiniBarChart({ data = [], yKey, color = '#2563EB', gradId }) {
               animate={{ y: pad.t + iH - h, height: h }}
               transition={{ delay: i * 0.05, duration: 0.5, ease: [0.16,1,0.3,1] }} />
             {(data.length <= 12 || i % Math.ceil(data.length/8) === 0) && (
-              <text x={x + barW/2} y={H-4} textAnchor="middle" fill="var(--gray-400)" fontSize="8.5" fontFamily="Poppins,sans-serif">
+              <text x={x + barW/2} y={H-4} textAnchor="middle" fill="var(--gray-400)" fontSize="8.5" fontFamily="inherit">
                 {String(d.month || d.date || '').slice(5,7)}
               </text>
             )}

@@ -98,7 +98,7 @@
 /* ── Small text in table ── */
 .table small {
   font-size: 0.8125rem;   /* 13px helper text */
-  font-weight: 300;
+  font-weight: 400;
   color: var(--gray-400);
   display: block;
   margin-top: .12rem;

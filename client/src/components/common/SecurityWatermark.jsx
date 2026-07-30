@@ -25,11 +25,11 @@ export default function SecurityWatermark() {
       <g transform="rotate(-30 180 80)">
         <text x="180" y="66"
           text-anchor="middle" dominant-baseline="middle"
-          font-family="Poppins,sans-serif" font-size="11" font-weight="600"
+          font-family="system-ui,-apple-system,sans-serif" font-size="11" font-weight="600"
           fill="rgba(15,23,42,0.065)" letter-spacing="1.5">${name}</text>
         <text x="180" y="84"
           text-anchor="middle" dominant-baseline="middle"
-          font-family="Poppins,sans-serif" font-size="9" font-weight="400"
+          font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="400"
           fill="rgba(15,23,42,0.05)" letter-spacing="0.8">${role} • ${escXml(date)}</text>
       </g>
     </svg>`;
