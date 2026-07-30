@@ -119,14 +119,6 @@ export default function Header({ title, onMenuClick, open, collapsed }) {
   return (
     <>
       <header className={`header${collapsed ? ' header--collapsed' : ''}`}>
-        <button
-          className={`header-menu-btn${open ? ' header-menu-btn--open' : ''}`}
-          onClick={onMenuClick}
-          aria-label={open ? 'Close menu' : 'Open menu'}
-        >
-          <span /><span /><span />
-        </button>
-
         <h1 className="header-title">{title}</h1>
 
         {/* Search */}
@@ -375,6 +367,15 @@ export default function Header({ title, onMenuClick, open, collapsed }) {
               </div>
             </div>
           )}
+
+          {/* Hamburger — mobile only, rightmost */}
+          <button
+            className={`header-menu-btn${open ? ' header-menu-btn--open' : ''}`}
+            onClick={onMenuClick}
+            aria-label={open ? 'Close menu' : 'Open menu'}
+          >
+            <span /><span /><span />
+          </button>
         </div>
       </header>
 

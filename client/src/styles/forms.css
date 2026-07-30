@@ -837,11 +837,18 @@ textarea { resize: vertical; min-height: 80px; }
     flex-wrap: wrap;
   }
   .page-section-title { font-size: 1.25rem; }          /* 20px tablet */
+
+  /* Increase input size on tablet+ to prevent iOS zoom */
+  input, select, textarea { font-size: 1rem; }         /* 16px */
+  label { font-size: 0.9375rem; }                      /* 15px */
+  .btn { font-size: 0.9375rem; }                       /* 15px */
+  .filter-tab { font-size: 0.875rem; }
+  .search-input { font-size: 1rem; }
 }
 @media (max-width: 480px) {
   .page-section-title { font-size: 1.125rem; }         /* 18px mobile */
-  .btn { font-size: 0.875rem; }
-  label { font-size: 0.8125rem; }
+  .btn { font-size: 0.9375rem; }
+  label { font-size: 0.9375rem; }                      /* 15px */
 }
 @media (max-width: 600px) {
   .form-row { grid-template-columns: 1fr; }

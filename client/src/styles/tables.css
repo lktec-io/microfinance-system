@@ -128,9 +128,9 @@ code {
 @media (max-width: 768px) {
   .table { min-width: 600px; }
   .table th,
-  .table td { padding: .65rem .75rem; font-size: 0.875rem; }
+  .table td { padding: .65rem .75rem; font-size: 0.9375rem; }  /* 15px */
 }
 @media (max-width: 480px) {
   .table th,
-  .table td { font-size: 0.875rem; padding: .55rem .65rem; }
+  .table td { font-size: 0.9375rem; padding: .55rem .65rem; }  /* 15px */
 }

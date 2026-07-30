@@ -67,7 +67,7 @@ export default function Layout({ children }) {
       <div ref={mainAreaRef} className={`main-area${sidebarCollapsed ? ' main-area--collapsed' : ''}`}>
         <Header
           title={title}
-          onMenuClick={() => setSidebarOpen(true)}
+          onMenuClick={() => setSidebarOpen(v => !v)}
           open={sidebarOpen}
           collapsed={sidebarCollapsed}
         />

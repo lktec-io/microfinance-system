@@ -474,18 +474,22 @@
   .dashboard-hero  { padding: 1.5rem 1.4rem 1.35rem; }
   .hero-top        { flex-direction: column; }
   .hero-actions    { align-self: flex-end; }
-  .hero-greeting   { font-size: 1.4rem; }              /* 28px tablet */
+  .hero-greeting   { font-size: 1.4rem; }
   .stat-value      { font-size: 1.45rem; }
+  .stat-label      { font-size: 0.875rem; }            /* 14px on mobile */
+  .stat-sub        { font-size: 0.875rem; }
 }
 @media (max-width: 500px) {
   .stat-grid       { grid-template-columns: repeat(2, 1fr); }
   .hero-user       { flex-direction: column; align-items: flex-start; gap: .7rem; }
-  .hero-greeting   { font-size: 1.25rem; }             /* 20px mobile */
+  .hero-greeting   { font-size: 1.25rem; }
+  .stat-label      { font-size: 0.8125rem; }
+  .hero-metric-lbl { font-size: 0.875rem; }            /* 14px */
 }
 @media (max-width: 400px) {
   .dashboard-hero  { padding: 1.1rem 1rem 1rem; }
   .hero-greeting   { font-size: 1.1rem; }
-  .hero-datetime   { font-size: 0.8125rem; font-weight: 300; }
+  .hero-datetime   { font-size: 0.875rem; font-weight: 300; }  /* 14px */
   .hero-top        { margin-bottom: 1.25rem; }
   .stat-value      { font-size: 1.3rem; }
 }

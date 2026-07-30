@@ -36,7 +36,12 @@ const EMPTY_FORM = {
   customer_id: '', loan_amount: '', interest_rate: '',
   duration_value: '', duration_unit: 'months', start_date: '', purpose: '',
 };
-const EDIT_FORM = { status: '', due_date: '', purpose: '' };
+const EDIT_FORM = {
+  loan_amount: '', interest_rate: '',
+  duration_value: '', duration_unit: 'months',
+  start_date: '', due_date: '',
+  status: '', purpose: '',
+};
 
 const STATUSES = ['pending','active','paid','overdue'];
 
@@ -144,10 +149,11 @@ export default function Loans() {
   const [preview,     setPreview]     = useState(null);
 
   // Edit modal
-  const [editModal,   setEditModal]  = useState(null); // loan object
-  const [editForm,    setEditForm]   = useState(EDIT_FORM);
-  const [editSaving,  setEditSaving] = useState(false);
-  const [editErr,     setEditErr]    = useState('');
+  const [editModal,   setEditModal]   = useState(null); // loan object
+  const [editForm,    setEditForm]    = useState(EDIT_FORM);
+  const [editSaving,  setEditSaving]  = useState(false);
+  const [editErr,     setEditErr]     = useState('');
+  const [editPreview, setEditPreview] = useState(null);
 
   // SMS modal
   const [smsModal,  setSmsModal]  = useState(null); // { loan, type }
@@ -203,12 +209,36 @@ export default function Loans() {
   }
 
   /* ── Edit loan helpers ── */
-  function openEdit(loan) {
-    setEditForm({
-      status:    loan.status,
-      due_date:  loan.due_date?.slice(0, 10) || '',
-      purpose:   loan.purpose || '',
+  function calcEditPreview(f) {
+    const amt  = parseFloat(f.loan_amount);
+    const rate = parseFloat(f.interest_rate);
+    if (!amt || isNaN(rate)) return null;
+    const interest = amt * rate / 100;
+    return { interest: interest.toFixed(2), total: (amt + interest).toFixed(2) };
+  }
+
+  function handleEditChange(e) {
+    const { name, value } = e.target;
+    setEditForm(f => {
+      const u = { ...f, [name]: value };
+      setEditPreview(calcEditPreview(u));
+      return u;
     });
+  }
+
+  function openEdit(loan) {
+    const f = {
+      loan_amount:    loan.loan_amount,
+      interest_rate:  loan.interest_rate,
+      duration_value: loan.duration_value,
+      duration_unit:  loan.duration_unit || 'months',
+      start_date:     loan.start_date?.slice(0, 10) || '',
+      due_date:       loan.due_date?.slice(0, 10) || '',
+      status:         loan.status,
+      purpose:        loan.purpose || '',
+    };
+    setEditForm(f);
+    setEditPreview(calcEditPreview(f));
     setEditErr('');
     setEditModal(loan);
   }
@@ -477,34 +507,119 @@ export default function Loans() {
         <AnimatePresence>
           {editModal && (
             <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
-              <motion.div className="modal" variants={modalPanel}>
+              <motion.div className="modal modal--lg" variants={modalPanel}>
                 <div className="modal-header">
                   <h2>Edit Loan #{editModal.id}</h2>
                   <button className="modal-close" onClick={() => setEditModal(null)}><FiX size={18} /></button>
                 </div>
                 <form onSubmit={handleEdit} className="modal-form">
                   <div className="modal-body">
-                    <div className="alert alert--info" style={{ marginBottom: '.75rem', fontSize: '.84rem' }}>
-                      Customer: <strong>{editModal.customer_name}</strong> — Principal: <strong>TZS {fmt(editModal.loan_amount)}</strong>
+                    <div className="alert alert--info" style={{ marginBottom: '.85rem', fontSize: '.84rem' }}>
+                      <strong>{editModal.customer_name}</strong>
+                      <span style={{ margin: '0 .5rem', opacity: .4 }}>·</span>
+                      Original: <strong>TZS {fmt(editModal.loan_amount)}</strong>
+                      <span style={{ margin: '0 .5rem', opacity: .4 }}>·</span>
+                      Paid: <strong style={{ color: 'var(--green)' }}>TZS {fmt(editModal.amount_paid)}</strong>
                     </div>
                     {editErr && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{editErr}</div>}
+
+                    {/* Financial fields */}
                     <div className="form-row">
                       <div className="form-group">
-                        <label>Status *</label>
-                        <select required value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}>
-                          {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                        <label>Loan Amount (TZS) *</label>
+                        <input
+                          type="number" min="1" step="0.01" required
+                          name="loan_amount"
+                          value={editForm.loan_amount}
+                          onChange={handleEditChange}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Interest Rate (%) *</label>
+                        <input
+                          type="number" min="0" step="0.01" required
+                          name="interest_rate"
+                          value={editForm.interest_rate}
+                          onChange={handleEditChange}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Live recalculation preview */}
+                    {editPreview && (
+                      <div className="loan-preview" style={{ marginBottom: '.85rem' }}>
+                        <div className="loan-preview-item">
+                          <span>Interest</span>
+                          <strong>TZS {fmt(editPreview.interest)}</strong>
+                        </div>
+                        <div className="loan-preview-item loan-preview-total">
+                          <span>New Total Payable</span>
+                          <strong>TZS {fmt(editPreview.total)}</strong>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Duration */}
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Duration</label>
+                        <input
+                          type="number" min="1"
+                          name="duration_value"
+                          value={editForm.duration_value}
+                          onChange={handleEditChange}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Unit</label>
+                        <select name="duration_unit" value={editForm.duration_unit} onChange={handleEditChange}>
+                          <option value="days">Days</option>
+                          <option value="weeks">Weeks</option>
+                          <option value="months">Months</option>
                         </select>
+                      </div>
+                    </div>
+
+                    {/* Dates */}
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Start Date</label>
+                        <input
+                          type="date"
+                          name="start_date"
+                          value={editForm.start_date}
+                          onChange={handleEditChange}
+                        />
                       </div>
                       <div className="form-group">
                         <label>Due Date</label>
-                        <input type="date" value={editForm.due_date}
-                          onChange={e => setEditForm(f => ({ ...f, due_date: e.target.value }))} />
+                        <input
+                          type="date"
+                          name="due_date"
+                          value={editForm.due_date}
+                          onChange={handleEditChange}
+                        />
                       </div>
                     </div>
+
+                    {/* Status */}
+                    <div className="form-group">
+                      <label>Status *</label>
+                      <select required name="status" value={editForm.status} onChange={handleEditChange}>
+                        {STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+                      </select>
+                    </div>
+
+                    {/* Notes */}
                     <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label>Purpose</label>
-                      <textarea rows={2} value={editForm.purpose}
-                        onChange={e => setEditForm(f => ({ ...f, purpose: e.target.value }))} />
+                      <label>Notes / Purpose</label>
+                      <textarea
+                        rows={2}
+                        name="purpose"
+                        value={editForm.purpose}
+                        onChange={handleEditChange}
+                        placeholder="Optional notes about this loan…"
+                      />
                     </div>
                   </div>
                   <div className="modal-actions">

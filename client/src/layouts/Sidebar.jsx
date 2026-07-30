@@ -37,9 +37,25 @@ const navItem = {
   hidden:  { opacity: 0, x: -14 },
   visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 320, damping: 28 } },
 };
-const mobileItem = {
-  hidden:  { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 26 } },
+
+/* Drawer (right-slide) animation variants */
+const drawerOverlay = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.22 } },
+  exit:    { opacity: 0, transition: { duration: 0.25, ease: 'easeIn' } },
+};
+const drawerPanel = {
+  hidden:  { x: '100%' },
+  visible: { x: 0, transition: { type: 'spring', stiffness: 300, damping: 32, mass: 0.8 } },
+  exit:    { x: '100%', transition: { duration: 0.28, ease: [0.4, 0, 1, 1] } },
+};
+const drawerContainer = {
+  hidden:  {},
+  visible: { transition: { staggerChildren: 0.055, delayChildren: 0.1 } },
+};
+const drawerItem = {
+  hidden:  { opacity: 0, x: 22 },
+  visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 320, damping: 28 } },
 };
 
 function BrandLogo({ small }) {
@@ -143,7 +159,7 @@ function DesktopSidebar({ collapsed, onToggle }) {
   );
 }
 
-/* ── MOBILE SIDEBAR (floating centered panel) ── */
+/* ── MOBILE SIDEBAR (premium right-slide drawer) ── */
 function MobileSidebar({ open, onClose }) {
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -155,80 +171,107 @@ function MobileSidebar({ open, onClose }) {
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
-          <motion.div className="sidebar-overlay" onClick={onClose}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }} />
-
-          {/* Floating panel */}
+          {/* Backdrop with blur */}
           <motion.div
-            className="sidebar-mobile"
-            style={{ position: 'fixed', top: '50%', left: '50%' }}
-            initial={{ opacity: 0, scale: 0.9, x: '-50%', y: '-48%' }}
-            animate={{ opacity: 1, scale: 1, x: '-50%', y: '-50%' }}
-            exit={{ opacity: 0, scale: 0.92, x: '-50%', y: '-48%' }}
-            transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+            className="sidebar-overlay"
+            variants={drawerOverlay}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={onClose}
+          />
+
+          {/* Right-slide glass drawer */}
+          <motion.aside
+            className="sidebar-drawer"
+            variants={drawerPanel}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
           >
-            {/* Header */}
-            <div className="sidebar-mobile-header">
-              <div className="sidebar-mobile-brand">
+            {/* Drawer header */}
+            <div className="sidebar-drawer-header">
+              <div className="sidebar-drawer-brand">
                 <BrandLogo small />
-                <span className="sidebar-mobile-title">Baraka Microcredit</span>
+                <span className="sidebar-drawer-title">Baraka Microcredit</span>
               </div>
-              <button className="sidebar-mobile-close" onClick={onClose} aria-label="Close menu">
-                <FiX size={15} />
+              <button className="sidebar-drawer-close" onClick={onClose} aria-label="Close menu">
+                <FiX size={16} />
               </button>
             </div>
 
             {/* Nav */}
-            <div className="sidebar-mobile-scroll">
-              <div className="sidebar-mobile-section-label">Navigation</div>
-              <motion.div variants={navContainer} initial="hidden" animate="visible">
+            <div className="sidebar-drawer-scroll">
+              <div className="sidebar-drawer-label">Navigation</div>
+              <motion.nav variants={drawerContainer} initial="hidden" animate="visible">
                 {mainLinks.map(({ to, label, Icon }) => (
-                  <motion.div key={to} variants={mobileItem}>
-                    <NavLink to={to} end={to === '/'}
+                  <motion.div key={to} variants={drawerItem}>
+                    <NavLink
+                      to={to}
+                      end={to === '/'}
                       className={({ isActive }) =>
-                        `sidebar-mobile-link${isActive ? ' sidebar-mobile-link--active' : ''}`}
-                      onClick={handleNav}>
-                      <span className="sidebar-mobile-icon"><Icon size={17} /></span>
-                      {label}
+                        `sidebar-drawer-link${isActive ? ' sidebar-drawer-link--active' : ''}`
+                      }
+                      onClick={handleNav}
+                    >
+                      <motion.span
+                        className="sidebar-drawer-icon"
+                        whileHover={{ scale: 1.2, rotate: 8 }}
+                        transition={{ type: 'spring', stiffness: 420, damping: 18 }}
+                      >
+                        <Icon size={18} />
+                      </motion.span>
+                      <span className="sidebar-drawer-link-label">{label}</span>
                     </NavLink>
                   </motion.div>
                 ))}
-              </motion.div>
+              </motion.nav>
 
               {isAdmin && (
                 <>
-                  <div className="sidebar-mobile-section-label" style={{ marginTop: '.4rem' }}>Admin</div>
-                  {adminLinks.map(({ to, label, Icon }) => (
-                    <NavLink key={to} to={to}
-                      className={({ isActive }) =>
-                        `sidebar-mobile-link${isActive ? ' sidebar-mobile-link--active' : ''}`}
-                      onClick={handleNav}>
-                      <span className="sidebar-mobile-icon"><Icon size={17} /></span>
-                      {label}
-                    </NavLink>
-                  ))}
+                  <div className="sidebar-drawer-label" style={{ marginTop: '.55rem' }}>Admin</div>
+                  <motion.nav variants={drawerContainer} initial="hidden" animate="visible">
+                    {adminLinks.map(({ to, label, Icon }) => (
+                      <motion.div key={to} variants={drawerItem}>
+                        <NavLink
+                          to={to}
+                          className={({ isActive }) =>
+                            `sidebar-drawer-link${isActive ? ' sidebar-drawer-link--active' : ''}`
+                          }
+                          onClick={handleNav}
+                        >
+                          <motion.span
+                            className="sidebar-drawer-icon"
+                            whileHover={{ scale: 1.2, rotate: 8 }}
+                            transition={{ type: 'spring', stiffness: 420, damping: 18 }}
+                          >
+                            <Icon size={18} />
+                          </motion.span>
+                          <span className="sidebar-drawer-link-label">{label}</span>
+                        </NavLink>
+                      </motion.div>
+                    ))}
+                  </motion.nav>
                 </>
               )}
             </div>
 
             {/* Footer */}
-            <div className="sidebar-mobile-footer">
-              <div className="sidebar-mobile-user">
-                <div className="sidebar-mobile-avatar">
+            <div className="sidebar-drawer-footer">
+              <div className="sidebar-drawer-user">
+                <div className="sidebar-drawer-avatar">
                   {user?.name?.[0]?.toUpperCase()}
                 </div>
-                <div>
-                  <div className="sidebar-mobile-user-name">{user?.name}</div>
-                  <div className="sidebar-mobile-user-role">{user?.role}</div>
+                <div className="sidebar-drawer-user-info">
+                  <div className="sidebar-drawer-user-name">{user?.name}</div>
+                  <div className="sidebar-drawer-user-role">{user?.role}</div>
                 </div>
               </div>
-              <button className="sidebar-mobile-logout" onClick={handleLogout}>
+              <button className="sidebar-drawer-logout" onClick={handleLogout}>
                 <FiLogOut size={13} /> Sign Out
               </button>
             </div>
-          </motion.div>
+          </motion.aside>
         </>
       )}
     </AnimatePresence>

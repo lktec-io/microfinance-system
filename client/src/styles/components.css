@@ -332,7 +332,10 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 1.25rem;
   margin-bottom: 1.5rem;
-  align-items: stretch;   /* equal height rows */
+  align-items: stretch;  /* equal height rows */
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .customer-card {
@@ -346,7 +349,11 @@
   text-align: center;
   box-shadow: var(--shadow-sm);
   transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
-  min-height: 0;          /* allow grid to control height */
+  min-height: 0;  /* allow grid to control height */
+  min-width: 0;   /* prevent grid overflow */
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 [data-theme="evening"] .customer-card,
 [data-theme="night"] .customer-card { background: var(--surface); border-color: var(--border); }
@@ -418,6 +425,7 @@
 .customer-card-actions {
   display: flex;
   gap: .5rem;
+  flex-wrap: wrap;
   margin-top: auto;
   padding-top: .9rem;
   width: 100%;
@@ -819,8 +827,15 @@
     gap: .85rem;
   }
   .customer-card {
-    padding: 1.25rem 1.5rem 1.1rem;
+    padding: 1.25rem 1.25rem 1.1rem;
+    width: 100%;
+    max-width: 100%;
   }
+  .customer-card-name  { font-size: 1rem; }
+  .customer-card-phone { font-size: 0.9375rem; }
+}
+@media (max-width: 360px) {
+  .customer-card { padding: 1.1rem 1rem 1rem; }
 }
 
 /* ── Responsive — modals, skeletons, layout ── */

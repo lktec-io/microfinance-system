@@ -23,6 +23,11 @@ body {
   transition: background-color 300ms ease, color 300ms ease;
 }
 
+/* Mobile: bump base font to 16px for readability */
+@media (max-width: 768px) {
+  body { font-size: 16px; }
+}
+
 /* Smooth theme transition */
 body.theme-switching,
 body.theme-switching *,

@@ -67,10 +67,34 @@ async function create({ customer_id, loan_amount, interest_rate, duration_value,
   return newRow[0];
 }
 
-async function update(id, { status, purpose, due_date }) {
+async function update(id, { status, purpose, due_date, loan_amount, interest_rate, duration_value, duration_unit, start_date }) {
+  const [rows] = await pool.query(
+    'SELECT loan_amount, interest_rate, amount_paid, duration_value, duration_unit, start_date FROM loans WHERE id = ?',
+    [id]
+  );
+  if (!rows.length) return null;
+  const cur = rows[0];
+
+  const newAmount = loan_amount  != null ? parseFloat(loan_amount)  : parseFloat(cur.loan_amount);
+  const newRate   = interest_rate != null ? parseFloat(interest_rate) : parseFloat(cur.interest_rate);
+  const newTotal  = calcTotalPayable(newAmount, newRate);
+  const amtPaid   = parseFloat(cur.amount_paid || 0);
+  const newBalance = Math.max(0, newTotal - amtPaid);
+
   await pool.query(
-    'UPDATE loans SET status=?, purpose=?, due_date=? WHERE id=?',
-    [status, purpose, due_date, id]
+    `UPDATE loans SET
+       status=?, purpose=?, due_date=?,
+       loan_amount=?, interest_rate=?, total_payable=?, balance=?,
+       duration_value=?, duration_unit=?, start_date=?
+     WHERE id=?`,
+    [
+      status, purpose || null, due_date || null,
+      newAmount, newRate, newTotal, newBalance,
+      duration_value  != null ? parseInt(duration_value)  : cur.duration_value,
+      duration_unit   || cur.duration_unit,
+      start_date      || cur.start_date,
+      id,
+    ]
   );
   const [updated] = await pool.query('SELECT * FROM loans WHERE id = ?', [id]);
   return updated[0];
