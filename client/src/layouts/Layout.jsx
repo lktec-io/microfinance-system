@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar           from './Sidebar';
 import Header            from './Header';
+import BottomNav         from '../components/common/BottomNav';
 import SecurityWatermark from '../components/common/SecurityWatermark';
 import { useSecurityGuard } from '../hooks/useSecurityGuard';
 
@@ -87,6 +88,8 @@ export default function Layout({ children }) {
           Baraka Microcredit &copy; 2026 &mdash; All Rights Reserved.
         </footer>
       </div>
+
+      <BottomNav />
     </div>
   );
 }
