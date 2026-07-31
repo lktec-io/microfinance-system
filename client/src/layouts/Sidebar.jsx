@@ -21,9 +21,9 @@ const adminLinks = [
 ];
 
 function useIsMobile() {
-  const [m, setM] = useState(() => window.innerWidth < 900);
+  const [m, setM] = useState(() => window.innerWidth <= 900);
   useEffect(() => {
-    const fn = () => setM(window.innerWidth < 900);
+    const fn = () => setM(window.innerWidth <= 900);
     window.addEventListener('resize', fn, { passive: true });
     return () => window.removeEventListener('resize', fn);
   }, []);

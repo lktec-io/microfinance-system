@@ -19,6 +19,7 @@
   position: relative;
 }
 .main-area--collapsed { margin-left: var(--sidebar-w-collapsed); }
+.main-area--collapsed::before { left: var(--sidebar-w-collapsed) !important; }
 
 /* Ambient radial glows behind content */
 .page-glow-bg {
@@ -62,6 +63,9 @@
 .page {
   padding: 1.75rem 2rem;
   animation: pageIn .36s cubic-bezier(0,0,.2,1) both;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1398,19 +1402,25 @@
 @media (max-width: 900px) {
   .main-area { margin-left: 0 !important; }
   .header { left: 0 !important; padding: 0 1rem; gap: .5rem; }
-  .header-menu-btn { display: flex; } /* show hamburger on mobile */
-  .sidebar { display: none; }         /* desktop sidebar hidden on mobile */
+  .header-menu-btn { display: flex; }
+  .sidebar { display: none; }
   .page { padding: 1.25rem 1rem; }
   .header-user { display: none; }
   .sidebar-collapse-btn { display: none; }
   .header-search { max-width: 200px; }
   .header-search-shortcut { display: none; }
+  /* Profile chip: avatar-only on tablet/mobile — prevent overflow */
+  .header-user-info { display: none; }
+  .profile-chip-caret { display: none; }
+  .profile-chip { gap: .2rem; padding: .18rem .22rem; }
 }
 
 @media (max-width: 600px) {
   .header-search { display: none; }
   .header-actions { gap: .2rem; }
   .page { padding: 1rem .85rem; }
+  /* Hide theme switcher on small phones — prevents action bar overflow */
+  .theme-seg { display: none !important; }
 }
 
 @media (max-width: 400px) {

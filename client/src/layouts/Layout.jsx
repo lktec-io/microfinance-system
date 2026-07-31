@@ -17,9 +17,9 @@ const titles = {
 };
 
 const pageVariants = {
-  initial: { opacity: 0, y: 14, filter: 'blur(3px)' },
-  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.34, ease: [0,0,.2,1] } },
-  exit:    { opacity: 0, y: -8, filter: 'blur(2px)', transition: { duration: 0.18, ease: 'easeIn' } },
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0,0,.2,1] } },
+  exit:    { opacity: 0, y: -6, transition: { duration: 0.15, ease: 'easeIn' } },
 };
 
 export default function Layout({ children }) {
