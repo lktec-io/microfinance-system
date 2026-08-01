@@ -18,6 +18,7 @@ const Customers  = lazy(() => import('./pages/Customers'));
 const Loans      = lazy(() => import('./pages/Loans'));
 const LoanDetail = lazy(() => import('./pages/LoanDetail'));
 const Repayments = lazy(() => import('./pages/Repayments'));
+const Expenses   = lazy(() => import('./pages/Expenses'));
 const Reports    = lazy(() => import('./pages/Reports'));
 const Users      = lazy(() => import('./pages/Users'));
 
@@ -48,6 +49,7 @@ export default function App() {
                     <Route path="/loans"      element={<Protected><Loans /></Protected>} />
                     <Route path="/loans/:id"  element={<Protected><LoanDetail /></Protected>} />
                     <Route path="/repayments" element={<Protected><Repayments /></Protected>} />
+                    <Route path="/expenses"   element={<Protected><Expenses /></Protected>} />
                     <Route path="/reports"    element={<Protected><Reports /></Protected>} />
                     <Route path="/users"      element={<Protected adminOnly><Users /></Protected>} />
                     <Route path="*"           element={<Navigate to="/" replace />} />

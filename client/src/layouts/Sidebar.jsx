@@ -6,7 +6,7 @@ import { useProfileImage } from '../context/ProfileContext';
 import {
   FiHome, FiUsers, FiDollarSign, FiCreditCard,
   FiBarChart2, FiShield, FiLogOut, FiX,
-  FiChevronLeft, FiChevronRight,
+  FiChevronLeft, FiChevronRight, FiFileText,
 } from 'react-icons/fi';
 
 const mainLinks = [
@@ -14,6 +14,7 @@ const mainLinks = [
   { to: '/customers',  label: 'Customers',        Icon: FiUsers      },
   { to: '/loans',      label: 'Loans',            Icon: FiDollarSign },
   { to: '/repayments', label: 'Repayments',       Icon: FiCreditCard },
+  { to: '/expenses',   label: 'Expenses',         Icon: FiFileText   },
   { to: '/reports',    label: 'Reports',          Icon: FiBarChart2  },
 ];
 const adminLinks = [

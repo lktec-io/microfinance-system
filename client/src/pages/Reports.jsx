@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   FiDownload, FiPrinter, FiBarChart2, FiGrid, FiCreditCard,
   FiAlertTriangle, FiTrendingUp, FiUsers, FiDollarSign, FiActivity,
-  FiCalendar, FiClock,
+  FiCalendar, FiClock, FiFileText, FiArrowRight,
 } from 'react-icons/fi';
 import jsPDF      from 'jspdf';
 import autoTable  from 'jspdf-autotable';
@@ -118,21 +119,24 @@ function MiniBarChart({ data = [], yKey, color = '#2563EB', gradId }) {
 
 /* ── Tab definitions ──────────────────────────────────────────────── */
 const TABS = [
-  { id: 'monthly', label: 'Monthly', Icon: FiCalendar      },
-  { id: 'daily',   label: 'Daily',   Icon: FiClock         },
-  { id: 'overdue', label: 'Overdue', Icon: FiAlertTriangle },
+  { id: 'monthly',  label: 'Monthly',  Icon: FiCalendar      },
+  { id: 'daily',    label: 'Daily',    Icon: FiClock         },
+  { id: 'overdue',  label: 'Overdue',  Icon: FiAlertTriangle },
+  { id: 'expenses', label: 'Expenses', Icon: FiFileText      },
 ];
 
 /* ════════════════════════════════════════════════════════════════════
    REPORTS PAGE
    ════════════════════════════════════════════════════════════════════ */
 export default function Reports() {
-  const [summary, setSummary] = useState(null);
-  const [monthly, setMonthly] = useState({ loans: [], repayments: [] });
-  const [daily,   setDaily]   = useState({ loans: [], repayments: [] });
-  const [overdue, setOverdue] = useState([]);
-  const [tab,     setTab]     = useState('monthly');
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const [summary,    setSummary]    = useState(null);
+  const [monthly,    setMonthly]    = useState({ loans: [], repayments: [] });
+  const [daily,      setDaily]      = useState({ loans: [], repayments: [] });
+  const [overdue,    setOverdue]    = useState([]);
+  const [expSummary, setExpSummary] = useState({ total: 0, count: 0, monthly: [], recent: [] });
+  const [tab,        setTab]        = useState('monthly');
+  const [loading,    setLoading]    = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -140,11 +144,13 @@ export default function Reports() {
       api.get('/reports/monthly'),
       api.get('/reports/daily'),
       api.get('/reports/overdue'),
-    ]).then(([s, m, d, o]) => {
+      api.get('/expenses/summary'),
+    ]).then(([s, m, d, o, e]) => {
       setSummary(s.data);
       setMonthly(m.data);
       setDaily(d.data);
       setOverdue(o.data);
+      setExpSummary({ total: e.data.total || 0, count: e.data.count || 0, monthly: e.data.monthly || [], recent: e.data.recent || [] });
     }).finally(() => setLoading(false));
   }, []);
 
@@ -517,6 +523,68 @@ export default function Reports() {
                           <td>{cur(l.loan_amount)}</td>
                           <td><strong className="text-red">{cur(l.balance)}</strong></td>
                           <td><span className="badge badge--red">{l.due_date?.slice(0, 10)}</span></td>
+                        </tr>
+                      ))
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {tab === 'expenses' && (
+          <motion.div key="expenses"
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22 }}>
+
+            {/* Summary stat */}
+            <div className="stat-grid" style={{ marginBottom: '1.25rem' }}>
+              <StatCard
+                label="Total Expenses" color="red"
+                value={cur(expSummary.total)}
+                sub={`${expSummary.count} record${expSummary.count !== 1 ? 's' : ''}`}
+                Icon={FiFileText}
+                variants={fadeUp}
+              />
+            </div>
+
+            {/* Monthly bar chart */}
+            <div className="card" style={{ marginBottom: '1.25rem' }}>
+              <div className="card-header">
+                <h3 className="card-title"><FiActivity size={14} /> Monthly Expenses</h3>
+              </div>
+              <MiniBarChart
+                data={[...expSummary.monthly].reverse()}
+                yKey="total"
+                color="#EF4444"
+                gradId="rpt-exp"
+              />
+            </div>
+
+            {/* Recent expenses table */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title"><FiFileText size={14} /> Recent Expenses</h3>
+                <button className="btn btn--ghost btn--sm" onClick={() => navigate('/expenses')}>
+                  View Details <FiArrowRight size={12} />
+                </button>
+              </div>
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr><th>Date</th><th>Name</th><th>Category</th><th>Amount (TZS)</th><th>Created By</th></tr>
+                  </thead>
+                  <tbody>
+                    {expSummary.recent.length === 0
+                      ? <tr><td colSpan={5} className="text-center">No expenses recorded yet</td></tr>
+                      : expSummary.recent.map(e => (
+                        <tr key={e.id}>
+                          <td>{e.expense_date?.slice(0, 10)}</td>
+                          <td><strong>{e.name}</strong></td>
+                          <td><span className="badge badge--blue">{e.category}</span></td>
+                          <td><strong className="amount-cell">{cur(e.amount)}</strong></td>
+                          <td style={{ color: 'var(--gray-500)' }}>{e.created_by_name || '—'}</td>
                         </tr>
                       ))
                     }

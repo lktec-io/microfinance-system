@@ -6,7 +6,7 @@ import {
 import {
   FiUsers, FiDollarSign, FiCreditCard,
   FiAlertTriangle, FiTrendingUp, FiRefreshCw,
-  FiActivity, FiArrowRight, FiPercent, FiBarChart2,
+  FiActivity, FiArrowRight, FiPercent, FiBarChart2, FiFileText,
 } from 'react-icons/fi';
 import api                        from '../api';
 import { fmt, fmtShort }          from '../utils/format';
@@ -518,6 +518,7 @@ export default function Dashboard() {
   const [summary,    setSummary]    = useState(SUMMARY_DEFAULT);
   const [recent,     setRecent]     = useState(RECENT_DEFAULT);
   const [monthly,    setMonthly]    = useState({ loans: [], repayments: [] });
+  const [expSummary, setExpSummary] = useState({ total: 0, count: 0, recent: [] });
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -532,6 +533,7 @@ export default function Dashboard() {
         api.get('/reports/recent'),
         api.get('/reports/monthly'),
         api.get('/reports/daily'),
+        api.get('/expenses/summary'),
       ]);
 
       let summaryData = SUMMARY_DEFAULT;
@@ -566,6 +568,11 @@ export default function Dashboard() {
       if (settled[2].status === 'fulfilled') {
         const raw = settled[2].value?.data;
         setMonthly({ loans: raw?.loans || [], repayments: raw?.repayments || [] });
+      }
+
+      if (settled[4].status === 'fulfilled') {
+        const raw = settled[4].value?.data;
+        setExpSummary({ total: raw?.total || 0, count: raw?.count || 0, recent: raw?.recent || [] });
       }
     } catch (err) {
       console.error('Dashboard load failed:', err);
@@ -749,6 +756,13 @@ export default function Dashboard() {
           Icon={FiTrendingUp}
           variants={fadeUp}
         />
+        <StatCard
+          label="Total Expenses" color="red"
+          value={`TZS ${fmt(expSummary?.total ?? 0)}`}
+          sub={`${expSummary?.count ?? 0} record${expSummary?.count !== 1 ? 's' : ''}`}
+          Icon={FiFileText} to="/expenses"
+          variants={fadeUp}
+        />
       </motion.div>
 
       {/* ════════════════════════════════════════════════════════════════
@@ -805,6 +819,41 @@ export default function Dashboard() {
         </motion.section>
 
       </div>
+
+      {/* ════════════════════════════════════════════════════════════════
+          RECENT EXPENSES
+          ════════════════════════════════════════════════════════════════ */}
+      <motion.section className="card" variants={sectionReveal} style={{ marginTop: '1.5rem' }}>
+        <div className="card-header">
+          <h2 className="card-title"><FiFileText size={15} /> Recent Expenses</h2>
+          <button className="link-btn" onClick={() => navigate('/expenses')}>View all →</button>
+        </div>
+        {expSummary.recent?.length > 0 ? (
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr><th>Date</th><th>Name</th><th>Category</th><th>Amount (TZS)</th></tr>
+              </thead>
+              <tbody>
+                {expSummary.recent.map((exp, i) => (
+                  <motion.tr key={exp.id || i}
+                    initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05, duration: 0.25 }}>
+                    <td style={{ whiteSpace: 'nowrap' }}>{exp.expense_date?.slice(0, 10)}</td>
+                    <td style={{ fontWeight: 600 }}>{exp.name}</td>
+                    <td><span className="badge badge--blue">{exp.category}</span></td>
+                    <td><strong className="amount-cell">TZS {fmt(exp.amount)}</strong></td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="empty-msg" style={{ padding: '2rem 0', textAlign: 'center' }}>
+            No expenses recorded yet
+          </p>
+        )}
+      </motion.section>
 
     </motion.div>
   );

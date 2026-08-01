@@ -43,6 +43,28 @@ async function runMigrations() {
     pool.query('ALTER TABLE users ADD COLUMN reset_password_expires DATETIME NULL DEFAULT NULL')
   );
 
+  // Expenses table
+  await safe('create expenses table', () =>
+    pool.query(`
+      CREATE TABLE expenses (
+        id           INT           PRIMARY KEY AUTO_INCREMENT,
+        name         VARCHAR(255)  NOT NULL,
+        category     VARCHAR(100)  NOT NULL,
+        amount       DECIMAL(15,2) NOT NULL,
+        expense_date DATE          NOT NULL,
+        description  TEXT          DEFAULT NULL,
+        created_by   INT           DEFAULT NULL,
+        created_at   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_expense_user FOREIGN KEY (created_by)
+          REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
+        INDEX idx_exp_date     (expense_date),
+        INDEX idx_exp_category (category),
+        INDEX idx_exp_created  (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
+  );
+
   // SMS: create sms_logs table if the manual migration was never run
   await safe('create sms_logs table', () =>
     pool.query(`
