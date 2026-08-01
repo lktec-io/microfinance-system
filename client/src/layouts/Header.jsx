@@ -27,6 +27,7 @@ const CMD_LINKS = [
   { to: '/customers',  label: 'Customers',       Icon: FiUsers,      desc: 'Manage clients'      },
   { to: '/loans',      label: 'Loans',           Icon: FiDollarSign, desc: 'View all loans'      },
   { to: '/repayments', label: 'Repayments',      Icon: FiCreditCard, desc: 'Payment records'     },
+  { to: '/expenses',   label: 'Expenses',        Icon: FiCreditCard, desc: 'Track expenses'      },
   { to: '/reports',    label: 'Reports',         Icon: FiBarChart2,  desc: 'Analytics & exports' },
   { to: '/users',      label: 'User Management', Icon: FiShield,     desc: 'Admin only'          },
 ];
@@ -187,10 +188,11 @@ export default function Header({ title, onMenuClick, open, collapsed }) {
   function handleLogout() { logout(); navigate('/login'); }
 
   const filtered = cmdQuery.trim()
-    ? CMD_LINKS.filter(l =>
-        l.label.toLowerCase().includes(cmdQuery.toLowerCase()) ||
-        l.desc.toLowerCase().includes(cmdQuery.toLowerCase())
-      )
+    ? CMD_LINKS.filter(l => {
+        const q = cmdQuery.toLowerCase();
+        return (l.label ?? '').toLowerCase().includes(q) ||
+               (l.desc  ?? '').toLowerCase().includes(q);
+      })
     : CMD_LINKS.filter(l => isAdmin || l.to !== '/users');
 
   return (
