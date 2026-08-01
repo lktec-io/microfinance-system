@@ -45,6 +45,7 @@ app.use('/api/customers',  require('./routes/customers'));
 app.use('/api/loans',      require('./routes/loans'));
 app.use('/api/repayments', require('./routes/repayments'));
 app.use('/api/reports',    require('./routes/reports'));
+app.use('/api/expenses',   require('./routes/expenses'));
 app.use('/api/sms',        require('./routes/sms'));
 
 // ── Health ────────────────────────────────────────────────────
