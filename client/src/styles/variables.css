@@ -180,41 +180,61 @@
   --primary-lt:    rgba(22,163,74,0.12);
 }
 
-/* ══ NIGHT (flagship dark) ══════════════════════════════════════════ */
+/* ══ NIGHT — Premium Navy Blue ══════════════════════════════════════ */
 [data-theme="night"] {
-  --bg:            #020B18;
-  --surface:       rgba(13,25,48,.88);
-  --surface-2:     rgba(8,18,36,.9);
-  --surface-solid: #0D1930;
-  --surface-3:     rgba(255,255,255,.04);
-  --gray-900: #F9FAFB;
-  --gray-800: rgba(249,250,251,.85);
-  --gray-700: rgba(249,250,251,.68);
-  --gray-600: rgba(249,250,251,.52);
-  --gray-500: rgba(249,250,251,.38);
-  --gray-400: rgba(249,250,251,.26);
-  --gray-300: rgba(249,250,251,.16);
-  --gray-200: rgba(249,250,251,.09);
-  --gray-100: rgba(249,250,251,.05);
-  --gray-50:  rgba(249,250,251,.02);
+  /* ── Backgrounds (navy, never pure black) ── */
+  --bg:            #0B1F3A;
+  --surface:       #122B4A;
+  --surface-2:     #17395F;
+  --surface-solid: #0B1F3A;
+  --surface-3:     rgba(23,57,95,.55);
+
+  /* ── Text — high-contrast, readable on navy ── */
+  --gray-900: #FFFFFF;
+  --gray-800: #C9D6E3;
+  --gray-700: rgba(201,214,227,.82);
+  --gray-600: rgba(201,214,227,.66);
+  --gray-500: #94A3B8;
+  --gray-400: rgba(148,163,184,.62);
+  --gray-300: rgba(255,255,255,.18);
+  --gray-200: rgba(255,255,255,.1);
+  --gray-100: rgba(255,255,255,.06);
+  --gray-50:  rgba(255,255,255,.03);
+
+  /* ── Borders ── */
   --border:        rgba(255,255,255,.08);
-  --border-strong: rgba(255,255,255,.14);
-  --shadow-sm:     0 1px 4px rgba(0,0,0,.7);
-  --shadow-md:     0 4px 16px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.5);
-  --shadow-lg:     0 12px 40px rgba(0,0,0,.7), 0 4px 14px rgba(0,0,0,.55);
-  --shadow-xl:     0 24px 80px rgba(0,0,0,.75), 0 8px 24px rgba(0,0,0,.6);
-  --shadow-glass:  0 8px 32px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.06);
-  --primary-lt:    rgba(22,163,74,0.1);
-  --green-lt:      rgba(22,163,74,0.1);
-  /* night atmosphere */
-  --theme-glow:    rgba(34,211,238,.08);
-  --theme-ray:     rgba(34,211,238,.05);
+  --border-strong: rgba(255,255,255,.15);
+
+  /* ── Shadows (deeper, navy-toned) ── */
+  --shadow-sm:     0 1px 4px rgba(0,0,0,.45);
+  --shadow-md:     0 4px 16px rgba(0,0,0,.4),  0 2px 6px rgba(0,0,0,.3);
+  --shadow-lg:     0 12px 40px rgba(0,0,0,.5), 0 4px 14px rgba(0,0,0,.35);
+  --shadow-xl:     0 24px 80px rgba(0,0,0,.55), 0 8px 24px rgba(0,0,0,.4);
+  --shadow-glass:  0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
+
+  /* ── Accent overrides ── */
+  --primary-lt:    rgba(32,201,151,.14);
+  --green:         #22C55E;
+  --green-accent:  #4ADE80;
+  --green-lt:      rgba(34,197,94,.12);
+  --green-mid:     rgba(34,197,94,.22);
+  --green-border:  rgba(34,197,94,.3);
+
+  /* ── Night atmosphere (teal-navy glow) ── */
+  --theme-glow:    rgba(32,201,151,.08);
+  --theme-ray:     rgba(32,201,151,.05);
   --theme-ambient: rgba(59,130,246,.05);
-  --cyan:          #22D3EE;
-  --neon-green:    #4ADE80;
-  /* night sidebar — add cyan active */
-  --sidebar-active-bg: rgba(34,211,238,.1);
-  --sidebar-accent:    #22D3EE;
+  --cyan:          #20C997;
+  --neon-green:    #22C55E;
+
+  /* ── Sidebar — deep navy with teal accent ── */
+  --sidebar-bg:        #091729;
+  --sidebar-bg-2:      #0D2140;
+  --sidebar-text:      rgba(201,214,227,.62);
+  --sidebar-text-hover:rgba(255,255,255,.92);
+  --sidebar-active-bg: rgba(32,201,151,.16);
+  --sidebar-hover-bg:  rgba(255,255,255,.06);
+  --sidebar-accent:    #20C997;
 }
 
 /* ── Backward-compat: old 'dark' theme maps to 'evening' ─────────── */

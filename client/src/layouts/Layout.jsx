@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useLocation, useOutlet } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar           from './Sidebar';
 import Header            from './Header';
@@ -16,13 +16,33 @@ const titles = {
   '/users':      'User Management',
 };
 
-const pageVariants = {
-  initial: { opacity: 0, y: 10 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0,0,.2,1] } },
-  exit:    { opacity: 0, y: -6, transition: { duration: 0.15, ease: 'easeIn' } },
-};
+/*
+ * AnimatedOutlet — calls useOutlet() to capture the current matched child
+ * as a React element snapshot. Framer Motion's AnimatePresence can hold
+ * the previous snapshot during its exit while mounting the next one.
+ * This means the sidebar and header NEVER remount during navigation.
+ */
+function AnimatedOutlet() {
+  const location = useLocation();
+  const element  = useOutlet();
 
-export default function Layout({ children }) {
+  return (
+    <AnimatePresence mode="sync" initial={false}>
+      <motion.main
+        key={location.pathname}
+        className="page-content"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0, transition: { duration: 0.24, ease: [0, 0, 0.2, 1] } }}
+      >
+        <Suspense fallback={<div className="page-loading-spinner" aria-label="Loading…" />}>
+          {element}
+        </Suspense>
+      </motion.main>
+    </AnimatePresence>
+  );
+}
+
+export default function Layout() {
   const [sidebarOpen,      setSidebarOpen]      = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location    = useLocation();
@@ -30,7 +50,6 @@ export default function Layout({ children }) {
 
   useSecurityGuard();
 
-  /* Tab blur — blur sensitive content when tab is hidden */
   useEffect(() => {
     function handleVisibility() {
       const el = mainAreaRef.current;
@@ -72,18 +91,9 @@ export default function Layout({ children }) {
           open={sidebarOpen}
           collapsed={sidebarCollapsed}
         />
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.main
-            key={location.pathname}
-            className="page-content"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-          >
-            {children}
-          </motion.main>
-        </AnimatePresence>
+
+        <AnimatedOutlet />
+
         <footer className="app-footer">
           Baraka Microcredit &copy; 2026 &mdash; All Rights Reserved.
         </footer>

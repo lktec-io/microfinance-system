@@ -636,22 +636,22 @@
 }
 .sidebar-drawer-logout:hover { background: rgba(239,68,68,.18); }
 
-/* Night theme overrides */
+/* Night theme overrides — navy blue */
 [data-theme="night"] .sidebar-drawer {
-  background: rgba(6,14,32,.92);
+  background: rgba(9,23,41,.96);
   backdrop-filter: blur(32px);
   -webkit-backdrop-filter: blur(32px);
-  border-left-color: rgba(34,211,238,.12);
-  box-shadow: -8px 0 60px rgba(0,0,0,.55), -2px 0 10px rgba(0,0,0,.3);
+  border-color: rgba(32,201,151,.12);
+  box-shadow: -8px 0 60px rgba(0,0,0,.4), -2px 0 10px rgba(0,0,0,.25);
 }
-[data-theme="night"] .sidebar-drawer-header { border-bottom-color: rgba(34,211,238,.1); }
-[data-theme="night"] .sidebar-drawer-footer { border-top-color: rgba(34,211,238,.1); background: rgba(2,10,22,.5); }
-[data-theme="night"] .sidebar-drawer-title { color: rgba(255,255,255,.88); }
-[data-theme="night"] .sidebar-drawer-link { color: rgba(255,255,255,.65); }
-[data-theme="night"] .sidebar-drawer-link:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.9); }
-[data-theme="night"] .sidebar-drawer-link--active { background: rgba(34,197,94,.12); color: var(--green); }
-[data-theme="night"] .sidebar-drawer-user-name { color: rgba(255,255,255,.88); }
-[data-theme="night"] .sidebar-drawer-close { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.12); color: rgba(255,255,255,.5); }
+[data-theme="night"] .sidebar-drawer-header { border-bottom-color: rgba(32,201,151,.1); }
+[data-theme="night"] .sidebar-drawer-footer { border-top-color: rgba(32,201,151,.1); background: rgba(9,23,41,.6); }
+[data-theme="night"] .sidebar-drawer-title { color: rgba(255,255,255,.9); }
+[data-theme="night"] .sidebar-drawer-link { color: rgba(201,214,227,.68); }
+[data-theme="night"] .sidebar-drawer-link:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.92); }
+[data-theme="night"] .sidebar-drawer-link--active { background: rgba(32,201,151,.14); color: #20C997; }
+[data-theme="night"] .sidebar-drawer-user-name { color: rgba(255,255,255,.9); }
+[data-theme="night"] .sidebar-drawer-close { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.1); color: rgba(201,214,227,.55); }
 [data-theme="night"] .sidebar-drawer-close:hover { background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.3); color: #FCA5A5; }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1501,11 +1501,11 @@
   border-bottom-color: #F0E6D3;
 }
 [data-theme="night"] .header {
-  background: rgba(2,11,24,.82);
+  background: rgba(9,23,41,.88);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
-  border-bottom-color: rgba(34,211,238,.1);
-  box-shadow: 0 1px 0 rgba(34,211,238,.06), var(--shadow-xs);
+  border-bottom-color: rgba(32,201,151,.1);
+  box-shadow: 0 1px 0 rgba(32,201,151,.06), var(--shadow-xs);
 }
 
 /* ── Page ambient glow per theme ── */
@@ -1519,7 +1519,7 @@
   background: radial-gradient(circle, rgba(245,158,11,.05) 0%, transparent 65%);
 }
 [data-theme="night"] .page-glow-bg::before {
-  background: radial-gradient(circle, rgba(34,211,238,.06) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(32,201,151,.06) 0%, transparent 65%);
 }
 [data-theme="night"] .page-glow-bg::after {
   background: radial-gradient(circle, rgba(59,130,246,.05) 0%, transparent 65%);
@@ -1554,7 +1554,7 @@
   animation: afternoonGold 22s ease-in-out 4s infinite;
 }
 
-/* ── Night: card glass enhancements ── */
+/* ── Night: card glass enhancements (navy blue) ── */
 [data-theme="night"] .card,
 [data-theme="night"] .stat-card,
 [data-theme="night"] .loan-card,
@@ -1563,12 +1563,12 @@
 [data-theme="night"] .repayment-card {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-color: rgba(34,211,238,.1);
+  border-color: rgba(255,255,255,.09);
 }
 [data-theme="night"] .card:hover,
 [data-theme="night"] .stat-card--link:hover {
-  border-color: rgba(34,211,238,.22);
-  box-shadow: 0 4px 24px rgba(34,211,238,.08), var(--shadow-md);
+  border-color: rgba(32,201,151,.22);
+  box-shadow: 0 4px 24px rgba(32,201,151,.08), var(--shadow-md);
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1587,7 +1587,7 @@
 }
 [data-theme="night"] .theme-seg {
   background: rgba(255,255,255,.06);
-  border-color: rgba(34,211,238,.18);
+  border-color: rgba(32,201,151,.18);
 }
 
 .theme-seg-opt {
@@ -1608,7 +1608,7 @@
   z-index: 1;
 }
 .theme-seg-opt--active { color: var(--gray-800); font-weight: 600; }
-[data-theme="night"] .theme-seg-opt--active { color: var(--cyan); }
+[data-theme="night"] .theme-seg-opt--active { color: #20C997; }
 .theme-seg-opt:hover:not(.theme-seg-opt--active) { color: var(--gray-700); }
 
 .theme-seg-indicator {
@@ -1620,8 +1620,8 @@
   z-index: 0;
 }
 [data-theme="night"] .theme-seg-indicator {
-  background: rgba(34,211,238,.12);
-  box-shadow: 0 0 12px rgba(34,211,238,.14);
+  background: rgba(32,201,151,.13);
+  box-shadow: 0 0 12px rgba(32,201,151,.14);
 }
 [data-theme="morning"] .theme-seg-indicator {
   background: var(--surface);
@@ -1665,13 +1665,13 @@
   animation: badgePulse 2.4s ease-in-out infinite;
 }
 
-/* ── Night theme notification panel ── */
+/* ── Night theme notification panel (navy blue) ── */
 [data-theme="night"] .notif-panel {
-  background: rgba(8,18,36,.92);
+  background: rgba(9,23,41,.96);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
-  border-color: rgba(34,211,238,.14);
-  box-shadow: 0 20px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(34,211,238,.08);
+  border-color: rgba(32,201,151,.12);
+  box-shadow: 0 20px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(32,201,151,.07);
 }
 [data-theme="morning"] .notif-panel {
   background: rgba(255,255,255,.96);
@@ -1725,16 +1725,16 @@
 }
 .notif-confirm-no:hover { background: var(--gray-200); }
 
-/* Night: enhanced notification cards */
+/* Night: enhanced notification cards (teal, not cyan) */
 [data-theme="night"] .notif-card:hover {
-  background: rgba(34,211,238,.04);
+  background: rgba(32,201,151,.04);
 }
 [data-theme="night"] .notif-card--unread {
-  background: rgba(34,211,238,.06);
+  background: rgba(32,201,151,.06);
 }
 [data-theme="night"] .notif-panel-header,
 [data-theme="night"] .notif-panel-footer {
-  border-color: rgba(34,211,238,.1);
+  border-color: rgba(32,201,151,.1);
 }
 [data-theme="night"] .notif-hdr-btn:hover {
   background: rgba(255,255,255,.08);
@@ -1742,16 +1742,16 @@
   color: var(--gray-300);
 }
 
-/* Night: theme-seg active glow */
+/* Night: header icon button teal glow */
 [data-theme="night"] .header-icon-btn:hover {
-  background: rgba(34,211,238,.1);
-  border-color: rgba(34,211,238,.2);
-  color: var(--cyan);
+  background: rgba(32,201,151,.1);
+  border-color: rgba(32,201,151,.2);
+  color: #20C997;
 }
 [data-theme="night"] .header-icon-btn--active {
-  background: rgba(34,211,238,.12);
-  border-color: rgba(34,211,238,.25);
-  color: var(--cyan);
+  background: rgba(32,201,151,.12);
+  border-color: rgba(32,201,151,.25);
+  color: #20C997;
 }
 
 

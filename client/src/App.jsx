@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { lazy } from 'react';
 import { ThemeProvider }        from './context/ThemeContext';
 import { AuthProvider }         from './context/AuthContext';
 import { ProfileProvider }      from './context/ProfileContext';
@@ -22,10 +22,13 @@ const Expenses   = lazy(() => import('./pages/Expenses'));
 const Reports    = lazy(() => import('./pages/Reports'));
 const Users      = lazy(() => import('./pages/Users'));
 
-function Protected({ children, adminOnly = false }) {
+/* Layout mounts ONCE — sidebar & header never remount during navigation */
+function ProtectedLayout() {
   return (
-    <ProtectedRoute adminOnly={adminOnly}>
-      <Layout>{children}</Layout>
+    <ProtectedRoute>
+      <Layout>
+        <Outlet />
+      </Layout>
     </ProtectedRoute>
   );
 }
@@ -39,22 +42,27 @@ export default function App() {
             <NotificationProvider>
               <CustomCursor />
               <BrowserRouter>
-                <Suspense fallback={<div className="page-loading-spinner" aria-label="Loading…" />}>
-                  <Routes>
-                    <Route path="/login"                 element={<Login />} />
-                    <Route path="/forgot-password"       element={<ForgotPassword />} />
-                    <Route path="/reset-password/:token" element={<ResetPassword />} />
-                    <Route path="/"           element={<Protected><Dashboard /></Protected>} />
-                    <Route path="/customers"  element={<Protected><Customers /></Protected>} />
-                    <Route path="/loans"      element={<Protected><Loans /></Protected>} />
-                    <Route path="/loans/:id"  element={<Protected><LoanDetail /></Protected>} />
-                    <Route path="/repayments" element={<Protected><Repayments /></Protected>} />
-                    <Route path="/expenses"   element={<Protected><Expenses /></Protected>} />
-                    <Route path="/reports"    element={<Protected><Reports /></Protected>} />
-                    <Route path="/users"      element={<Protected adminOnly><Users /></Protected>} />
+                <Routes>
+                  {/* Public pages */}
+                  <Route path="/login"                 element={<Login />} />
+                  <Route path="/forgot-password"       element={<ForgotPassword />} />
+                  <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+                  {/* All protected pages share ONE Layout — sidebar never remounts */}
+                  <Route element={<ProtectedLayout />}>
+                    <Route path="/"           element={<Dashboard />} />
+                    <Route path="/customers"  element={<Customers />} />
+                    <Route path="/loans"      element={<Loans />} />
+                    <Route path="/loans/:id"  element={<LoanDetail />} />
+                    <Route path="/repayments" element={<Repayments />} />
+                    <Route path="/expenses"   element={<Expenses />} />
+                    <Route path="/reports"    element={<Reports />} />
+                    <Route path="/users"      element={
+                      <ProtectedRoute adminOnly><Users /></ProtectedRoute>
+                    } />
                     <Route path="*"           element={<Navigate to="/" replace />} />
-                  </Routes>
-                </Suspense>
+                  </Route>
+                </Routes>
               </BrowserRouter>
             </NotificationProvider>
           </ToastProvider>
