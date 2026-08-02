@@ -134,3 +134,53 @@ code {
   .table th,
   .table td { font-size: 0.9375rem; padding: .55rem .65rem; }  /* 15px */
 }
+
+/* ── Table header: Poppins 600 (explicit in case body-level changes miss it) ── */
+.table th { font-family: 'Poppins', system-ui, sans-serif; }
+
+/* ══════════════════════════════════════════════════════════════════
+   ACTION BUTTONS (view / edit / delete) — premium icon buttons
+   ══════════════════════════════════════════════════════════════════ */
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: .32rem;
+  flex-wrap: nowrap;
+}
+
+.tbl-btn {
+  width: 32px; height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  flex-shrink: 0;
+  cursor: none;
+  font-family: inherit;
+  transition: background .16s, border-color .16s, transform .16s, box-shadow .16s;
+}
+.tbl-btn:hover  { transform: scale(1.12); box-shadow: var(--shadow-sm); }
+.tbl-btn:active { transform: scale(0.88) !important; box-shadow: none !important; }
+
+.tbl-btn--view   { color: var(--blue-dk,  #2563EB); }
+.tbl-btn--view:hover   { background: var(--blue-lt);   border-color: rgba(59,130,246,.22); }
+.tbl-btn--edit   { color: var(--yellow-dk, #D97706); }
+.tbl-btn--edit:hover   { background: var(--yellow-lt); border-color: rgba(217,119,6,.22); }
+.tbl-btn--delete { color: var(--red-dk,   #DC2626); }
+.tbl-btn--delete:hover { background: var(--red-lt);    border-color: rgba(220,38,38,.22); }
+
+/* ── Table Empty State ── */
+.table-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 2rem;
+  color: var(--gray-400);
+  font-size: .9375rem;
+  text-align: center;
+  gap: .35rem;
+}
+.table-empty p   { color: var(--gray-500); font-weight: 500; margin: 0; }
+.table-empty span { font-size: .83rem; color: var(--gray-400); font-style: italic; }

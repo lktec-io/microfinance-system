@@ -144,7 +144,10 @@ function DesktopSidebar({ collapsed, onToggle }) {
   function handleLogout() { logout(); navigate('/login'); }
 
   return (
-    <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
+    <motion.aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}
+      initial={{ opacity: 0, x: -14 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, ease: [0, 0, 0.2, 1] }}>
       {onToggle && (
         <motion.button className="sidebar-collapse-btn" onClick={onToggle}
           title={collapsed ? 'Expand' : 'Collapse'}
@@ -251,7 +254,7 @@ function DesktopSidebar({ collapsed, onToggle }) {
           </motion.button>
         )}
       </div>
-    </aside>
+    </motion.aside>
   );
 }
 

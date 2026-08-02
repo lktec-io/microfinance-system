@@ -181,8 +181,10 @@
 }
 
 /* Sticky footer */
-.modal-actions {
+.modal-actions,
+.modal-footer {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: .6rem;
   padding: 1rem 1.5rem;
@@ -191,10 +193,33 @@
   flex-shrink: 0;
 }
 [data-theme="evening"] .modal-actions,
-[data-theme="night"] .modal-actions { background: var(--surface); }
+[data-theme="evening"] .modal-footer,
+[data-theme="night"] .modal-actions,
+[data-theme="night"] .modal-footer { background: var(--surface); }
 
 /* Legacy: if .modal doesn't have .modal-body, use padding */
 .modal:not(:has(.modal-body)) { padding: 1.5rem; }
+
+/* ── DM Sans on modal & card headings (premium fintech) ── */
+.modal-title,
+.modal-header h2,
+.card-title { font-family: 'DM Sans', system-ui, sans-serif; }
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  letter-spacing: -.02em;
+  margin: 0;
+}
+
+/* ── DM Sans on KPI / stat numbers across the app ── */
+.users-page-title,
+.users-stat-num,
+.exp-stat-value { font-family: 'DM Sans', system-ui, sans-serif; }
 
 /* ══════════════════════════════════════════════════════════════════
    STAT CARDS

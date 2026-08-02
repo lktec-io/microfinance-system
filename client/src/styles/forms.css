@@ -881,3 +881,62 @@ input:-webkit-autofill:focus {
   -webkit-text-fill-color: var(--gray-800) !important;
   transition: background-color 9999s ease-in-out 0s;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   FORM HELPERS — explicit classes used by Expenses and other pages
+   ══════════════════════════════════════════════════════════════════ */
+.form-label {
+  display: block;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-600);
+  letter-spacing: .01em;
+  margin-bottom: .3rem;
+}
+
+.form-req {
+  color: var(--red);
+  margin-left: .12rem;
+  font-weight: 600;
+}
+
+.form-static {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: .9375rem;
+  font-weight: 400;
+  color: var(--gray-800);
+  padding: .45rem 0;
+  line-height: 1.55;
+}
+
+/* Form input (explicit class version to supplement the element selector) */
+.form-input {
+  width: 100%;
+  padding: .62rem .9rem;
+  background: var(--surface);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--gray-800);
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+  box-sizing: border-box;
+}
+.form-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(22,163,74,.12);
+}
+.form-input::placeholder { color: var(--gray-400); font-size: .875rem; }
+[data-theme="evening"] .form-input,
+[data-theme="night"] .form-input {
+  background: rgba(255,255,255,.05);
+  border-color: rgba(255,255,255,.12);
+}
+[data-theme="evening"] .form-input:focus,
+[data-theme="night"] .form-input:focus { background: rgba(255,255,255,.08); }
+
+.form-textarea { resize: vertical; min-height: 80px; }

@@ -248,6 +248,7 @@
   border-radius: 12px !important;
 }
 .stat-value {
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 1.7rem;      /* financial value — bold */
   font-weight: 700;
   color: var(--gray-900);

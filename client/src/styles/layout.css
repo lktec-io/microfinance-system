@@ -68,20 +68,66 @@
   overflow-x: hidden;
 }
 
+/* ── Page Header / Title — shared across all pages ── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.page-header-left {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  min-width: 0;
+}
+.page-header-icon {
+  width: 44px; height: 44px;
+  border-radius: var(--radius);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.page-title {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  letter-spacing: -.04em;
+  line-height: 1.2;
+  margin-bottom: .1rem;
+}
+.page-subtitle {
+  font-size: .875rem;
+  color: var(--gray-500);
+  font-weight: 400;
+  font-style: italic;
+}
+@media (max-width: 640px) {
+  .page-header { flex-direction: column; align-items: stretch; }
+  .page-title  { font-size: 1.4rem; }
+  .page { padding: 1.25rem 1rem; }
+}
+
 /* ══════════════════════════════════════════════════════════════════
    SIDEBAR — Always dark, premium
    ══════════════════════════════════════════════════════════════════ */
 .sidebar {
   position: fixed;
-  left: 0; top: 0;
-  width: var(--sidebar-w);
-  height: 100vh;
+  left: .75rem;
+  top: .75rem;
+  width: calc(var(--sidebar-w) - .75rem);
+  height: calc(100vh - 1.5rem);
   display: flex;
   flex-direction: column;
   z-index: 200;
   background: var(--sidebar-bg);
-  border-right: 1px solid rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--radius-xl);
   overflow: hidden;
+  box-shadow: 6px 0 48px rgba(0,0,0,.38), 0 8px 32px rgba(0,0,0,.22), 0 0 0 1px rgba(255,255,255,.04) inset;
   transition: width 0.28s cubic-bezier(0,0,.2,1);
 }
 
@@ -107,7 +153,7 @@
   z-index: 0;
 }
 
-.sidebar--collapsed { width: var(--sidebar-w-collapsed); }
+.sidebar--collapsed { width: calc(var(--sidebar-w-collapsed) - .75rem); }
 
 /* ── Collapse toggle ── */
 .sidebar-collapse-btn {
@@ -385,15 +431,17 @@
    ══════════════════════════════════════════════════════════════════ */
 .sidebar-drawer {
   position: fixed;
-  right: 0; top: 0;
-  width: min(340px, 85vw);
-  height: 100vh;
-  height: 100dvh;
+  right: .75rem;
+  top: .75rem;
+  width: min(340px, calc(85vw - 1.5rem));
+  height: calc(100vh - 1.5rem);
+  height: calc(100dvh - 1.5rem);
   background: var(--surface);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-left: 1px solid var(--border);
-  box-shadow: -8px 0 48px rgba(0,0,0,.18), -2px 0 10px rgba(0,0,0,.08);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: -8px 0 48px rgba(0,0,0,.22), -2px 0 10px rgba(0,0,0,.1);
   z-index: 9999;
   display: flex;
   flex-direction: column;
