@@ -8,7 +8,7 @@
   align-items: center;
   gap: .28rem;
   padding: .18rem .58rem;
-  border-radius: 20px;
+  border-radius: var(--radius);
   font-size: .72rem;
   font-weight: 600;
   text-transform: capitalize;
@@ -67,7 +67,7 @@
 
 .sms-modal-icon {
   width: 36px; height: 36px;
-  border-radius: 10px;
+  border-radius: var(--radius);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -107,7 +107,7 @@
 
 .sms-confirm-bubble {
   background: var(--green-lt);
-  border-radius: 12px 12px 4px 12px;
+  border-radius: var(--radius);
   padding: .9rem 1rem;
   font-size: .85rem;
   color: var(--gray-700);

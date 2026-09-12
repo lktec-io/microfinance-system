@@ -1,287 +1,359 @@
-import { useEffect, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiSearch, FiUserPlus, FiGrid, FiList, FiEdit2, FiTrash2, FiX } from 'react-icons/fi';
-import ModalPortal from '../components/common/ModalPortal';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  FiUserPlus, FiUsers, FiList, FiGrid, FiEye, FiEdit2, FiTrash2, FiFilePlus,
+  FiAlertCircle, FiAlertTriangle, FiUserCheck, FiCalendar, FiSearch, FiRefreshCw,
+} from 'react-icons/fi';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
-import Skeleton from '../components/common/Skeleton';
+import { fmt0, fmtDay, fmtShort } from '../utils/format';
+import { clientStanding } from '../utils/finance';
+import {
+  PageHeader, MetricCard, Segmented, SearchField, Avatar, Empty, TableSkeleton, Modal,
+} from '../components/ui';
+import { ScoreCell, StandingBadge } from '../components/clients/Standing';
+import ClientFormModal     from '../components/clients/ClientFormModal';
+import ClientProfileDrawer from '../components/clients/ClientProfileDrawer';
+import '../styles/app/lending.css';
+import '../styles/app/directory.css';
 
-const gridContainer = {
-  hidden:  { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
-};
-const gridItem = {
-  hidden:  { opacity: 0, y: 20, scale: 0.97 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } },
-};
-const modalOverlay = {
-  hidden:  { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.18 } },
-  exit:    { opacity: 0, transition: { duration: 0.14 } },
-};
-const modalPanel = {
-  hidden:  { opacity: 0, y: 24, scale: 0.97 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 320, damping: 28 } },
-  exit:    { opacity: 0, y: 12, scale: 0.98, transition: { duration: 0.15 } },
+const SEGMENTS = [
+  { value: 'all',     label: 'All clients' },
+  { value: 'active',  label: 'Borrowing'   },
+  { value: 'overdue', label: 'In arrears'  },
+  { value: 'settled', label: 'Settled'     },
+  { value: 'none',    label: 'No loans'    },
+];
+
+const SORTS = {
+  recent:   { label: 'Newest first',     fn: (a, b) => String(b.c.registration_date || '').localeCompare(String(a.c.registration_date || '')) || b.c.id - a.c.id },
+  name:     { label: 'Name (A–Z)',       fn: (a, b) => String(a.c.full_name).localeCompare(String(b.c.full_name)) },
+  score:    { label: 'Score (high–low)', fn: (a, b) => (b.standing.score ?? -1) - (a.standing.score ?? -1) },
+  exposure: { label: 'Exposure (high–low)', fn: (a, b) => b.standing.exposure - a.standing.exposure },
 };
 
-const EMPTY = { full_name: '', phone: '', address: '', id_number: '', registration_date: '' };
+const SHORT_DATE = { day: '2-digit', month: 'short', year: 'numeric' };
+const clientCode = id => `CL-${String(id).padStart(5, '0')}`;
 
 export default function Customers() {
+  const navigate = useNavigate();
   const { showToast } = useToast();
+  const [params, setParams] = useSearchParams();
+
   const [customers, setCustomers] = useState([]);
-  const [search,    setSearch]    = useState('');
-  const [loading,   setLoading]   = useState(true);
-  const [modal,     setModal]     = useState(null);
-  const [form,      setForm]      = useState(EMPTY);
-  const [editId,    setEditId]    = useState(null);
-  const [saving,    setSaving]    = useState(false);
-  const [error,     setError]     = useState('');
-  const [delId,     setDelId]     = useState(null);
-  const [viewMode,  setViewMode]  = useState('list');
+  const [loans, setLoans]         = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [loansError, setLoansError] = useState(false);
 
-  const fetchCustomers = useCallback(async () => {
-    setLoading(true);
-    const { data } = await api.get('/customers', { params: search ? { search } : {} });
-    setCustomers(data);
+  const [query, setQuery]     = useState('');
+  const [segment, setSegment] = useState('all');
+  const [sort, setSort]       = useState('recent');
+  const [view, setView]       = useState('table');
+
+  const [editor, setEditor]       = useState(null);  // { mode, customer? }
+  const [profileId, setProfileId] = useState(null);
+  const [deleting, setDeleting]   = useState(null);  // row
+
+  const load = useCallback(async () => {
+    const [c, l] = await Promise.allSettled([api.get('/customers'), api.get('/loans')]);
+    if (c.status === 'fulfilled') { setCustomers(c.value.data); setLoadError(''); }
+    else setLoadError(c.reason?.response?.data?.message || 'Clients could not be loaded.');
+    if (l.status === 'fulfilled') { setLoans(l.value.data); setLoansError(false); }
+    else setLoansError(true);
     setLoading(false);
-  }, [search]);
+  }, []);
 
-  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
+  useEffect(() => { load(); }, [load]);
 
-  function openAdd() {
-    setForm({ ...EMPTY, registration_date: new Date().toISOString().slice(0, 10) });
-    setEditId(null); setError(''); setModal('add');
-  }
+  /* Deep link: ?new=1 */
+  useEffect(() => {
+    if (params.get('new') === '1') {
+      setEditor({ mode: 'add' });
+      const next = new URLSearchParams(params);
+      next.delete('new');
+      setParams(next, { replace: true });
+    }
+  }, [params, setParams]);
 
-  function openEdit(c) {
-    setForm({
-      full_name: c.full_name, phone: c.phone,
-      address: c.address, id_number: c.id_number || '',
-      registration_date: c.registration_date?.slice(0, 10) || '',
-    });
-    setEditId(c.id); setError(''); setModal('edit');
-  }
+  const loansByCustomer = useMemo(() => {
+    const map = {};
+    for (const l of loans) (map[l.customer_id] ||= []).push(l);
+    return map;
+  }, [loans]);
 
-  async function handleSave(e) {
-    e.preventDefault();
-    setSaving(true); setError('');
+  const rows = useMemo(
+    () => customers.map(c => ({ c, loans: loansByCustomer[c.id] || [], standing: clientStanding(loansByCustomer[c.id] || []) })),
+    [customers, loansByCustomer],
+  );
+
+  const counts = useMemo(() => {
+    const out = { all: rows.length, active: 0, overdue: 0, settled: 0, none: 0 };
+    for (const r of rows) out[r.standing.status] += 1;
+    return out;
+  }, [rows]);
+
+  const metrics = useMemo(() => {
+    const month = new Date().toISOString().slice(0, 7);
+    return {
+      newThisMonth: rows.filter(r => String(r.c.registration_date || '').slice(0, 7) === month).length,
+      exposure: rows.reduce((s, r) => s + r.standing.exposure, 0),
+      arrearsExposure: rows.filter(r => r.standing.status === 'overdue').reduce((s, r) => s + r.standing.exposure, 0),
+    };
+  }, [rows]);
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return rows
+      .filter(r => segment === 'all' || r.standing.status === segment)
+      .filter(r => !q
+        || r.c.full_name?.toLowerCase().includes(q)
+        || r.c.phone?.toLowerCase().includes(q)
+        || r.c.id_number?.toLowerCase().includes(q)
+        || clientCode(r.c.id).toLowerCase().includes(q))
+      .sort(SORTS[sort].fn);
+  }, [rows, segment, query, sort]);
+
+  const profile = profileId != null ? rows.find(r => r.c.id === profileId) : null;
+
+  const newLoanFor = useCallback(id => navigate(`/loans?new=1&customer=${id}`), [navigate]);
+
+  async function confirmDelete() {
+    const id = deleting.c.id;
     try {
-      if (modal === 'add') {
-        await api.post('/customers', form);
-        showToast('Customer added successfully', 'success');
-      } else {
-        await api.put(`/customers/${editId}`, form);
-        showToast('Customer updated', 'success');
-      }
-      setModal(null);
-      fetchCustomers();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save');
-    } finally { setSaving(false); }
-  }
-
-  async function handleDelete() {
-    try {
-      await api.delete(`/customers/${delId}`);
-      setDelId(null);
-      showToast('Customer deleted', 'info');
-      fetchCustomers();
+      await api.delete(`/customers/${id}`);
+      showToast('Client deleted', 'info');
+      setDeleting(null);
+      load();
     } catch (err) {
       showToast(err.response?.data?.message || 'Delete failed', 'error');
-      setDelId(null);
+      setDeleting(null);
     }
   }
 
+  function rowActions(r) {
+    return (
+      <div className="mf-actions">
+        <button type="button" className="mf-icon-btn" onClick={() => setProfileId(r.c.id)} title="View profile" aria-label="View profile"><FiEye size={13} /></button>
+        <button type="button" className="mf-icon-btn" onClick={() => newLoanFor(r.c.id)} title="New loan for client" aria-label="New loan for client"><FiFilePlus size={13} /></button>
+        <button type="button" className="mf-icon-btn" onClick={() => setEditor({ mode: 'edit', customer: r.c })} title="Edit client" aria-label="Edit client"><FiEdit2 size={13} /></button>
+        <button type="button" className="mf-icon-btn mf-icon-btn--danger" onClick={() => setDeleting(r)} title="Delete client" aria-label="Delete client"><FiTrash2 size={13} /></button>
+      </div>
+    );
+  }
+
   return (
-    <div className="page">
-      <div className="page-toolbar">
-        <div className="search-wrap">
-          <FiSearch size={18} className="search-icon" />
-          <input
-            className="search-input search-input--icon"
-            placeholder="Search by name, phone or ID…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-        <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}>
-          <div className="view-toggle">
-            <button
-              className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}
-              onClick={() => setViewMode('list')}
-            >
-              List <FiList size={15} />
-            </button>
-            <button
-              className={`view-toggle-btn${viewMode === 'grid' ? ' active' : ''}`}
-              onClick={() => setViewMode('grid')}
-            >
-              Grid <FiGrid size={15} />
-            </button>
-          </div>
-          <button className="btn btn--primary" onClick={openAdd}>
-            <FiUserPlus size={16} /> Add Customer
+    <div className="mf-page">
+      <PageHeader
+        eyebrow="Lending"
+        title="Clients Directory"
+        subtitle="Borrower profiles with repayment standing and full loan history."
+        actions={
+          <button type="button" className="mf-btn mf-btn--primary" onClick={() => setEditor({ mode: 'add' })}>
+            <FiUserPlus size={15} /> Register Client
           </button>
+        }
+      />
+
+      <section className="mf-metric-grid" aria-label="Client metrics">
+        <MetricCard compact label="Total clients" tone="charcoal" Icon={FiUsers} loading={loading}
+          value={counts.all} sub={<><strong>{metrics.newThisMonth}</strong> registered this month</>} />
+        <MetricCard compact label="Borrowing now" tone="orange" Icon={FiUserCheck} loading={loading}
+          value={counts.active + counts.overdue}
+          sub={<>TZS <strong>{fmtShort(metrics.exposure)}</strong> total exposure</>}
+          onClick={() => setSegment('active')} />
+        <MetricCard compact label="In arrears" tone="crimson" Icon={FiAlertTriangle} loading={loading}
+          value={counts.overdue}
+          sub={<>TZS <strong>{fmtShort(metrics.arrearsExposure)}</strong> held by these clients</>}
+          onClick={() => setSegment('overdue')} />
+        <MetricCard compact label="Without loans" tone="neutral" Icon={FiCalendar} loading={loading}
+          value={counts.none} sub={<><strong>{counts.settled}</strong> fully settled</>}
+          onClick={() => setSegment('none')} />
+      </section>
+
+      <div className="mf-toolbar">
+        <div className="mf-toolbar__group">
+          <Segmented ariaLabel="Filter clients" value={segment} onChange={setSegment}
+            options={SEGMENTS.map(s => ({ ...s, count: counts[s.value] }))} />
+        </div>
+        <div className="mf-toolbar__group">
+          <SearchField value={query} onChange={setQuery} placeholder="Name, phone, ID or CL-code" maxWidth="260px" />
+          <select className="mf-select" style={{ width: 180, height: 36 }} value={sort}
+            onChange={e => setSort(e.target.value)} aria-label="Sort clients">
+            {Object.entries(SORTS).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
+          </select>
+          <Segmented iconOnly ariaLabel="View mode" value={view} onChange={setView}
+            options={[{ value: 'table', label: 'Table view', Icon: FiList }, { value: 'grid', label: 'Grid view', Icon: FiGrid }]} />
         </div>
       </div>
 
-      {loading ? (
-        <div className="card"><Skeleton rows={6} cols={5} /></div>
-      ) : viewMode === 'grid' ? (
-        customers.length === 0
-          ? <div className="card"><p className="empty-msg text-center">No customers found</p></div>
-          : (
-            <motion.div
-              className="customer-grid"
-              variants={gridContainer}
-              initial="hidden"
-              animate="visible"
-            >
-              {customers.map(c => (
-                <motion.div key={c.id} className="customer-card" variants={gridItem} whileHover={{ y: -4, transition: { type: 'spring', stiffness: 340, damping: 26 } }}>
-                  <div className="customer-card-avatar">
-                    {c.full_name?.[0]?.toUpperCase()}
-                  </div>
-                  <div className="customer-card-name">{c.full_name}</div>
-                  <div className="customer-card-phone">{c.phone}</div>
-                  {c.id_number && (
-                    <div className="customer-card-id">ID: {c.id_number}</div>
-                  )}
-                  <div className="customer-card-address">{c.address}</div>
-                  <span className="badge badge--blue" style={{ marginTop: '.2rem' }}>
-                    {c.loan_count} loan{c.loan_count !== 1 ? 's' : ''}
-                  </span>
-                  <div className="customer-card-actions">
-                    <button className="icon-btn icon-btn--edit" onClick={() => openEdit(c)} title="Edit customer">
-                      <FiEdit2 size={16} />
-                    </button>
-                    <button className="icon-btn icon-btn--del" onClick={() => setDelId(c.id)} title="Delete customer">
-                      <FiTrash2 size={16} />
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          )
-      ) : (
-        <div className="card">
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>#</th><th>Full Name</th><th>Phone</th>
-                  <th>ID Number</th><th>Reg. Date</th><th>Loans</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {customers.length === 0
-                  ? <tr><td colSpan={7} className="text-center">No customers found</td></tr>
-                  : customers.map((c, i) => (
-                    <tr key={c.id}>
-                      <td style={{ color: 'var(--gray-400)', fontSize: '.8rem' }}>{i + 1}</td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '.6rem' }}>
-                          <div className="table-avatar">{c.full_name?.[0]?.toUpperCase()}</div>
-                          <strong>{c.full_name}</strong>
-                        </div>
-                      </td>
-                      <td>{c.phone}</td>
-                      <td>{c.id_number || '—'}</td>
-                      <td>{c.registration_date?.slice(0, 10)}</td>
-                      <td><span className="badge badge--blue">{c.loan_count}</span></td>
-                      <td>
-                        <div className="icon-btns">
-                          <button className="icon-btn icon-btn--edit" onClick={() => openEdit(c)} title="Edit customer">
-                            <FiEdit2 size={15} />
-                          </button>
-                          <button className="icon-btn icon-btn--del" onClick={() => setDelId(c.id)} title="Delete customer">
-                            <FiTrash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                }
-              </tbody>
-            </table>
-          </div>
+      {loadError && (
+        <div className="mf-alert mf-alert--error" role="alert">
+          <FiAlertCircle size={15} /> {loadError}
+          <button type="button" className="mf-btn mf-btn--sm mf-alert__action" onClick={() => { setLoading(true); load(); }}>
+            <FiRefreshCw size={12} /> Retry
+          </button>
+        </div>
+      )}
+      {loansError && !loadError && (
+        <div className="mf-alert mf-alert--warning">
+          <FiAlertTriangle size={15} /> Loan history could not be loaded — scores and exposure are unavailable.
         </div>
       )}
 
-      <ModalPortal>
-        <AnimatePresence>
-          {modal && (
-            <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
-              <motion.div className="modal" variants={modalPanel}>
-                <div className="modal-header">
-                  <h2>{modal === 'add' ? 'Add Customer' : 'Edit Customer'}</h2>
-                  <button className="modal-close" onClick={() => setModal(null)} aria-label="Close"><FiX size={18} /></button>
+      {loading ? (
+        <div className="mf-card mf-card--flush"><TableSkeleton rows={7} cols={7} /></div>
+      ) : visible.length === 0 ? (
+        <div className="mf-card">
+          <Empty
+            Icon={query ? FiSearch : FiUsers}
+            title={query || segment !== 'all' ? 'No clients match these filters' : 'No clients registered yet'}
+            message={query || segment !== 'all' ? 'Adjust the search or segment.' : 'Register a borrower to begin originating loans.'}
+            action={query || segment !== 'all'
+              ? <button type="button" className="mf-btn mf-btn--sm" onClick={() => { setQuery(''); setSegment('all'); }}>Clear filters</button>
+              : <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setEditor({ mode: 'add' })}><FiUserPlus size={13} /> Register client</button>}
+          />
+        </div>
+      ) : view === 'grid' ? (
+        <div className="mf-card-grid">
+          {visible.map(r => (
+            <article key={r.c.id} className={`mf-client-card${r.standing.status === 'overdue' ? ' mf-client-card--overdue' : ''}`}>
+              <button type="button" className="mf-client-card__head" onClick={() => setProfileId(r.c.id)}>
+                <Avatar name={r.c.full_name} size={38} />
+                <span className="mf-cell-stack">
+                  <span className="mf-cell-title">{r.c.full_name}</span>
+                  <span className="mf-cell-sub mf-mono">{clientCode(r.c.id)} · {r.c.phone}</span>
+                </span>
+                <StandingBadge status={r.standing.status} />
+              </button>
+              <div className="mf-client-card__score">
+                <div>
+                  <div className="mf-summary-bar__label">Repayment score</div>
+                  <div className="mf-client-card__score-num">{r.standing.score ?? '—'}<small>/100</small></div>
                 </div>
-                <form onSubmit={handleSave} className="modal-form">
-                  <div className="modal-body">
-                    {error && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{error}</div>}
-                    <div className="form-group">
-                      <label>Full Name *</label>
-                      <input required value={form.full_name}
-                        onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} />
-                    </div>
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Phone *</label>
-                        <input required value={form.phone}
-                          onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+                <span className={`badge badge--${r.standing.grade.tone === 'emerald' ? 'green' : r.standing.grade.tone === 'crimson' ? 'red' : r.standing.grade.tone === 'amber' ? 'yellow' : 'gray'}`}>
+                  {r.standing.grade.letter} · {r.standing.grade.label}
+                </span>
+              </div>
+              <div className="mf-client-card__body">
+                <div className="mf-kv">
+                  <div className="mf-kv__row"><span>Loans</span><span>{r.standing.n} ({r.standing.active + r.standing.pending} open · {r.standing.overdue} overdue)</span></div>
+                  <div className="mf-kv__row"><span>Exposure</span><span>TZS {fmt0(r.standing.exposure)}</span></div>
+                  <div className="mf-kv__row"><span>National ID</span><span>{r.c.id_number || '—'}</span></div>
+                </div>
+              </div>
+              <div className="mf-client-card__foot">
+                <span className="mf-cell-sub">Since {fmtDay(r.c.registration_date, SHORT_DATE)}</span>
+                {rowActions(r)}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <section className="mf-card mf-card--flush">
+          <div className="mf-table-wrap">
+            <table className="mf-table">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Contact</th>
+                  <th>Loans</th>
+                  <th className="is-num">Exposure (TZS)</th>
+                  <th>Repayment score</th>
+                  <th>Standing</th>
+                  <th className="is-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map(r => (
+                  <tr key={r.c.id} className="is-link" onClick={() => setProfileId(r.c.id)}>
+                    <td>
+                      <div className="mf-cell-main">
+                        <Avatar name={r.c.full_name} size={32} />
+                        <div className="mf-cell-stack">
+                          <span className="mf-cell-title">{r.c.full_name}</span>
+                          <span className="mf-cell-sub mf-mono">{clientCode(r.c.id)}{r.c.id_number ? ` · ID ${r.c.id_number}` : ''}</span>
+                        </div>
                       </div>
-                      <div className="form-group">
-                        <label>ID Number</label>
-                        <input value={form.id_number}
-                          onChange={e => setForm(f => ({ ...f, id_number: e.target.value }))} />
+                    </td>
+                    <td>
+                      <div className="mf-cell-stack">
+                        <span className="mf-mono" style={{ fontSize: 12.5 }}>{r.c.phone}</span>
+                        <span className="mf-cell-sub">Since {fmtDay(r.c.registration_date, SHORT_DATE)}</span>
                       </div>
-                    </div>
-                    <div className="form-group">
-                      <label>Address *</label>
-                      <textarea required rows={2} value={form.address}
-                        onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
-                    </div>
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label>Registration Date</label>
-                      <input type="date" value={form.registration_date}
-                        onChange={e => setForm(f => ({ ...f, registration_date: e.target.value }))} />
-                    </div>
-                  </div>
-                  <div className="modal-actions">
-                    <button type="button" className="btn btn--ghost" onClick={() => setModal(null)}>Cancel</button>
-                    <button type="submit" className="btn btn--primary" disabled={saving}>
-                      {saving ? 'Saving…' : 'Save'}
-                    </button>
-                  </div>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                    </td>
+                    <td>
+                      <span className="mf-loans-mini">
+                        <span className="mf-loans-mini__count">{r.standing.n}</span>
+                        {r.standing.n > 0 && (
+                          <span className="mf-loans-mini__split">
+                            <b>{r.standing.active + r.standing.pending}</b> open · <b className={r.standing.overdue ? 'mf-tone--crimson' : ''}>{r.standing.overdue}</b> overdue
+                          </span>
+                        )}
+                      </span>
+                    </td>
+                    <td className={`is-num${r.standing.exposure > 0 ? '' : ' mf-muted'}`}>{fmt0(r.standing.exposure)}</td>
+                    <td><ScoreCell standing={r.standing} /></td>
+                    <td><StandingBadge status={r.standing.status} /></td>
+                    <td className="is-actions" onClick={e => e.stopPropagation()}>{rowActions(r)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
-        <AnimatePresence>
-          {delId && (
-            <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
-              <motion.div className="modal modal--sm" variants={modalPanel}>
-                <div className="modal-header">
-                  <h2>Delete Customer?</h2>
-                </div>
-                <div className="modal-body">
-                  <p style={{ color: 'var(--gray-600)' }}>
-                    This action cannot be undone. Customers with loans cannot be deleted.
-                  </p>
-                </div>
-                <div className="modal-actions">
-                  <button className="btn btn--ghost" onClick={() => setDelId(null)}>Cancel</button>
-                  <button className="btn btn--danger" onClick={handleDelete}>Delete</button>
-                </div>
-              </motion.div>
-            </motion.div>
+      {editor && (
+        <ClientFormModal
+          mode={editor.mode}
+          customer={editor.customer}
+          onClose={() => setEditor(null)}
+          onSaved={() => {
+            showToast(editor.mode === 'add' ? 'Client registered successfully' : 'Client updated', 'success');
+            setEditor(null);
+            load();
+          }}
+        />
+      )}
+
+      {profile && (
+        <ClientProfileDrawer
+          customer={profile.c}
+          loans={profile.loans}
+          standing={profile.standing}
+          onClose={() => setProfileId(null)}
+          onEdit={() => { setEditor({ mode: 'edit', customer: profile.c }); setProfileId(null); }}
+          onNewLoan={() => newLoanFor(profile.c.id)}
+          onOpenLoan={l => navigate(`/loans/${l.id}`)}
+        />
+      )}
+
+      {deleting && (
+        <Modal
+          size="sm"
+          eyebrow={clientCode(deleting.c.id)}
+          title={deleting.standing.n > 0 ? 'Client cannot be deleted' : 'Delete client?'}
+          onClose={() => setDeleting(null)}
+          footer={deleting.standing.n > 0
+            ? <button type="button" className="mf-btn mf-btn--ghost" onClick={() => setDeleting(null)}>Close</button>
+            : <>
+                <button type="button" className="mf-btn mf-btn--ghost" onClick={() => setDeleting(null)}>Cancel</button>
+                <button type="button" className="mf-btn mf-btn--danger" onClick={confirmDelete}><FiTrash2 size={13} /> Delete</button>
+              </>}
+        >
+          {deleting.standing.n > 0 ? (
+            <p className="mf-muted">
+              <strong className="mf-strong">{deleting.c.full_name}</strong> has {deleting.standing.n} loan{deleting.standing.n === 1 ? '' : 's'} on record.
+              Clients with loans cannot be deleted.
+            </p>
+          ) : (
+            <p className="mf-muted">
+              <strong className="mf-strong">{deleting.c.full_name}</strong> will be permanently removed. This action cannot be undone.
+            </p>
           )}
-        </AnimatePresence>
-      </ModalPortal>
+        </Modal>
+      )}
     </div>
   );
 }

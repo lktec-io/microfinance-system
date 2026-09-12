@@ -1,648 +1,356 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  FiPlus, FiEye, FiEdit2, FiX,
-  FiMessageSquare, FiBell, FiAlertTriangle,
-  FiGrid, FiList, FiCalendar, FiDollarSign, FiSearch,
+  FiPlus, FiList, FiGrid, FiLayers, FiSliders, FiArrowUpRight, FiEdit2,
+  FiAlertCircle, FiSearch, FiRefreshCw,
 } from 'react-icons/fi';
+import api from '../api';
+import { useToast } from '../context/ToastContext';
+import { fmt0, fmtDay } from '../utils/format';
+import {
+  PageHeader, Tabs, Segmented, SearchField, ProgressBar, DueChip, Avatar, Empty, TableSkeleton,
+} from '../components/ui';
+import StatusBadge           from '../components/common/StatusBadge';
+import SmsSendModal          from '../components/common/SmsSendModal';
+import LoanApplicationWizard from '../components/loans/LoanApplicationWizard';
+import EditLoanModal         from '../components/loans/EditLoanModal';
+import LoanCalculator        from '../components/loans/LoanCalculator';
+import SmsActions            from '../components/loans/SmsActions';
+import '../styles/app/lending.css';
 
-const gridContainer = {
-  hidden:  { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.065, delayChildren: 0.04 } },
-};
-const gridItem = {
-  hidden:  { opacity: 0, y: 18, scale: 0.97 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 26 } },
-};
-const modalOverlay = {
-  hidden:  { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.18 } },
-  exit:    { opacity: 0, transition: { duration: 0.14 } },
-};
-const modalPanel = {
-  hidden:  { opacity: 0, y: 24, scale: 0.97 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 320, damping: 28 } },
-  exit:    { opacity: 0, y: 12, scale: 0.98, transition: { duration: 0.15 } },
-};
-import api          from '../api';
-import { fmt }      from '../utils/format';
-import StatusBadge  from '../components/common/StatusBadge';
-import Skeleton     from '../components/common/Skeleton';
-import SmsSendModal  from '../components/common/SmsSendModal';
-import ModalPortal   from '../components/common/ModalPortal';
+const STATUSES = ['active', 'pending', 'overdue', 'paid'];
+const SHORT_DATE = { day: '2-digit', month: 'short', year: '2-digit' };
 
-const EMPTY_FORM = {
-  customer_id: '', loan_amount: '', interest_rate: '',
-  duration_value: '', duration_unit: 'months', start_date: '', purpose: '',
-};
-const EDIT_FORM = {
-  loan_amount: '', interest_rate: '',
-  duration_value: '', duration_unit: 'months',
-  start_date: '', due_date: '',
-  status: '', purpose: '',
-};
+function repaidPct(loan) {
+  const total = Number(loan.total_payable) || 0;
+  return total > 0 ? Math.min(100, Math.round(((Number(loan.amount_paid) || 0) / total) * 100)) : 0;
+}
 
-const STATUSES = ['pending','active','paid','overdue'];
+function toneFor(status) {
+  return status === 'overdue' ? 'crimson' : status === 'paid' ? 'emerald' : 'orange';
+}
 
-/* ── Loan Card (grid view) ──────────────────────────────────────── */
-function LoanCard({ loan, onView, onEdit, onSms }) {
-  const isOverdue = loan.status === 'overdue';
-  const isPaid    = loan.status === 'paid';
+/* ── Card view item ────────────────────────────────────────────────── */
+function LoanCard({ loan, onOpen, onEdit, onSms }) {
+  const pct = repaidPct(loan);
   return (
-    <div className="loan-card">
-      {/* Header */}
-      <div className="loan-card-header">
-        <div className="loan-card-avatar">
-          {loan.customer_name?.[0]?.toUpperCase() || '?'}
-        </div>
-        <div className="loan-card-info">
-          <div className="loan-card-name">{loan.customer_name}</div>
-          <div className="loan-card-phone">{loan.customer_phone}</div>
+    <article className={`mf-loan-card${loan.status === 'overdue' ? ' mf-loan-card--overdue' : ''}`}>
+      <div className="mf-loan-card__head">
+        <Avatar name={loan.customer_name} size={34} />
+        <div className="mf-cell-stack">
+          <span className="mf-cell-title">{loan.customer_name}</span>
+          <span className="mf-cell-sub mf-mono">#{loan.id} · {loan.customer_phone}</span>
         </div>
         <StatusBadge status={loan.status} />
       </div>
-
-      {/* Financials */}
-      <div className="loan-card-body">
-        <div className="loan-card-row">
-          <span>Principal</span>
-          <strong>TZS {fmt(loan.loan_amount)}</strong>
+      <div className="mf-loan-card__balance">
+        <div className="mf-loan-card__balance-label">Outstanding balance</div>
+        <div className="mf-loan-card__balance-value"><small>TZS</small>{fmt0(loan.balance)}</div>
+      </div>
+      <div className="mf-loan-card__body">
+        <div className="mf-progress-cell">
+          <ProgressBar value={pct} tone={toneFor(loan.status)} />
+          <div className="mf-progress-cell__meta"><span>{pct}% repaid</span><span>of {fmt0(loan.total_payable)}</span></div>
         </div>
-        <div className="loan-card-row">
-          <span>Total Payable</span>
-          <strong>TZS {fmt(loan.total_payable)}</strong>
-        </div>
-        <div className="loan-card-row">
-          <span>Balance</span>
-          <strong className={loan.balance > 0 ? 'text-red' : 'text-green'}>
-            TZS {fmt(loan.balance)}
-          </strong>
-        </div>
-        <div className="loan-card-row">
-          <span><FiCalendar size={12} /> Due Date</span>
-          <strong className={isOverdue ? 'text-red' : ''}>
-            {loan.due_date?.slice(0, 10) || '—'}
-          </strong>
+        <div className="mf-kv">
+          <div className="mf-kv__row"><span>Principal</span><span>{fmt0(loan.loan_amount)}</span></div>
+          <div className="mf-kv__row"><span>Rate · tenor</span><span>{Number(loan.interest_rate)}% · {loan.duration_value} {loan.duration_unit}</span></div>
+          <div className="mf-kv__row"><span>Due</span><span>{fmtDay(loan.due_date, SHORT_DATE)}</span></div>
         </div>
       </div>
-
-      {/* Progress bar */}
-      {loan.total_payable > 0 && (
-        <div className="loan-card-progress">
-          <div
-            className={`loan-card-progress-fill${isOverdue ? ' loan-card-progress-fill--red' : ''}`}
-            style={{ width: `${Math.min(100, (loan.amount_paid / loan.total_payable) * 100)}%` }}
-          />
+      <div className="mf-loan-card__foot">
+        <DueChip date={loan.due_date} status={loan.status} />
+        <div className="mf-actions">
+          <button type="button" className="mf-icon-btn" onClick={onOpen} title="Open loan" aria-label="Open loan"><FiArrowUpRight size={13} /></button>
+          <button type="button" className="mf-icon-btn" onClick={onEdit} title="Edit loan" aria-label="Edit loan"><FiEdit2 size={13} /></button>
+          <span className="mf-actions__sep" />
+          <SmsActions loan={loan} onSms={onSms} />
         </div>
-      )}
-
-      {/* Actions */}
-      <div className="loan-card-actions">
-        <button className="icon-btn icon-btn--view" onClick={onView} title="View Details">
-          <FiEye size={14} />
-        </button>
-        <button className="icon-btn icon-btn--edit" onClick={onEdit} title="Edit Loan">
-          <FiEdit2 size={14} />
-        </button>
-        <button
-          className="icon-btn icon-btn--sms-ty"
-          onClick={() => onSms('thank_you')}
-          title="Send Thank You SMS"
-        >
-          <FiMessageSquare size={14} />
-        </button>
-        <button
-          className="icon-btn icon-btn--sms-rm"
-          onClick={() => onSms('reminder')}
-          title="Send Reminder SMS"
-          disabled={isPaid}
-        >
-          <FiBell size={14} />
-        </button>
-        <button
-          className="icon-btn icon-btn--sms-ov"
-          onClick={() => onSms('overdue')}
-          title="Send Overdue SMS"
-          disabled={!isOverdue}
-        >
-          <FiAlertTriangle size={14} />
-        </button>
       </div>
-    </div>
+    </article>
   );
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   LOAN MANAGEMENT
+   ════════════════════════════════════════════════════════════════════ */
 export default function Loans() {
   const navigate = useNavigate();
-  const [loans,     setLoans]     = useState([]);
+  const { showToast } = useToast();
+  const [params, setParams] = useSearchParams();
+
+  const [loans, setLoans]         = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [viewMode,  setViewMode]  = useState('list');
-  const [filter,    setFilter]    = useState('all');
+  const [loading, setLoading]     = useState(true);
+  const [loadError, setLoadError] = useState('');
 
-  // Create modal
-  const [createModal, setCreateModal] = useState(false);
-  const [form,        setForm]        = useState(EMPTY_FORM);
-  const [saving,      setSaving]      = useState(false);
-  const [createErr,   setCreateErr]   = useState('');
-  const [preview,     setPreview]     = useState(null);
+  const [tab, setTab]       = useState('portfolio');
+  const [status, setStatus] = useState(() => (STATUSES.includes(params.get('status')) ? params.get('status') : 'all'));
+  const [query, setQuery]   = useState('');
+  const [view, setView]     = useState('table');
 
-  // Edit modal
-  const [editModal,   setEditModal]   = useState(null); // loan object
-  const [editForm,    setEditForm]    = useState(EDIT_FORM);
-  const [editSaving,  setEditSaving]  = useState(false);
-  const [editErr,     setEditErr]     = useState('');
-  const [editPreview, setEditPreview] = useState(null);
+  const [wizard, setWizard]   = useState(null);   // { customerId, terms }
+  const [editing, setEditing] = useState(null);   // loan
+  const [sms, setSms]         = useState(null);   // { loan, type }
 
-  // SMS modal
-  const [smsModal,  setSmsModal]  = useState(null); // { loan, type }
-
-  // Customer search
-  const [search, setSearch] = useState('');
-
-  const fetchLoans = useCallback(async () => {
-    setLoading(true);
-    const [l, c] = await Promise.all([api.get('/loans'), api.get('/customers')]);
-    setLoans(l.data);
-    setCustomers(c.data);
-    setLoading(false);
+  const load = useCallback(async () => {
+    try {
+      const [l, c] = await Promise.all([api.get('/loans'), api.get('/customers')]);
+      setLoans(l.data);
+      setCustomers(c.data);
+      setLoadError('');
+    } catch (err) {
+      setLoadError(err.response?.data?.message || 'Loans could not be loaded.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { fetchLoans(); }, [fetchLoans]);
+  useEffect(() => { load(); }, [load]);
 
-  /* ── Create loan helpers ── */
-  function calcPreview(f) {
-    const amt  = parseFloat(f.loan_amount);
-    const rate = parseFloat(f.interest_rate);
-    if (!amt || isNaN(rate)) return null;
-    return {
-      interest: (amt * rate / 100).toFixed(2),
-      total:    (amt + amt * rate / 100).toFixed(2),
-    };
-  }
+  /* Deep links: ?new=1[&customer=ID] · ?status=overdue */
+  useEffect(() => {
+    const s = params.get('status');
+    if (STATUSES.includes(s)) { setStatus(s); setTab('portfolio'); }
+    if (params.get('tab') === 'calculator') setTab('calculator');
+    if (params.get('new') === '1') {
+      setWizard({ customerId: params.get('customer') || '' });
+      const next = new URLSearchParams(params);
+      next.delete('new');
+      next.delete('customer');
+      setParams(next, { replace: true });
+    }
+  }, [params, setParams]);
 
-  function handleFormChange(e) {
-    const { name, value } = e.target;
-    setForm(f => {
-      const u = { ...f, [name]: value };
-      setPreview(calcPreview(u));
-      return u;
+  const counts = useMemo(() => {
+    const c = { all: loans.length };
+    for (const s of STATUSES) c[s] = loans.filter(l => l.status === s).length;
+    return c;
+  }, [loans]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase().replace(/^#/, '');
+    return loans.filter(l => {
+      if (status !== 'all' && l.status !== status) return false;
+      if (!q) return true;
+      return l.customer_name?.toLowerCase().includes(q)
+        || l.customer_phone?.toLowerCase().includes(q)
+        || String(l.id) === q;
     });
-  }
+  }, [loans, status, query]);
 
-  function openCreate() {
-    setForm({ ...EMPTY_FORM, start_date: new Date().toISOString().slice(0, 10) });
-    setPreview(null); setCreateErr(''); setCreateModal(true);
-  }
+  const totals = useMemo(() => filtered.reduce((t, l) => ({
+    principal: t.principal + (Number(l.loan_amount) || 0),
+    payable:   t.payable   + (Number(l.total_payable) || 0),
+    repaid:    t.repaid    + (Number(l.amount_paid) || 0),
+    balance:   t.balance   + (l.status !== 'paid' ? Number(l.balance) || 0 : 0),
+  }), { principal: 0, payable: 0, repaid: 0, balance: 0 }), [filtered]);
 
-  async function handleCreate(e) {
-    e.preventDefault();
-    setSaving(true); setCreateErr('');
-    try {
-      await api.post('/loans', form);
-      setCreateModal(false);
-      fetchLoans();
-    } catch (err) {
-      setCreateErr(err.response?.data?.message || 'Failed to create loan');
-    } finally { setSaving(false); }
-  }
-
-  /* ── Edit loan helpers ── */
-  function calcEditPreview(f) {
-    const amt  = parseFloat(f.loan_amount);
-    const rate = parseFloat(f.interest_rate);
-    if (!amt || isNaN(rate)) return null;
-    const interest = amt * rate / 100;
-    return { interest: interest.toFixed(2), total: (amt + interest).toFixed(2) };
-  }
-
-  function handleEditChange(e) {
-    const { name, value } = e.target;
-    setEditForm(f => {
-      const u = { ...f, [name]: value };
-      setEditPreview(calcEditPreview(u));
-      return u;
-    });
-  }
-
-  function openEdit(loan) {
-    const f = {
-      loan_amount:    loan.loan_amount,
-      interest_rate:  loan.interest_rate,
-      duration_value: loan.duration_value,
-      duration_unit:  loan.duration_unit || 'months',
-      start_date:     loan.start_date?.slice(0, 10) || '',
-      due_date:       loan.due_date?.slice(0, 10) || '',
-      status:         loan.status,
-      purpose:        loan.purpose || '',
-    };
-    setEditForm(f);
-    setEditPreview(calcEditPreview(f));
-    setEditErr('');
-    setEditModal(loan);
-  }
-
-  async function handleEdit(e) {
-    e.preventDefault();
-    setEditSaving(true); setEditErr('');
-    try {
-      await api.put(`/loans/${editModal.id}`, editForm);
-      setEditModal(null);
-      fetchLoans();
-    } catch (err) {
-      setEditErr(err.response?.data?.message || 'Failed to update loan');
-    } finally { setEditSaving(false); }
-  }
-
-  const filtered = loans.filter(l => {
-    if (filter !== 'all' && l.status !== filter) return false;
-    if (search && !l.customer_name?.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const openSms  = useCallback((loan, type) => setSms({ loan, type }), []);
+  const openLoan = useCallback(loan => loan?.id && navigate(`/loans/${loan.id}`), [navigate]);
 
   return (
-    <div className="page">
-
-      {/* ── Toolbar ── */}
-      <div className="page-toolbar">
-        <div className="filter-tabs">
-          {['all', ...STATUSES].map(s => (
-            <button
-              key={s}
-              className={`filter-tab${filter === s ? ' filter-tab--active' : ''}`}
-              onClick={() => setFilter(s)}
-            >
-              {s}
+    <div className="mf-page">
+      <PageHeader
+        eyebrow="Lending"
+        title="Loan Management"
+        subtitle="Originate new credit, monitor the portfolio and service existing loans."
+        actions={
+          <>
+            <button type="button" className="mf-btn mf-btn--ghost" onClick={() => setTab('calculator')}>
+              <FiSliders size={14} /> Calculator
             </button>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}>
-          {/* View toggle */}
-          <div className="view-toggle">
-            <button
-              className={`view-toggle-btn${viewMode === 'list' ? ' active' : ''}`}
-              onClick={() => setViewMode('list')}
-            >
-              <FiList size={14} /> List View
+            <button type="button" className="mf-btn mf-btn--primary" onClick={() => setWizard({})}>
+              <FiPlus size={15} /> New Application
             </button>
-            <button
-              className={`view-toggle-btn${viewMode === 'grid' ? ' active' : ''}`}
-              onClick={() => setViewMode('grid')}
-            >
-              <FiGrid size={14} /> Grid View
-            </button>
-          </div>
-          <button className="btn btn--primary" onClick={openCreate}>
-            <FiPlus size={16} /> New Loan
-          </button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
-      {/* ── Quick Customer Search ── */}
-      <motion.div
-        className="loan-search-row"
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.32, ease: [0, 0, 0.2, 1] }}
-      >
-        <div className="search-wrap" style={{ maxWidth: '420px' }}>
-          <FiSearch size={16} className="search-icon" />
-          <input
-            className="search-input search-input--icon"
-            placeholder="Search by customer name…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-        {search && (
-          <span style={{ fontSize: '.82rem', color: 'var(--gray-500)', whiteSpace: 'nowrap' }}>
-            {filtered.length} result{filtered.length !== 1 ? 's' : ''}
-          </span>
-        )}
-      </motion.div>
+      <Tabs
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { value: 'portfolio',  label: 'Portfolio',       Icon: FiLayers,  count: loans.length },
+          { value: 'calculator', label: 'Loan Calculator', Icon: FiSliders },
+        ]}
+      />
 
-      {/* ── Content ── */}
-      {loading ? (
-        <div className="card"><Skeleton rows={6} cols={7} /></div>
-
-      ) : filtered.length === 0 ? (
-        <div className="card">
-          <div className="empty-state">
-            <FiDollarSign size={36} style={{ color: 'var(--gray-200)' }} />
-            <p>No loans found{filter !== 'all' ? ` with status "${filter}"` : ''}</p>
-          </div>
-        </div>
-
-      ) : viewMode === 'grid' ? (
-        <motion.div
-          className="loan-grid"
-          variants={gridContainer}
-          initial="hidden"
-          animate="visible"
-        >
-          {filtered.map(l => (
-            <motion.div key={l.id} variants={gridItem} whileHover={{ y: -4, transition: { type: 'spring', stiffness: 340, damping: 26 } }}>
-              <LoanCard
-                loan={l}
-                onView={() => l.id && navigate(`/loans/${l.id}`)}
-                onEdit={() => openEdit(l)}
-                onSms={(type) => setSmsModal({ loan: l, type })}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
-
+      {tab === 'calculator' ? (
+        <LoanCalculator onStartApplication={terms => setWizard({ terms })} />
       ) : (
-        /* ── List view ── */
-        <div className="card">
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>#</th><th>Customer</th><th>Amount</th>
-                  <th>Interest</th><th>Total</th><th>Balance</th>
-                  <th>Due Date</th><th>Status</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((l, i) => (
-                  <tr key={l.id}>
-                    <td style={{ color: 'var(--gray-400)', fontSize: '.8rem' }}>{i + 1}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
-                        <div className="table-avatar">{l.customer_name?.[0]?.toUpperCase()}</div>
-                        <div>
-                          <strong>{l.customer_name}</strong>
-                          <div style={{ fontSize: '.76rem', color: 'var(--gray-400)' }}>{l.customer_phone}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>TZS {fmt(l.loan_amount)}</td>
-                    <td>{l.interest_rate}%</td>
-                    <td>TZS {fmt(l.total_payable)}</td>
-                    <td><strong className={l.balance > 0 ? 'text-red' : 'text-green'}>TZS {fmt(l.balance)}</strong></td>
-                    <td style={{ whiteSpace: 'nowrap', fontSize: '.84rem' }}>{l.due_date?.slice(0, 10) || '—'}</td>
-                    <td><StatusBadge status={l.status} /></td>
-                    <td>
-                      <div className="icon-btns">
-                        <button
-                          className="icon-btn icon-btn--view"
-                          onClick={() => l.id && navigate(`/loans/${l.id}`)}
-                          title="View Details"
-                        ><FiEye size={14} /></button>
-                        <button
-                          className="icon-btn icon-btn--edit"
-                          onClick={() => openEdit(l)}
-                          title="Edit Loan"
-                        ><FiEdit2 size={14} /></button>
-                        <button
-                          className="icon-btn icon-btn--sms-ty"
-                          onClick={() => setSmsModal({ loan: l, type: 'thank_you' })}
-                          title="Thank You SMS"
-                        ><FiMessageSquare size={14} /></button>
-                        <button
-                          className="icon-btn icon-btn--sms-rm"
-                          onClick={() => setSmsModal({ loan: l, type: 'reminder' })}
-                          title="Reminder SMS"
-                          disabled={l.status === 'paid'}
-                        ><FiBell size={14} /></button>
-                        <button
-                          className="icon-btn icon-btn--sms-ov"
-                          onClick={() => setSmsModal({ loan: l, type: 'overdue' })}
-                          title="Overdue SMS"
-                          disabled={l.status !== 'overdue'}
-                        ><FiAlertTriangle size={14} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          <div className="mf-summary-bar">
+            <div className="mf-summary-bar__cell">
+              <div className="mf-summary-bar__label">Loans in view</div>
+              <div className="mf-summary-bar__value">{filtered.length}</div>
+            </div>
+            <div className="mf-summary-bar__cell">
+              <div className="mf-summary-bar__label">Principal</div>
+              <div className="mf-summary-bar__value"><small>TZS</small>{fmt0(totals.principal)}</div>
+            </div>
+            <div className="mf-summary-bar__cell">
+              <div className="mf-summary-bar__label">Total payable</div>
+              <div className="mf-summary-bar__value"><small>TZS</small>{fmt0(totals.payable)}</div>
+            </div>
+            <div className="mf-summary-bar__cell">
+              <div className="mf-summary-bar__label">Repaid</div>
+              <div className="mf-summary-bar__value mf-tone--emerald"><small>TZS</small>{fmt0(totals.repaid)}</div>
+            </div>
+            <div className="mf-summary-bar__cell">
+              <div className="mf-summary-bar__label">Outstanding</div>
+              <div className="mf-summary-bar__value mf-tone--orange"><small>TZS</small>{fmt0(totals.balance)}</div>
+            </div>
           </div>
-        </div>
+
+          <div className="mf-toolbar">
+            <div className="mf-toolbar__group">
+              <Segmented
+                ariaLabel="Filter by status"
+                value={status}
+                onChange={setStatus}
+                options={[{ value: 'all', label: 'All' }, ...STATUSES.map(s => ({ value: s, label: s }))]
+                  .map(o => ({ ...o, count: counts[o.value] }))}
+              />
+            </div>
+            <div className="mf-toolbar__group">
+              <SearchField value={query} onChange={setQuery} placeholder="Client, phone or #loan" maxWidth="280px" />
+              <Segmented
+                iconOnly
+                ariaLabel="View mode"
+                value={view}
+                onChange={setView}
+                options={[{ value: 'table', label: 'Table view', Icon: FiList }, { value: 'cards', label: 'Card view', Icon: FiGrid }]}
+              />
+            </div>
+          </div>
+
+          {loadError && (
+            <div className="mf-alert mf-alert--error" role="alert">
+              <FiAlertCircle size={15} /> {loadError}
+              <button type="button" className="mf-btn mf-btn--sm mf-alert__action" onClick={() => { setLoading(true); load(); }}>
+                <FiRefreshCw size={12} /> Retry
+              </button>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="mf-card mf-card--flush"><TableSkeleton rows={7} cols={8} /></div>
+          ) : filtered.length === 0 ? (
+            <div className="mf-card">
+              <Empty
+                Icon={query ? FiSearch : FiLayers}
+                title={query || status !== 'all' ? 'No loans match these filters' : 'No loans yet'}
+                message={query || status !== 'all' ? 'Clear the search or choose another status.' : 'Start an application to originate the first loan.'}
+                action={(query || status !== 'all')
+                  ? <button type="button" className="mf-btn mf-btn--sm" onClick={() => { setQuery(''); setStatus('all'); }}>Clear filters</button>
+                  : <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setWizard({})}><FiPlus size={13} /> New application</button>}
+              />
+            </div>
+          ) : view === 'cards' ? (
+            <div className="mf-card-grid">
+              {filtered.map(l => (
+                <LoanCard key={l.id} loan={l} onOpen={() => openLoan(l)} onEdit={() => setEditing(l)} onSms={openSms} />
+              ))}
+            </div>
+          ) : (
+            <section className="mf-card mf-card--flush">
+              <div className="mf-table-wrap">
+                <table className="mf-table">
+                  <thead>
+                    <tr>
+                      <th>Client · Loan</th>
+                      <th className="is-num">Principal</th>
+                      <th>Repaid / Payable</th>
+                      <th className="is-num">Balance</th>
+                      <th>Due</th>
+                      <th>Status</th>
+                      <th className="is-actions">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map(l => {
+                      const pct = repaidPct(l);
+                      return (
+                        <tr key={l.id} className="is-link" onClick={() => openLoan(l)}>
+                          <td>
+                            <div className="mf-cell-main">
+                              <Avatar name={l.customer_name} size={30} />
+                              <div className="mf-cell-stack">
+                                <span className="mf-cell-title">{l.customer_name}</span>
+                                <span className="mf-cell-sub mf-mono">#{l.id} · {l.customer_phone}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="is-num">
+                            <div className="mf-cell-stack" style={{ alignItems: 'flex-end' }}>
+                              <span>{fmt0(l.loan_amount)}</span>
+                              <span className="mf-cell-sub">{Number(l.interest_rate)}% · {l.duration_value} {l.duration_unit}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="mf-progress-cell">
+                              <ProgressBar value={pct} tone={toneFor(l.status)} />
+                              <div className="mf-progress-cell__meta"><span>{pct}%</span><span>{fmt0(l.amount_paid)} / {fmt0(l.total_payable)}</span></div>
+                            </div>
+                          </td>
+                          <td className={`is-num${Number(l.balance) > 0 ? '' : ' mf-tone--emerald'}`}><strong>{fmt0(l.balance)}</strong></td>
+                          <td>
+                            <div className="mf-cell-stack" style={{ gap: '.25rem' }}>
+                              <span className="mf-mono" style={{ fontSize: 12 }}>{fmtDay(l.due_date, SHORT_DATE)}</span>
+                              <DueChip date={l.due_date} status={l.status} />
+                            </div>
+                          </td>
+                          <td><StatusBadge status={l.status} /></td>
+                          <td className="is-actions" onClick={e => e.stopPropagation()}>
+                            <div className="mf-actions">
+                              <button type="button" className="mf-icon-btn" onClick={() => openLoan(l)} title="Open loan" aria-label="Open loan">
+                                <FiArrowUpRight size={13} />
+                              </button>
+                              <button type="button" className="mf-icon-btn" onClick={() => setEditing(l)} title="Edit loan" aria-label="Edit loan">
+                                <FiEdit2 size={13} />
+                              </button>
+                              <span className="mf-actions__sep" />
+                              <SmsActions loan={l} onSms={openSms} />
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+        </>
       )}
 
-      <ModalPortal>
-        {/* ── Create Loan Modal ── */}
-        <AnimatePresence>
-          {createModal && (
-            <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
-              <motion.div className="modal modal--lg" variants={modalPanel}>
-                <div className="modal-header">
-                  <h2>Create New Loan</h2>
-                  <button className="modal-close" onClick={() => setCreateModal(false)}><FiX size={18} /></button>
-                </div>
-                <form onSubmit={handleCreate} className="modal-form">
-                  <div className="modal-body">
-                    {createErr && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{createErr}</div>}
-                    <div className="form-group">
-                      <label>Customer *</label>
-                      <select required name="customer_id" value={form.customer_id} onChange={handleFormChange}>
-                        <option value="">— Select Customer —</option>
-                        {customers.map(c => (
-                          <option key={c.id} value={c.id}>{c.full_name} ({c.phone})</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Loan Amount (TZS) *</label>
-                        <input type="number" min="1" step="0.01" required
-                          name="loan_amount" value={form.loan_amount} onChange={handleFormChange} />
-                      </div>
-                      <div className="form-group">
-                        <label>Interest Rate (%) *</label>
-                        <input type="number" min="0" step="0.01" required
-                          name="interest_rate" value={form.interest_rate} onChange={handleFormChange} />
-                      </div>
-                    </div>
-                    {preview && (
-                      <div className="loan-preview">
-                        <div className="loan-preview-item">
-                          <span>Interest</span><strong>TZS {fmt(preview.interest)}</strong>
-                        </div>
-                        <div className="loan-preview-item loan-preview-total">
-                          <span>Total Payable</span><strong>TZS {fmt(preview.total)}</strong>
-                        </div>
-                      </div>
-                    )}
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Duration *</label>
-                        <input type="number" min="1" required
-                          name="duration_value" value={form.duration_value} onChange={handleFormChange} />
-                      </div>
-                      <div className="form-group">
-                        <label>Unit *</label>
-                        <select name="duration_unit" value={form.duration_unit} onChange={handleFormChange}>
-                          <option value="days">Days</option>
-                          <option value="weeks">Weeks</option>
-                          <option value="months">Months</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="form-group">
-                      <label>Start Date</label>
-                      <input type="date" name="start_date" value={form.start_date} onChange={handleFormChange} />
-                    </div>
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label>Purpose</label>
-                      <textarea rows={2} name="purpose" value={form.purpose} onChange={handleFormChange} />
-                    </div>
-                  </div>
-                  <div className="modal-actions">
-                    <button type="button" className="btn btn--ghost" onClick={() => setCreateModal(false)}>Cancel</button>
-                    <button type="submit" className="btn btn--primary" disabled={saving}>
-                      {saving ? 'Creating…' : 'Create Loan'}
-                    </button>
-                  </div>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {wizard && (
+        <LoanApplicationWizard
+          customers={customers}
+          loans={loans}
+          initialCustomerId={wizard.customerId}
+          initialTerms={wizard.terms}
+          onClose={() => setWizard(null)}
+          onCreated={loan => { showToast(`Loan #${loan.id} booked for ${loan.customer_name}`, 'success'); load(); }}
+          onCustomerCreated={c => {
+            setCustomers(cs => [{ ...c, loan_count: 0 }, ...cs]);
+            showToast('Client registered', 'success');
+          }}
+          onSendSms={loan => { setWizard(null); setSms({ loan, type: 'thank_you' }); }}
+          onViewLoan={loan => { setWizard(null); openLoan(loan); }}
+        />
+      )}
 
-        {/* ── Edit Loan Modal ── */}
-        <AnimatePresence>
-          {editModal && (
-            <motion.div className="modal-overlay" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
-              <motion.div className="modal modal--lg" variants={modalPanel}>
-                <div className="modal-header">
-                  <h2>Edit Loan #{editModal.id}</h2>
-                  <button className="modal-close" onClick={() => setEditModal(null)}><FiX size={18} /></button>
-                </div>
-                <form onSubmit={handleEdit} className="modal-form">
-                  <div className="modal-body">
-                    <div className="alert alert--info" style={{ marginBottom: '.85rem', fontSize: '.84rem' }}>
-                      <strong>{editModal.customer_name}</strong>
-                      <span style={{ margin: '0 .5rem', opacity: .4 }}>·</span>
-                      Original: <strong>TZS {fmt(editModal.loan_amount)}</strong>
-                      <span style={{ margin: '0 .5rem', opacity: .4 }}>·</span>
-                      Paid: <strong style={{ color: 'var(--green)' }}>TZS {fmt(editModal.amount_paid)}</strong>
-                    </div>
-                    {editErr && <div className="alert alert--error" style={{ marginBottom: '.75rem' }}>{editErr}</div>}
+      {editing && (
+        <EditLoanModal
+          loan={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => { setEditing(null); showToast('Loan updated', 'success'); load(); }}
+        />
+      )}
 
-                    {/* Financial fields */}
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Loan Amount (TZS) *</label>
-                        <input
-                          type="number" min="1" step="0.01" required
-                          name="loan_amount"
-                          value={editForm.loan_amount}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Interest Rate (%) *</label>
-                        <input
-                          type="number" min="0" step="0.01" required
-                          name="interest_rate"
-                          value={editForm.interest_rate}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Live recalculation preview */}
-                    {editPreview && (
-                      <div className="loan-preview" style={{ marginBottom: '.85rem' }}>
-                        <div className="loan-preview-item">
-                          <span>Interest</span>
-                          <strong>TZS {fmt(editPreview.interest)}</strong>
-                        </div>
-                        <div className="loan-preview-item loan-preview-total">
-                          <span>New Total Payable</span>
-                          <strong>TZS {fmt(editPreview.total)}</strong>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Duration */}
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Duration</label>
-                        <input
-                          type="number" min="1"
-                          name="duration_value"
-                          value={editForm.duration_value}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Unit</label>
-                        <select name="duration_unit" value={editForm.duration_unit} onChange={handleEditChange}>
-                          <option value="days">Days</option>
-                          <option value="weeks">Weeks</option>
-                          <option value="months">Months</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Dates */}
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Start Date</label>
-                        <input
-                          type="date"
-                          name="start_date"
-                          value={editForm.start_date}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Due Date</label>
-                        <input
-                          type="date"
-                          name="due_date"
-                          value={editForm.due_date}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Status */}
-                    <div className="form-group">
-                      <label>Status *</label>
-                      <select required name="status" value={editForm.status} onChange={handleEditChange}>
-                        {STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
-                      </select>
-                    </div>
-
-                    {/* Notes */}
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label>Notes / Purpose</label>
-                      <textarea
-                        rows={2}
-                        name="purpose"
-                        value={editForm.purpose}
-                        onChange={handleEditChange}
-                        placeholder="Optional notes about this loan…"
-                      />
-                    </div>
-                  </div>
-                  <div className="modal-actions">
-                    <button type="button" className="btn btn--ghost" onClick={() => setEditModal(null)}>Cancel</button>
-                    <button type="submit" className="btn btn--primary" disabled={editSaving}>
-                      {editSaving ? 'Saving…' : 'Save Changes'}
-                    </button>
-                  </div>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ── SMS Send Modal ── */}
-        {smsModal && (
-          <SmsSendModal
-            loan={smsModal.loan}
-            type={smsModal.type}
-            onClose={() => setSmsModal(null)}
-          />
-        )}
-      </ModalPortal>
+      {sms && <SmsSendModal loan={sms.loan} type={sms.type} onClose={() => setSms(null)} />}
     </div>
   );
 }

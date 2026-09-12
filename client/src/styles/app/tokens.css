@@ -1,0 +1,174 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — Baraka Microcredit Fintech UI
+   Orange-dominant · charcoal chrome · sharp geometry (max 4px radius)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Brand: Orange ─────────────────────────────────────────────────── */
+  --mf-orange-700: #C45200;
+  --mf-orange-600: #E65F00;
+  --mf-orange-500: #FF6B00;
+  --mf-orange-400: #FF8A33;
+  --mf-orange-200: #FFD2B0;
+  --mf-orange-100: #FFEBDB;
+  --mf-orange-50:  #FFF6EF;
+
+  /* ── Chrome: Charcoal ──────────────────────────────────────────────── */
+  --mf-charcoal-950: #16161A;
+  --mf-charcoal-900: #1E1E24;
+  --mf-charcoal-800: #26262E;
+  --mf-charcoal-700: #30303A;
+  --mf-charcoal-600: #3C3C47;
+
+  /* ── Ink (text) ────────────────────────────────────────────────────── */
+  --mf-ink-900: #17171C;
+  --mf-ink-800: #26262E;
+  --mf-ink-700: #3D3D47;
+  --mf-ink-600: #55555F;
+  --mf-ink-500: #6E6E78;
+  --mf-ink-400: #92929C;
+  --mf-ink-300: #B8B8C0;
+  --mf-ink-200: #D6D6DC;
+
+  /* ── Surfaces ──────────────────────────────────────────────────────── */
+  --mf-bg:            #F8F9FA;
+  --mf-surface:       #FFFFFF;
+  --mf-surface-2:     #FAFAFB;
+  --mf-surface-3:     #F3F4F6;
+  --mf-border:        #EEEEEE;
+  --mf-border-strong: #E0E0E5;
+  --mf-grid-line:     rgba(30, 30, 36, .045);
+
+  /* ── Semantic ──────────────────────────────────────────────────────── */
+  --mf-emerald-700: #0B7A55;
+  --mf-emerald-600: #0E9265;
+  --mf-emerald-100: #D5F0E4;
+  --mf-emerald-50:  #EDF8F3;
+  --mf-crimson-700: #962A36;
+  --mf-crimson-600: #B03A48;
+  --mf-crimson-100: #F3D9DD;
+  --mf-crimson-50:  #FBF0F2;
+  --mf-amber-700:   #92600F;
+  --mf-amber-600:   #B7791F;
+  --mf-amber-100:   #F5E6C8;
+  --mf-amber-50:    #FDF7EA;
+  --mf-slate-700:   #3F4654;
+  --mf-slate-600:   #5A6272;
+  --mf-slate-100:   #E4E6EB;
+  --mf-slate-50:    #F2F3F6;
+
+  /* ── Geometry ──────────────────────────────────────────────────────── */
+  --mf-radius-xs: 2px;
+  --mf-radius:    3px;
+  --mf-radius-lg: 4px;
+
+  /* ── Type ──────────────────────────────────────────────────────────── */
+  --mf-font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mf-font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  /* ── Elevation (restrained) ────────────────────────────────────────── */
+  --mf-shadow-1:   0 1px 0 rgba(30, 30, 36, .03);
+  --mf-shadow-2:   0 1px 2px rgba(30, 30, 36, .05), 0 1px 0 rgba(30, 30, 36, .02);
+  --mf-shadow-pop: 0 16px 40px rgba(22, 22, 26, .14), 0 2px 8px rgba(22, 22, 26, .06);
+  --mf-focus-ring: 0 0 0 3px rgba(255, 107, 0, .22);
+
+  /* ── Motion ────────────────────────────────────────────────────────── */
+  --mf-ease: cubic-bezier(.2, .8, .2, 1);
+  --mf-dur:  160ms;
+
+  /* ── Layout ────────────────────────────────────────────────────────── */
+  --mf-sidebar-w:           252px;
+  --mf-sidebar-w-collapsed: 68px;
+  --mf-header-h:            60px;
+  --mf-content-max:         1440px;
+
+  /* ═════════════════════════════════════════════════════════════════════
+     LEGACY ALIASES — keep untouched pages (LoanDetail, Expenses, Reports,
+     Users, password recovery, SMS modal) on the new palette & geometry.
+     ═════════════════════════════════════════════════════════════════════ */
+  --primary:        var(--mf-orange-500);
+  --primary-2:      var(--mf-orange-600);
+  --primary-lt:     rgba(255, 107, 0, .08);
+  --primary-mid:    rgba(255, 107, 0, .16);
+  --primary-glow:   rgba(255, 107, 0, .22);
+  --shadow-primary: none;
+
+  --green:        var(--mf-emerald-600);
+  --green-accent: var(--mf-emerald-600);
+  --green-light:  var(--mf-emerald-100);
+  --green-dk:     var(--mf-emerald-700);
+  --green-lt:     var(--mf-emerald-50);
+  --green-mid:    var(--mf-emerald-100);
+  --green-border: rgba(14, 146, 101, .28);
+  --shadow-green: none;
+
+  --yellow:    var(--mf-amber-600);
+  --yellow-lt: var(--mf-amber-50);
+  --yellow-dk: var(--mf-amber-700);
+  --red:       var(--mf-crimson-600);
+  --red-dk:    var(--mf-crimson-700);
+  --red-lt:    var(--mf-crimson-50);
+  --blue:      var(--mf-slate-700);
+  --blue-lt:   var(--mf-slate-50);
+  --blue-dk:   var(--mf-charcoal-900);
+  --teal:      var(--mf-emerald-700);
+  --teal-lt:   var(--mf-emerald-50);
+  --teal-dk:   var(--mf-emerald-700);
+  --orange:    var(--mf-orange-500);
+  --cyan:      var(--mf-orange-500);
+  --neon-green: var(--mf-emerald-600);
+
+  --bg:            var(--mf-bg);
+  --surface:       var(--mf-surface);
+  --surface-2:     var(--mf-surface-2);
+  --surface-3:     var(--mf-surface);
+  --surface-solid: var(--mf-surface);
+
+  --gray-900: var(--mf-ink-900);
+  --gray-800: var(--mf-ink-800);
+  --gray-700: var(--mf-ink-700);
+  --gray-600: var(--mf-ink-600);
+  --gray-500: var(--mf-ink-500);
+  --gray-400: var(--mf-ink-400);
+  --gray-300: var(--mf-ink-300);
+  --gray-200: var(--mf-border-strong);
+  --gray-100: var(--mf-surface-3);
+  --gray-50:  var(--mf-surface-2);
+
+  --border:        var(--mf-border);
+  --border-strong: var(--mf-border-strong);
+
+  --sidebar-bg:         var(--mf-charcoal-900);
+  --sidebar-bg-2:       var(--mf-charcoal-800);
+  --sidebar-text:       rgba(255, 255, 255, .64);
+  --sidebar-text-hover: #FFFFFF;
+  --sidebar-active-bg:  rgba(255, 107, 0, .14);
+  --sidebar-hover-bg:   rgba(255, 255, 255, .05);
+  --sidebar-accent:     var(--mf-orange-500);
+
+  --shadow-xs:    none;
+  --shadow-sm:    var(--mf-shadow-1);
+  --shadow-md:    var(--mf-shadow-2);
+  --shadow-lg:    var(--mf-shadow-pop);
+  --shadow-xl:    var(--mf-shadow-pop);
+  --shadow-glass: var(--mf-shadow-2);
+
+  --radius-xs:  2px;
+  --radius-sm:  2px;
+  --radius:     3px;
+  --radius-lg:  4px;
+  --radius-xl:  4px;
+  --radius-2xl: 4px;
+
+  --transition: var(--mf-dur) ease;
+  --spring:     220ms var(--mf-ease);
+  --ease-out:   220ms var(--mf-ease);
+
+  --sidebar-w:           var(--mf-sidebar-w);
+  --sidebar-w-collapsed: var(--mf-sidebar-w-collapsed);
+  --header-h:            var(--mf-header-h);
+
+  --theme-glow:    transparent;
+  --theme-ray:     transparent;
+  --theme-ambient: transparent;
+}

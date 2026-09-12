@@ -104,7 +104,7 @@
   width: 28px; height: 28px;
   background: var(--primary-lt);
   color: var(--primary);
-  border-radius: 8px;
+  border-radius: var(--radius);
   display: grid;
   place-items: center;
   font-size: .78rem;
@@ -185,7 +185,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1.35rem 1.25rem 1.1rem;
-  cursor: none;
+  cursor: auto;
   transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
   display: flex;
   flex-direction: column;
@@ -242,7 +242,7 @@
   background: var(--primary-lt);
   color: var(--primary);
   padding: .2rem .5rem;
-  border-radius: 5px;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
   font-weight: 600;
   letter-spacing: .03em;

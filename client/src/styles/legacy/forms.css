@@ -120,11 +120,11 @@
   align-items: center;
   gap: .25rem;
   padding: .32rem .72rem;
-  border-radius: 7px;
+  border-radius: var(--radius);
   font-size: .83rem;
   font-weight: 500;
   margin-right: .3rem;
-  cursor: none;
+  cursor: auto;
   border: 1.5px solid transparent;
   transition: background var(--transition), transform var(--transition);
   font-family: inherit;
@@ -227,7 +227,7 @@ input:focus, select:focus, textarea:focus {
   background: rgba(255,255,255,.08);
 }
 
-select { cursor: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748B' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right .75rem center; background-size: 16px; padding-right: 2.5rem; }
+select { cursor: auto; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748B' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right .75rem center; background-size: 16px; padding-right: 2.5rem; }
 textarea { resize: vertical; min-height: 80px; }
 
 /* Input with icon wrapper */
@@ -419,14 +419,14 @@ textarea { resize: vertical; min-height: 80px; }
 .login-logo-img {
   width: 68px; height: 68px;
   object-fit: contain;
-  border-radius: 16px;
+  border-radius: var(--radius);
   box-shadow: 0 4px 16px rgba(18,52,88,.2);
 }
 .login-logo {
   width: 68px; height: 68px;
   background: linear-gradient(135deg, #123458 0%, #16A34A 100%);
   color: #fff;
-  border-radius: 16px;
+  border-radius: var(--radius);
   display: grid;
   place-items: center;
   font-size: 1.5rem;
@@ -656,7 +656,7 @@ textarea { resize: vertical; min-height: 80px; }
   align-items: center;
   gap: .3rem;
   padding: .36rem .75rem;
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: none;
   border: none;
   color: var(--gray-500);
@@ -706,7 +706,7 @@ textarea { resize: vertical; min-height: 80px; }
 }
 .filter-tab {
   padding: .42rem .9rem;
-  border-radius: 99px;
+  border-radius: var(--radius);
   font-size: 0.875rem;    /* 14px */
   font-weight: 500;
   font-family: inherit;
@@ -736,7 +736,7 @@ textarea { resize: vertical; min-height: 80px; }
   width: 32px; height: 32px;
   display: grid;
   place-items: center;
-  border-radius: 7px;
+  border-radius: var(--radius);
   border: 1.5px solid transparent;
   background: transparent;
   transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
@@ -779,7 +779,7 @@ textarea { resize: vertical; min-height: 80px; }
   display: grid;
   place-items: center;
   padding: .28rem;
-  border-radius: 5px;
+  border-radius: var(--radius);
   transition: color var(--transition), background var(--transition);
   flex-shrink: 0;
   line-height: 0;
@@ -887,7 +887,7 @@ input:-webkit-autofill:focus {
    ══════════════════════════════════════════════════════════════════ */
 .form-label {
   display: block;
-  font-family: 'Poppins', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--gray-600);
@@ -902,7 +902,7 @@ input:-webkit-autofill:focus {
 }
 
 .form-static {
-  font-family: 'Poppins', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: .9375rem;
   font-weight: 400;
   color: var(--gray-800);
@@ -918,7 +918,7 @@ input:-webkit-autofill:focus {
   border: 1.5px solid var(--border-strong);
   border-radius: var(--radius-sm);
   color: var(--gray-800);
-  font-family: 'Poppins', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.9375rem;
   font-weight: 400;
   line-height: 1.5;

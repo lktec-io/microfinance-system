@@ -54,7 +54,7 @@
 }
 
 /* Clickable row */
-.tr-link { cursor: none; }
+.tr-link { cursor: auto; }
 .tr-link td { transition: background var(--transition), color var(--transition); }
 .tr-link:hover td { background: var(--primary-lt); }
 
@@ -78,7 +78,7 @@
   font-family: inherit;
   transition: color var(--transition), border-color var(--transition);
   white-space: nowrap;
-  cursor: none;
+  cursor: auto;
 }
 .tab:hover { color: var(--gray-800); }
 .tab--active {
@@ -112,7 +112,7 @@ code {
   background: var(--gray-100);
   color: var(--primary);
   padding: .15rem .45rem;
-  border-radius: 5px;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
   font-weight: 600;
   letter-spacing: .02em;
@@ -136,7 +136,7 @@ code {
 }
 
 /* ── Table header: Poppins 600 (explicit in case body-level changes miss it) ── */
-.table th { font-family: 'Poppins', system-ui, sans-serif; }
+.table th { font-family: 'Inter', system-ui, sans-serif; }
 
 /* ══════════════════════════════════════════════════════════════════
    ACTION BUTTONS (view / edit / delete) — premium icon buttons
@@ -152,11 +152,11 @@ code {
   width: 32px; height: 32px;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: var(--radius);
   border: 1.5px solid transparent;
   background: transparent;
   flex-shrink: 0;
-  cursor: none;
+  cursor: auto;
   font-family: inherit;
   transition: background .16s, border-color .16s, transform .16s, box-shadow .16s;
 }

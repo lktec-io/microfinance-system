@@ -22,15 +22,23 @@ if (typeof window !== 'undefined') {
   });
 }
 
-import './styles/variables.css';
-import './styles/global.css';
-import './styles/layout.css';
-import './styles/components.css';
-import './styles/forms.css';
-import './styles/tables.css';
-import './styles/dashboard.css';
-import './styles/utilities.css';
-import './styles/sms.css';
+/* Legacy page-specific styles (Expenses, Reports, Users, LoanDetail, SMS).
+   Loaded first so the new design system below wins on shared classes. */
+import './styles/legacy/components.css';
+import './styles/legacy/forms.css';
+import './styles/legacy/layout.css';
+import './styles/legacy/tables.css';
+import './styles/legacy/dashboard.css';
+import './styles/legacy/utilities.css';
+import './styles/legacy/sms.css';
+
+/* Fintech design system */
+import './styles/app/tokens.css';
+import './styles/app/base.css';
+import './styles/app/elements.css';
+import './styles/app/patterns.css';
+import './styles/app/shell.css';
+import './styles/app/auth.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

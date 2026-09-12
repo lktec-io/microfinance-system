@@ -1,13 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { lazy } from 'react';
-import { ThemeProvider }        from './context/ThemeContext';
 import { AuthProvider }         from './context/AuthContext';
 import { ProfileProvider }      from './context/ProfileContext';
 import { ToastProvider }        from './context/ToastContext';
 import { NotificationProvider } from './context/NotificationContext';
 import ProtectedRoute           from './components/ProtectedRoute';
 import Layout                   from './layouts/Layout';
-import CustomCursor             from './components/common/CustomCursor';
 
 import Login          from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
@@ -35,39 +33,36 @@ function ProtectedLayout() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <ProfileProvider>
-          <ToastProvider>
-            <NotificationProvider>
-              <CustomCursor />
-              <BrowserRouter>
-                <Routes>
-                  {/* Public pages */}
-                  <Route path="/login"                 element={<Login />} />
-                  <Route path="/forgot-password"       element={<ForgotPassword />} />
-                  <Route path="/reset-password/:token" element={<ResetPassword />} />
+    <AuthProvider>
+      <ProfileProvider>
+        <ToastProvider>
+          <NotificationProvider>
+            <BrowserRouter>
+              <Routes>
+                {/* Public pages */}
+                <Route path="/login"                 element={<Login />} />
+                <Route path="/forgot-password"       element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-                  {/* All protected pages share ONE Layout — sidebar never remounts */}
-                  <Route element={<ProtectedLayout />}>
-                    <Route path="/"           element={<Dashboard />} />
-                    <Route path="/customers"  element={<Customers />} />
-                    <Route path="/loans"      element={<Loans />} />
-                    <Route path="/loans/:id"  element={<LoanDetail />} />
-                    <Route path="/repayments" element={<Repayments />} />
-                    <Route path="/expenses"   element={<Expenses />} />
-                    <Route path="/reports"    element={<Reports />} />
-                    <Route path="/users"      element={
-                      <ProtectedRoute adminOnly><Users /></ProtectedRoute>
-                    } />
-                    <Route path="*"           element={<Navigate to="/" replace />} />
-                  </Route>
-                </Routes>
-              </BrowserRouter>
-            </NotificationProvider>
-          </ToastProvider>
-        </ProfileProvider>
-      </AuthProvider>
-    </ThemeProvider>
+                {/* All protected pages share ONE Layout */}
+                <Route element={<ProtectedLayout />}>
+                  <Route path="/"           element={<Dashboard />} />
+                  <Route path="/customers"  element={<Customers />} />
+                  <Route path="/loans"      element={<Loans />} />
+                  <Route path="/loans/:id"  element={<LoanDetail />} />
+                  <Route path="/repayments" element={<Repayments />} />
+                  <Route path="/expenses"   element={<Expenses />} />
+                  <Route path="/reports"    element={<Reports />} />
+                  <Route path="/users"      element={
+                    <ProtectedRoute adminOnly><Users /></ProtectedRoute>
+                  } />
+                  <Route path="*"           element={<Navigate to="/" replace />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </NotificationProvider>
+        </ToastProvider>
+      </ProfileProvider>
+    </AuthProvider>
   );
 }

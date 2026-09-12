@@ -50,7 +50,7 @@
   display: inline-flex;
   align-items: center;
   padding: .18rem .6rem;
-  border-radius: 99px;
+  border-radius: var(--radius);
   font-size: .72rem;
   font-weight: 600;
   letter-spacing: .02em;
@@ -75,7 +75,7 @@
   align-items: center;
   gap: .28rem;
   padding: .22rem .65rem;
-  border-radius: 99px;
+  border-radius: var(--radius);
   font-size: .72rem;
   font-weight: 600;
   letter-spacing: .015em;
@@ -152,7 +152,7 @@
   width: 30px; height: 30px;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: var(--gray-100);
   border: 1px solid var(--border);
   color: var(--gray-500);
@@ -203,7 +203,7 @@
 /* ── DM Sans on modal & card headings (premium fintech) ── */
 .modal-title,
 .modal-header h2,
-.card-title { font-family: 'DM Sans', system-ui, sans-serif; }
+.card-title { font-family: 'Inter', system-ui, sans-serif; }
 
 .modal-title {
   display: flex;
@@ -219,7 +219,7 @@
 /* ── DM Sans on KPI / stat numbers across the app ── */
 .users-page-title,
 .users-stat-num,
-.exp-stat-value { font-family: 'DM Sans', system-ui, sans-serif; }
+.exp-stat-value { font-family: 'Inter', system-ui, sans-serif; }
 
 /* ══════════════════════════════════════════════════════════════════
    STAT CARDS
@@ -234,7 +234,7 @@
   box-shadow: var(--shadow-sm);
   transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
 }
-.stat-card--link { cursor: none; }
+.stat-card--link { cursor: auto; }
 .stat-card--link:hover {
   border-color: var(--border-strong);
   box-shadow: var(--shadow-md);
@@ -514,7 +514,7 @@
   height: 13px;
   background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
   background-size: 600px 100%;
-  border-radius: 6px;
+  border-radius: var(--radius);
   animation: shimmer 1.6s ease-in-out infinite;
   flex: 1;
 }
@@ -720,7 +720,7 @@
 }
 .users-filter-chip {
   padding: .3rem .78rem;
-  border-radius: 99px;
+  border-radius: var(--radius);
   font-size: .8rem;
   font-weight: 500;
   font-family: inherit;
@@ -800,7 +800,7 @@
   background: var(--primary-lt);
   color: var(--primary);
   border: 1px solid var(--border-strong);
-  border-radius: 99px;
+  border-radius: var(--radius);
   padding: .06rem .42rem;
   font-weight: 600;
   letter-spacing: .03em;
@@ -934,7 +934,7 @@
   align-items: center;
   gap: .42rem;
   padding: .46rem 1.05rem;
-  border-radius: 99px;
+  border-radius: var(--radius);
   font-size: .84rem;
   font-weight: 500;
   font-family: inherit;

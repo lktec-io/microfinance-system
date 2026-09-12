@@ -17,6 +17,21 @@ export function cur(n) {
   return `TZS ${fmt(n)}`;
 }
 
+export function fmt0(n) {
+  return Math.round(Number(n || 0)).toLocaleString('en-US');
+}
+
+export function fmtDay(str, opts = { day: '2-digit', month: 'short' }) {
+  if (!str) return '—';
+  const d = new Date(`${String(str).slice(0, 10)}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-GB', opts);
+}
+
+export function initials(name, max = 2) {
+  if (!name) return '?';
+  return String(name).trim().split(/\s+/).map(w => w[0]).join('').slice(0, max).toUpperCase();
+}
+
 export function fmtShort(n) {
   const v = Number(n) || 0;
   if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`;

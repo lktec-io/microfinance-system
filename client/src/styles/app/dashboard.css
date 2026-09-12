@@ -1,0 +1,183 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   DASHBOARD — cash-flow chart · composition · activity timeline
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.mf-dash-row { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 1.25rem; align-items: stretch; }
+.mf-dash-row--even { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+@media (max-width: 1100px) {
+  .mf-dash-row, .mf-dash-row--even { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ── Cash-flow column chart (pure CSS) ─────────────────────────────── */
+.mf-chart-legend { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.mf-chart-legend__item { display: inline-flex; align-items: center; gap: .4rem; font-size: 12px; color: var(--mf-ink-600); }
+.mf-chart-legend__swatch { width: 10px; height: 10px; border-radius: 1px; }
+.mf-chart-legend__item b { font-family: var(--mf-font-mono); font-weight: 600; color: var(--mf-ink-900); }
+
+.mf-cashflow { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: .5rem; }
+.mf-cashflow__axis {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: space-between;
+  height: 220px;
+  font: 500 10px/1 var(--mf-font-mono);
+  color: var(--mf-ink-400);
+  text-align: right;
+}
+.mf-cashflow__axis span { transform: translateY(50%); }
+.mf-cashflow__axis span:first-child { transform: none; }
+.mf-cashflow__axis span:last-child { transform: translateY(0); }
+
+.mf-cashflow__plot {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  height: 220px;
+  border-left: 1px solid var(--mf-border-strong);
+  border-bottom: 1px solid var(--mf-border-strong);
+  background-image: linear-gradient(to top, var(--mf-border) 1px, transparent 1px);
+  background-size: 100% 25%;
+}
+.mf-cashflow__group {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 2px;
+  cursor: default;
+  transition: background-color var(--mf-dur) var(--mf-ease);
+}
+.mf-cashflow__group:hover { background: rgba(255, 107, 0, .05); }
+.mf-cashflow__bar {
+  width: min(14px, 34%);
+  height: var(--h, 0%);
+  min-height: 1px;
+  transform-origin: bottom;
+  animation: mf-grow-y .7s var(--mf-ease) both;
+}
+.mf-cashflow__bar--out { background: var(--mf-charcoal-800); }
+.mf-cashflow__bar--in  { background: var(--mf-orange-500); }
+.mf-cashflow__group.is-current .mf-cashflow__bar--out { background: var(--mf-charcoal-950); }
+
+.mf-cashflow__tip {
+  position: absolute;
+  bottom: calc(100% - 8px);
+  left: 50%;
+  z-index: 5;
+  min-width: 170px;
+  padding: .55rem .65rem;
+  background: var(--mf-charcoal-950);
+  color: #FFFFFF;
+  border-radius: var(--mf-radius);
+  box-shadow: var(--mf-shadow-pop);
+  font-size: 11.5px;
+  transform: translate(-50%, 4px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--mf-dur) var(--mf-ease), transform var(--mf-dur) var(--mf-ease), visibility var(--mf-dur);
+}
+.mf-cashflow__group:hover .mf-cashflow__tip { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+.mf-cashflow__group:first-child .mf-cashflow__tip,
+.mf-cashflow__group:nth-child(2) .mf-cashflow__tip { left: 0; transform: translate(0, 4px); }
+.mf-cashflow__group:first-child:hover .mf-cashflow__tip,
+.mf-cashflow__group:nth-child(2):hover .mf-cashflow__tip { transform: none; }
+.mf-cashflow__group:last-child .mf-cashflow__tip,
+.mf-cashflow__group:nth-last-child(2) .mf-cashflow__tip { left: auto; right: 0; transform: translate(0, 4px); }
+.mf-cashflow__group:last-child:hover .mf-cashflow__tip,
+.mf-cashflow__group:nth-last-child(2):hover .mf-cashflow__tip { transform: none; }
+.mf-cashflow__tip-title { font-weight: 600; margin-bottom: .35rem; color: var(--mf-orange-400); }
+.mf-cashflow__tip-row { display: flex; justify-content: space-between; gap: 1rem; }
+.mf-cashflow__tip-row span:last-child { font-family: var(--mf-font-mono); }
+
+.mf-cashflow__labels { grid-column: 2; display: flex; }
+.mf-cashflow__labels span {
+  flex: 1;
+  padding-top: .45rem;
+  text-align: center;
+  font: 500 10.5px/1 var(--mf-font-mono);
+  color: var(--mf-ink-400);
+  text-transform: uppercase;
+}
+.mf-cashflow__labels span.is-current { color: var(--mf-orange-600); font-weight: 600; }
+@media (max-width: 560px) {
+  .mf-cashflow__labels span:nth-child(odd) { visibility: hidden; }
+}
+
+/* ── Portfolio composition ─────────────────────────────────────────── */
+.mf-compo { display: flex; flex-direction: column; gap: 1rem; }
+.mf-compo__total { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.mf-compo__total-num { font: 600 30px/1 var(--mf-font-mono); letter-spacing: -.04em; color: var(--mf-ink-900); }
+.mf-compo__total-label { font-size: 12px; color: var(--mf-ink-500); }
+.mf-compo__list { display: flex; flex-direction: column; }
+.mf-compo__row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto 52px;
+  align-items: center;
+  gap: .65rem;
+  width: 100%;
+  padding: .6rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--mf-border);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: padding var(--mf-dur) var(--mf-ease), background-color var(--mf-dur) var(--mf-ease);
+}
+.mf-compo__row:last-child { border-bottom: 0; }
+.mf-compo__row:hover { padding-left: .35rem; background: linear-gradient(90deg, var(--mf-orange-50), transparent); }
+.mf-compo__swatch { width: 10px; height: 10px; border-radius: 1px; }
+.mf-compo__label { font-size: 13px; font-weight: 500; color: var(--mf-ink-800); text-transform: capitalize; }
+.mf-compo__count { font: 600 13px/1 var(--mf-font-mono); color: var(--mf-ink-900); }
+.mf-compo__pct { font: 500 12px/1 var(--mf-font-mono); color: var(--mf-ink-400); text-align: right; }
+
+.mf-compo__aside {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--mf-border);
+}
+.mf-compo__aside > div { padding: .7rem .8rem; }
+.mf-compo__aside > div + div { border-left: 1px solid var(--mf-border); }
+.mf-compo__aside dt { font: 600 10px/1.2 var(--mf-font-sans); letter-spacing: .1em; text-transform: uppercase; color: var(--mf-ink-400); }
+.mf-compo__aside dd { margin-top: .3rem; font: 600 15px/1.2 var(--mf-font-mono); color: var(--mf-ink-900); }
+
+/* ── Activity timeline ─────────────────────────────────────────────── */
+.mf-timeline { list-style: none; display: flex; flex-direction: column; }
+.mf-timeline__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 52px 16px minmax(0, 1fr) auto;
+  gap: .65rem;
+  align-items: start;
+  padding: .15rem 0;
+}
+.mf-timeline__date { padding-top: .6rem; font: 500 11px/1.2 var(--mf-font-mono); color: var(--mf-ink-400); text-transform: uppercase; text-align: right; }
+.mf-timeline__rail { position: relative; align-self: stretch; display: flex; justify-content: center; }
+.mf-timeline__rail::before { content: ''; position: absolute; top: 0; bottom: 0; width: 1px; background: var(--mf-border-strong); }
+.mf-timeline__item:first-child .mf-timeline__rail::before { top: .85rem; }
+.mf-timeline__item:last-child .mf-timeline__rail::before { bottom: calc(100% - .85rem); }
+.mf-timeline__node {
+  position: relative;
+  margin-top: .65rem;
+  width: 9px; height: 9px;
+  border: 2px solid var(--mf-surface);
+  outline: 1px solid var(--mf-ink-300);
+  background: var(--mf-ink-300);
+}
+.mf-timeline__node--payment { background: var(--mf-orange-500); outline-color: var(--mf-orange-500); }
+.mf-timeline__node--client  { background: var(--mf-charcoal-800); outline-color: var(--mf-charcoal-800); }
+.mf-timeline__body {
+  display: flex; flex-direction: column; gap: .1rem;
+  min-width: 0;
+  padding: .45rem .55rem;
+  border-radius: var(--mf-radius);
+  transition: background-color var(--mf-dur) var(--mf-ease);
+}
+button.mf-timeline__body { border: 0; background: none; text-align: left; font: inherit; cursor: pointer; }
+button.mf-timeline__body:hover { background: var(--mf-surface-2); }
+.mf-timeline__title { font-weight: 600; color: var(--mf-ink-900); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mf-timeline__meta { font-size: 11.5px; color: var(--mf-ink-500); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mf-timeline__amount { padding-top: .5rem; font: 600 13px/1.2 var(--mf-font-mono); color: var(--mf-emerald-700); white-space: nowrap; }

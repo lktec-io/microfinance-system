@@ -1,33 +1,25 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FiEye, FiEyeOff, FiMail, FiLock, FiShield, FiMoon, FiSun } from 'react-icons/fi';
-import { useAuth }  from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import {
+  FiEye, FiEyeOff, FiMail, FiLock, FiShield, FiArrowRight,
+  FiActivity, FiMessageSquare, FiUsers, FiAlertCircle,
+} from 'react-icons/fi';
+import { useAuth }   from '../context/AuthContext';
+import { BrandMark } from '../layouts/Sidebar';
 
-function BrandLogo() {
-  const [imgErr, setImgErr] = useState(false);
-  if (!imgErr) {
-    return (
-      <img
-        src="/logo.png"
-        alt="Baraka Microcredit Logo"
-        className="login-logo-img"
-        onError={() => setImgErr(true)}
-      />
-    );
-  }
-  return <div className="login-logo">BC</div>;
-}
+const FEATURES = [
+  { Icon: FiActivity,      title: 'Live portfolio intelligence', desc: 'Disbursements, balances and collection rate at a glance.' },
+  { Icon: FiMessageSquare, title: 'Automated SMS collections',   desc: 'Reminders and overdue notices sent straight from the ledger.' },
+  { Icon: FiUsers,         title: 'Structured client profiles',  desc: 'Loan history and repayment standing for every borrower.' },
+];
 
 export default function Login() {
-  const { login }              = useAuth();
-  const navigate               = useNavigate();
-  const { isDark, toggleTheme } = useTheme();
-  const [form, setForm]          = useState({ email: '', password: '' });
-  const [error, setError]        = useState('');
-  const [loading, setLoading]    = useState(false);
-  const [showPw, setShowPw]      = useState(false);
+  const { login }  = useAuth();
+  const navigate   = useNavigate();
+  const [form, setForm]             = useState({ email: '', password: '' });
+  const [error, setError]           = useState('');
+  const [loading, setLoading]       = useState(false);
+  const [showPw, setShowPw]         = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
   async function handleSubmit(e) {
@@ -45,146 +37,120 @@ export default function Login() {
   }
 
   return (
-    <div className="login-page">
-
-      {/* ── Animated Background ── */}
-      <div className="login-bg" aria-hidden="true">
-        <div className="login-blob login-blob--1" />
-        <div className="login-blob login-blob--2" />
-        <div className="login-blob login-blob--3" />
-        <div className="login-blob login-blob--4" />
-      </div>
-
-      {/* ── Theme Toggle (top-right corner) ── */}
-      <button
-        className="login-theme-btn"
-        onClick={toggleTheme}
-        title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-        aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-      >
-        {isDark ? <FiSun size={18} /> : <FiMoon size={18} />}
-      </button>
-
-      {/* ── Card ── */}
-      <motion.div
-        className="login-card"
-        initial={{ opacity: 0, y: 28, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.52, ease: [0, 0, 0.2, 1] }}
-      >
-        {/* Header */}
-        <motion.div
-          className="login-card-header"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.14, duration: 0.4, ease: [0, 0, 0.2, 1] }}
-        >
-          <BrandLogo />
-          <h1 className="login-card-title">Baraka Microcredit</h1>
-          <p className="login-card-subtitle">Secure Loan Management System</p>
-        </motion.div>
-
-        {/* Error */}
-        {error && (
-          <motion.div
-            className="alert alert--error"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-          >
-            {error}
-          </motion.div>
-        )}
-
-        {/* Form */}
-        <motion.form
-          onSubmit={handleSubmit}
-          className="login-form"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.38, ease: [0, 0, 0.2, 1] }}
-        >
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <div className="input-icon-wrap">
-              <FiMail size={15} className="input-icon" />
-              <input
-                id="email"
-                type="email"
-                required
-                className="input-with-icon"
-                placeholder="you@company.com"
-                value={form.email}
-                onChange={e => setForm(f => ({ ...f, email: e.target.value.toLowerCase() }))}
-              />
-            </div>
+    <div className="mf-auth">
+      {/* ── Brand panel ── */}
+      <aside className="mf-auth__brand">
+        <div className="mf-auth__logo">
+          <BrandMark />
+          <div>
+            <div className="mf-auth__logo-name">Baraka Microcredit</div>
+            <div className="mf-auth__logo-tag">Lending Platform</div>
           </div>
+        </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <div className="login-pw-wrap">
-              <FiLock size={15} className="login-pw-icon" />
-              <input
-                id="password"
-                type={showPw ? 'text' : 'password'}
-                required
-                className="login-pw-input"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              />
-              <button
-                type="button"
-                className="login-pw-toggle"
-                onClick={() => setShowPw(v => !v)}
-                tabIndex={-1}
-                aria-label={showPw ? 'Hide password' : 'Show password'}
-              >
-                {showPw ? <FiEyeOff size={17} /> : <FiEye size={17} />}
-              </button>
-            </div>
+        <div className="mf-auth__pitch">
+          <h2 className="mf-auth__headline">Lending operations, <em>precisely</em> managed.</h2>
+          <p className="mf-auth__lede">
+            One workspace to originate loans, profile clients, track repayments and run collections.
+          </p>
+          <div className="mf-auth__features">
+            {FEATURES.map(({ Icon, title, desc }) => (
+              <div className="mf-auth__feature" key={title}>
+                <span className="mf-auth__feature-icon"><Icon size={16} /></span>
+                <div>
+                  <div className="mf-auth__feature-title">{title}</div>
+                  <div className="mf-auth__feature-desc">{desc}</div>
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
 
-          <div className="login-row-between">
-            <label className="login-remember">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={e => setRememberMe(e.target.checked)}
-              />
-              Remember me
+        <div className="mf-auth__ticker">
+          <span><b>TLS</b> encrypted session</span>
+          <span><b>RBAC</b> role-based access</span>
+          <span>© {new Date().getFullYear()} Baraka Microcredit</span>
+        </div>
+      </aside>
+
+      {/* ── Sign-in form ── */}
+      <main className="mf-auth__panel">
+        <div className="mf-auth__card">
+          <div className="mf-eyebrow">Secure sign-in</div>
+          <h1 className="mf-auth__title">Welcome back</h1>
+          <p className="mf-auth__sub">Sign in with your staff account to continue.</p>
+
+          <form className="mf-auth__form" onSubmit={handleSubmit} noValidate={false}>
+            {error && (
+              <div className="mf-alert mf-alert--error" role="alert">
+                <FiAlertCircle size={15} /> {error}
+              </div>
+            )}
+
+            <label className="mf-field">
+              <span className="mf-label">Email address</span>
+              <span className="mf-input-icon">
+                <FiMail size={15} />
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  autoComplete="username"
+                  className="mf-input mf-auth__input"
+                  placeholder="you@company.com"
+                  value={form.email}
+                  onChange={e => setForm(f => ({ ...f, email: e.target.value.toLowerCase() }))}
+                />
+              </span>
             </label>
-            <Link to="/forgot-password" className="login-forgot-link">
-              Forgot password?
-            </Link>
+
+            <label className="mf-field">
+              <span className="mf-label">Password</span>
+              <span className="mf-input-icon">
+                <FiLock size={15} />
+                <input
+                  id="password"
+                  type={showPw ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  className="mf-input mf-auth__input"
+                  style={{ paddingRight: '2.6rem' }}
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                />
+                <button
+                  type="button"
+                  className="mf-auth__pw-toggle"
+                  onClick={() => setShowPw(v => !v)}
+                  tabIndex={-1}
+                  aria-label={showPw ? 'Hide password' : 'Show password'}
+                >
+                  {showPw ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                </button>
+              </span>
+            </label>
+
+            <div className="mf-auth__row">
+              <label className="mf-check">
+                <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />
+                Remember me
+              </label>
+              <Link to="/forgot-password" className="mf-auth__link">Forgot password?</Link>
+            </div>
+
+            <button type="submit" className="mf-btn mf-btn--primary mf-btn--lg mf-btn--block" disabled={loading}>
+              {loading
+                ? <><span className="mf-spinner-inline" /> Verifying…</>
+                : <>Sign in <FiArrowRight size={16} /></>}
+            </button>
+          </form>
+
+          <div className="mf-auth__foot">
+            <FiShield size={13} /> Encrypted connection · access is logged and monitored
           </div>
-
-          <motion.button
-            type="submit"
-            className="btn btn--primary btn--block login-submit"
-            disabled={loading}
-            whileHover={loading ? {} : { y: -2, boxShadow: '0 8px 28px rgba(22,163,74,.42)' }}
-            whileTap={loading ? {} : { scale: 0.98 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-          >
-            {loading
-              ? <><span className="login-spinner" /> Verifying…</>
-              : 'Sign In →'
-            }
-          </motion.button>
-        </motion.form>
-
-        {/* Footer */}
-        <motion.div
-          className="login-card-footer"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.42 }}
-        >
-          <FiShield size={12} /> Secured with end-to-end encryption
-        </motion.div>
-      </motion.div>
-
+        </div>
+      </main>
     </div>
   );
 }

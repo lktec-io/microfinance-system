@@ -1,105 +1,81 @@
-import { useState, useEffect, useRef, Suspense } from 'react';
-import { useLocation, useOutlet } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
-import Sidebar           from './Sidebar';
-import Header            from './Header';
-import BottomNav         from '../components/common/BottomNav';
-import SecurityWatermark from '../components/common/SecurityWatermark';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import Sidebar              from './Sidebar';
+import Header               from './Header';
+import SecurityWatermark    from '../components/common/SecurityWatermark';
 import { useSecurityGuard } from '../hooks/useSecurityGuard';
 
-const titles = {
-  '/':           'Dashboard',
-  '/customers':  'Customers',
-  '/loans':      'Loans',
-  '/repayments': 'Repayments',
-  '/reports':    'Reports',
-  '/users':      'User Management',
-};
+const COLLAPSE_KEY = 'mf_sidebar_collapsed';
 
-/*
- * AnimatedOutlet — calls useOutlet() to capture the current matched child
- * as a React element snapshot. Framer Motion's AnimatePresence can hold
- * the previous snapshot during its exit while mounting the next one.
- * This means the sidebar and header NEVER remount during navigation.
- */
-function AnimatedOutlet() {
-  const location = useLocation();
-  const element  = useOutlet();
-
-  return (
-    <AnimatePresence mode="sync" initial={false}>
-      <motion.main
-        key={location.pathname}
-        className="page-content"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0, transition: { duration: 0.24, ease: [0, 0, 0.2, 1] } }}
-      >
-        <Suspense fallback={<div className="page-loading-spinner" aria-label="Loading…" />}>
-          {element}
-        </Suspense>
-      </motion.main>
-    </AnimatePresence>
-  );
+function readCollapsed() {
+  try { return localStorage.getItem(COLLAPSE_KEY) === '1'; } catch { return false; }
 }
 
-export default function Layout() {
-  const [sidebarOpen,      setSidebarOpen]      = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const location    = useLocation();
-  const mainAreaRef = useRef(null);
+export default function Layout({ children }) {
+  const [collapsed, setCollapsed]   = useState(readCollapsed);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { pathname } = useLocation();
+  const mainRef = useRef(null);
 
   useSecurityGuard();
 
+  /* Blur sensitive content while the tab is hidden */
   useEffect(() => {
-    function handleVisibility() {
-      const el = mainAreaRef.current;
-      if (!el) return;
-      el.classList.toggle('tab-blurred', document.hidden);
+    function onVisibility() {
+      mainRef.current?.classList.toggle('tab-blurred', document.hidden);
     }
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
 
-  const title = Object.entries(titles).find(([k]) =>
-    location.pathname.startsWith(k) && (k === '/' ? location.pathname === '/' : true)
-  )?.[1] || 'Baraka Microcredit';
+  /* Route change: close mobile drawer, return to top */
+  useEffect(() => {
+    setMobileOpen(false);
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [pathname]);
 
   useEffect(() => {
-    document.body.style.overflow = sidebarOpen ? 'hidden' : '';
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [sidebarOpen]);
+  }, [mobileOpen]);
 
-  useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
+  const toggleCollapse = useCallback(() => {
+    setCollapsed(c => {
+      const next = !c;
+      try { localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0'); } catch { /* storage unavailable */ }
+      return next;
+    });
+  }, []);
+
+  const closeMobile = useCallback(() => setMobileOpen(false), []);
 
   return (
-    <div className="app-shell">
-      <div className="page-glow-bg" aria-hidden="true" />
-
+    <div className={`mf-shell${collapsed ? ' is-collapsed' : ''}`}>
       <SecurityWatermark />
 
       <Sidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(c => !c)}
+        collapsed={collapsed}
+        onToggleCollapse={toggleCollapse}
+        mobileOpen={mobileOpen}
+        onCloseMobile={closeMobile}
       />
 
-      <div ref={mainAreaRef} className={`main-area${sidebarCollapsed ? ' main-area--collapsed' : ''}`}>
-        <Header
-          title={title}
-          onMenuClick={() => setSidebarOpen(v => !v)}
-          open={sidebarOpen}
-          collapsed={sidebarCollapsed}
-        />
+      <div ref={mainRef} className="mf-main">
+        <Header onOpenMobile={() => setMobileOpen(true)} />
 
-        <AnimatedOutlet />
+        <main className="mf-content" id="main-content">
+          <div key={pathname} className="mf-route">
+            <Suspense fallback={<div className="mf-route-loader" aria-label="Loading" />}>
+              {children}
+            </Suspense>
+          </div>
+        </main>
 
-        <footer className="app-footer">
-          Baraka Microcredit &copy; 2026 &mdash; All Rights Reserved.
+        <footer className="mf-footer">
+          <span>© {new Date().getFullYear()} Baraka Microcredit. All rights reserved.</span>
+          <span className="mf-footer__meta">Secure session · activity is monitored</span>
         </footer>
       </div>
-
-      <BottomNav />
     </div>
   );
 }

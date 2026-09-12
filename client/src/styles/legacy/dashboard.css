@@ -202,7 +202,7 @@
 }
 .hero-metric-icon {
   width: 28px; height: 28px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: rgba(255,255,255,.08);
   display: grid;
   place-items: center;
@@ -245,10 +245,10 @@
 
 /* Stat card — elegant, thin border-radius */
 .stat-card {
-  border-radius: 12px !important;
+  border-radius: var(--radius) !important;
 }
 .stat-value {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 1.7rem;      /* financial value — bold */
   font-weight: 700;
   color: var(--gray-900);
@@ -301,7 +301,7 @@
   color: var(--gray-700);
   font-weight: 500;
   padding: .3rem .45rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
   transition: background var(--transition);
 }
 .pie-legend-item:hover { background: var(--primary-lt); }
@@ -350,7 +350,7 @@
   gap: .8rem;
   padding: .72rem .6rem;
   border-radius: var(--radius);
-  cursor: none;
+  cursor: auto;
   position: relative;
   border-left: 3px solid transparent;
   transition: background var(--transition), border-color var(--transition), padding var(--transition);
@@ -456,7 +456,7 @@
   background: linear-gradient(135deg, rgba(245,158,11,.1), rgba(239,68,68,.07));
   border: 1px solid rgba(245,158,11,.28);
   color: var(--yellow-dk);
-  cursor: none;
+  cursor: auto;
 }
 .alert-banner--danger {
   background: var(--red-lt);
@@ -485,7 +485,7 @@
 .chart-tooltip {
   background: var(--gray-900);
   color: #fff;
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: .45rem .7rem;
   font-size: .8rem;
   font-weight: 500;
@@ -541,7 +541,7 @@
 
 /* ── Legend interactive states ── */
 .pie-legend-item--hidden  { opacity: 0.5; }
-.pie-legend-item--selected { background: var(--primary-lt); border-radius: 8px; }
+.pie-legend-item--selected { background: var(--primary-lt); border-radius: var(--radius); }
 
 /* ══════════════════════════════════════════════════════════════════
    RESPONSIVE

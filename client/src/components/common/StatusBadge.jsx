@@ -1,6 +1,6 @@
 const STATUS_COLOR = {
   pending: 'yellow',
-  active:  'blue',
+  active:  'orange',
   paid:    'green',
   overdue: 'red',
 };
@@ -8,7 +8,7 @@ const STATUS_COLOR = {
 export default function StatusBadge({ status, large = false }) {
   const color = STATUS_COLOR[status] || 'gray';
   return (
-    <span className={`badge badge--${color}${large ? ' badge--lg' : ''}`}>
+    <span className={`badge badge--${color} badge--dot${large ? ' badge--lg' : ''}`}>
       {status}
     </span>
   );
