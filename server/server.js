@@ -26,7 +26,6 @@ const PORT = process.env.PORT || 8004;
 // ── Trust proxy (for rate-limiter IP detection behind Nginx) ─
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
-
 // ── CORS ─────────────────────────────────────────────────────
 app.use(cors({
   origin:  process.env.CLIENT_URL || 'https://microfinance.clixworks.co.tz',
