@@ -29,7 +29,7 @@ app.disable('x-powered-by');
 
 // ── CORS ─────────────────────────────────────────────────────
 app.use(cors({
-  origin:  process.env.CLIENT_URL || 'https://microfinance.nardio.online',
+  origin:  process.env.CLIENT_URL || 'https://microfinance.clixworks.co.tz',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
 }));
