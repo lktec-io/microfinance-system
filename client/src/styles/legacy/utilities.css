@@ -237,7 +237,7 @@
 }
 
 .repayment-card-receipt code {
-  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-family: 'Nunito', system-ui, sans-serif; font-variant-numeric: tabular-nums;
   font-size: .75rem;
   background: var(--primary-lt);
   color: var(--primary);

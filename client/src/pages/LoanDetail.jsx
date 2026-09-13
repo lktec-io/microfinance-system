@@ -4,14 +4,13 @@ import {
   FiArrowLeft, FiPrinter, FiCreditCard,
   FiUser, FiPhone, FiMapPin,
   FiCalendar, FiDollarSign, FiPercent, FiClock,
-  FiTrash2, FiX, FiMessageSquare, FiBell, FiAlertTriangle, FiEdit2,
+  FiTrash2, FiX, FiEdit2,
 } from 'react-icons/fi';
 import api          from '../api';
 import { useToast }  from '../context/ToastContext';
 import { fmt }       from '../utils/format';
 import StatusBadge   from '../components/common/StatusBadge';
 import Spinner       from '../components/common/Spinner';
-import SmsSendModal  from '../components/common/SmsSendModal';
 
 function InfoRow({ Icon, label, value, valueClass }) {
   return (
@@ -38,8 +37,6 @@ export default function LoanDetail() {
   const [error,     setError]     = useState('');
   const [receipt,   setReceipt]   = useState(null);
   const [delModal,  setDelModal]  = useState(false);
-  // null | 'thank_you' | 'reminder' | 'overdue'
-  const [smsType,    setSmsType]   = useState(null);
   const [editModal,  setEditModal] = useState(false);
   const [editForm,   setEditForm]  = useState({ status: '', due_date: '', purpose: '' });
   const [editSaving, setEditSaving]= useState(false);
@@ -156,25 +153,6 @@ export default function LoanDetail() {
         <div style={{ display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
           <button className="btn btn--ghost" onClick={openEdit}>
             <FiEdit2 size={15} /> Edit
-          </button>
-          <button className="btn btn--ghost btn--sms-ty" onClick={() => setSmsType('thank_you')}>
-            <FiMessageSquare size={15} /> Thank You
-          </button>
-          <button
-            className="btn btn--ghost btn--sms-rm"
-            onClick={() => setSmsType('reminder')}
-            disabled={loan.status === 'paid'}
-          >
-            <FiBell size={15} /> Reminder
-          </button>
-          <button
-            className="btn btn--ghost"
-            style={{ borderColor: 'var(--red)', color: 'var(--red)' }}
-            onClick={() => setSmsType('overdue')}
-            disabled={loan.status !== 'overdue'}
-            title={loan.status !== 'overdue' ? 'Only available for overdue loans' : 'Send overdue notice'}
-          >
-            <FiAlertTriangle size={15} /> Overdue SMS
           </button>
           {loan.status !== 'paid' && loan.repayments?.length === 0 && (
             <button className="btn btn--ghost btn--danger-ghost" onClick={() => setDelModal(true)}>
@@ -477,15 +455,6 @@ export default function LoanDetail() {
             </form>
           </div>
         </div>
-      )}
-
-      {/* ── SMS Send Modal ── */}
-      {smsType && (
-        <SmsSendModal
-          loan={loan}
-          type={smsType}
-          onClose={() => setSmsType(null)}
-        />
       )}
 
       {/* ── Receipt Modal ── */}

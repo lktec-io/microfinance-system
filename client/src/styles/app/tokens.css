@@ -1,5 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   DESIGN TOKENS — Baraka Microcredit Fintech UI
+   DESIGN TOKENS — Baraka Microcredit
+   Mobile-first: base values target phones; media queries scale DOWN type
+   and control sizes for tablets and pointer-driven desktops.
    Orange-dominant · charcoal chrome · sharp geometry (max 4px radius)
    ═══════════════════════════════════════════════════════════════════════ */
 
@@ -24,9 +26,9 @@
   --mf-ink-900: #17171C;
   --mf-ink-800: #26262E;
   --mf-ink-700: #3D3D47;
-  --mf-ink-600: #55555F;
-  --mf-ink-500: #6E6E78;
-  --mf-ink-400: #92929C;
+  --mf-ink-600: #52525C;
+  --mf-ink-500: #676771;
+  --mf-ink-400: #8A8A94;
   --mf-ink-300: #B8B8C0;
   --mf-ink-200: #D6D6DC;
 
@@ -37,7 +39,6 @@
   --mf-surface-3:     #F3F4F6;
   --mf-border:        #EEEEEE;
   --mf-border-strong: #E0E0E5;
-  --mf-grid-line:     rgba(30, 30, 36, .045);
 
   /* ── Semantic ──────────────────────────────────────────────────────── */
   --mf-emerald-700: #0B7A55;
@@ -48,7 +49,7 @@
   --mf-crimson-600: #B03A48;
   --mf-crimson-100: #F3D9DD;
   --mf-crimson-50:  #FBF0F2;
-  --mf-amber-700:   #92600F;
+  --mf-amber-700:   #8A5A0E;
   --mf-amber-600:   #B7791F;
   --mf-amber-100:   #F5E6C8;
   --mf-amber-50:    #FDF7EA;
@@ -62,29 +63,51 @@
   --mf-radius:    3px;
   --mf-radius-lg: 4px;
 
-  /* ── Type ──────────────────────────────────────────────────────────── */
-  --mf-font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --mf-font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  /* ── Typography — Nunito everywhere ────────────────────────────────── */
+  --mf-font-sans: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mf-font-mono: var(--mf-font-sans);   /* figures use tabular-nums, same family */
+
+  /* Phone type scale — generous for field use */
+  --mf-fs-2xs:  12px;
+  --mf-fs-xs:   13px;
+  --mf-fs-sm:   14.5px;
+  --mf-fs-base: 16px;     /* ≥16px also stops iOS zoom-on-focus */
+  --mf-fs-md:   17px;
+  --mf-fs-lg:   19px;
+  --mf-fs-xl:   24px;
+  --mf-fs-2xl:  27px;
+  --mf-fs-3xl:  32px;
+
+  /* ── Touch targets ─────────────────────────────────────────────────── */
+  --mf-control-h:    48px;   /* inputs, primary buttons */
+  --mf-control-h-sm: 42px;   /* compact buttons */
+  --mf-icon-btn:     42px;   /* square icon buttons */
+  --mf-touch:        44px;   /* minimum hit area */
 
   /* ── Elevation (restrained) ────────────────────────────────────────── */
   --mf-shadow-1:   0 1px 0 rgba(30, 30, 36, .03);
   --mf-shadow-2:   0 1px 2px rgba(30, 30, 36, .05), 0 1px 0 rgba(30, 30, 36, .02);
-  --mf-shadow-pop: 0 16px 40px rgba(22, 22, 26, .14), 0 2px 8px rgba(22, 22, 26, .06);
-  --mf-focus-ring: 0 0 0 3px rgba(255, 107, 0, .22);
+  --mf-shadow-pop: 0 16px 40px rgba(22, 22, 26, .16), 0 2px 8px rgba(22, 22, 26, .06);
+  --mf-focus-ring: 0 0 0 3px rgba(255, 107, 0, .25);
 
   /* ── Motion ────────────────────────────────────────────────────────── */
-  --mf-ease: cubic-bezier(.2, .8, .2, 1);
-  --mf-dur:  160ms;
+  --mf-ease:        cubic-bezier(.2, .8, .2, 1);
+  --mf-ease-drawer: cubic-bezier(.32, .72, 0, 1);
+  --mf-dur:         160ms;
 
   /* ── Layout ────────────────────────────────────────────────────────── */
-  --mf-sidebar-w:           252px;
-  --mf-sidebar-w-collapsed: 68px;
+  --mf-gutter:              1rem;
   --mf-header-h:            60px;
+  --mf-sidebar-w:           256px;
+  --mf-sidebar-w-collapsed: 72px;
+  --mf-drawer-w:            min(320px, 86vw);
   --mf-content-max:         1440px;
+  --mf-safe-top:    env(safe-area-inset-top, 0px);
+  --mf-safe-bottom: env(safe-area-inset-bottom, 0px);
 
   /* ═════════════════════════════════════════════════════════════════════
      LEGACY ALIASES — keep untouched pages (LoanDetail, Expenses, Reports,
-     Users, password recovery, SMS modal) on the new palette & geometry.
+     Users, password recovery) on the new palette & geometry.
      ═════════════════════════════════════════════════════════════════════ */
   --primary:        var(--mf-orange-500);
   --primary-2:      var(--mf-orange-600);
@@ -171,4 +194,42 @@
   --theme-glow:    transparent;
   --theme-ray:     transparent;
   --theme-ambient: transparent;
+}
+
+/* ── Tablet ──────────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  :root {
+    --mf-fs-2xs:  11.5px;
+    --mf-fs-xs:   12.5px;
+    --mf-fs-sm:   14px;
+    --mf-fs-base: 15.5px;
+    --mf-fs-md:   16px;
+    --mf-fs-lg:   18px;
+    --mf-fs-2xl:  26px;
+    --mf-gutter:  1.5rem;
+  }
+}
+
+/* ── Desktop type ────────────────────────────────────────────────────── */
+@media (min-width: 1200px) {
+  :root {
+    --mf-fs-2xs:  11px;
+    --mf-fs-xs:   12px;
+    --mf-fs-sm:   13.5px;
+    --mf-fs-base: 14.5px;
+    --mf-fs-md:   15px;
+    --mf-fs-lg:   17px;
+    --mf-fs-xl:   25px;
+    --mf-gutter:  1.75rem;
+  }
+}
+
+/* ── Compact controls only where a precise pointer exists ────────────── */
+@media (min-width: 1024px) and (pointer: fine) {
+  :root {
+    --mf-control-h:    40px;
+    --mf-control-h-sm: 32px;
+    --mf-icon-btn:     32px;
+    --mf-touch:        36px;
+  }
 }

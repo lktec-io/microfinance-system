@@ -8,6 +8,7 @@ import api from '../api';
 import { useToast } from '../context/ToastContext';
 import { fmt0, fmtDay, fmtShort } from '../utils/format';
 import { clientStanding } from '../utils/finance';
+import { displayNin, normalizeNin } from '../utils/nida';
 import {
   PageHeader, MetricCard, Segmented, SearchField, Avatar, Empty, TableSkeleton, Modal,
 } from '../components/ui';
@@ -26,24 +27,25 @@ const SEGMENTS = [
 ];
 
 const SORTS = {
-  recent:   { label: 'Newest first',     fn: (a, b) => String(b.c.registration_date || '').localeCompare(String(a.c.registration_date || '')) || b.c.id - a.c.id },
-  name:     { label: 'Name (A–Z)',       fn: (a, b) => String(a.c.full_name).localeCompare(String(b.c.full_name)) },
-  score:    { label: 'Score (high–low)', fn: (a, b) => (b.standing.score ?? -1) - (a.standing.score ?? -1) },
+  recent:   { label: 'Newest first',        fn: (a, b) => String(b.c.registration_date || '').localeCompare(String(a.c.registration_date || '')) || b.c.id - a.c.id },
+  name:     { label: 'Name (A–Z)',          fn: (a, b) => String(a.c.full_name).localeCompare(String(b.c.full_name)) },
+  score:    { label: 'Score (high–low)',    fn: (a, b) => (b.standing.score ?? -1) - (a.standing.score ?? -1) },
   exposure: { label: 'Exposure (high–low)', fn: (a, b) => b.standing.exposure - a.standing.exposure },
 };
 
-const SHORT_DATE = { day: '2-digit', month: 'short', year: 'numeric' };
-const clientCode = id => `CL-${String(id).padStart(5, '0')}`;
+const GRADE_BADGE = { emerald: 'green', crimson: 'red', amber: 'yellow' };
+const SHORT_DATE  = { day: '2-digit', month: 'short', year: 'numeric' };
+const clientCode  = id => `CL-${String(id).padStart(5, '0')}`;
 
 export default function Customers() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [params, setParams] = useSearchParams();
 
-  const [customers, setCustomers] = useState([]);
-  const [loans, setLoans]         = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [loadError, setLoadError] = useState('');
+  const [customers, setCustomers]   = useState([]);
+  const [loans, setLoans]           = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [loadError, setLoadError]   = useState('');
   const [loansError, setLoansError] = useState(false);
 
   const [query, setQuery]     = useState('');
@@ -104,12 +106,15 @@ export default function Customers() {
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
+    // A digits-only query also matches NINs typed with or without hyphens
+    const qDigits = /^[\d\s-]+$/.test(q) ? normalizeNin(q) : '';
     return rows
       .filter(r => segment === 'all' || r.standing.status === segment)
       .filter(r => !q
         || r.c.full_name?.toLowerCase().includes(q)
         || r.c.phone?.toLowerCase().includes(q)
         || r.c.id_number?.toLowerCase().includes(q)
+        || (qDigits && normalizeNin(r.c.id_number).includes(qDigits))
         || clientCode(r.c.id).toLowerCase().includes(q))
       .sort(SORTS[sort].fn);
   }, [rows, segment, query, sort]);
@@ -134,10 +139,10 @@ export default function Customers() {
   function rowActions(r) {
     return (
       <div className="mf-actions">
-        <button type="button" className="mf-icon-btn" onClick={() => setProfileId(r.c.id)} title="View profile" aria-label="View profile"><FiEye size={13} /></button>
-        <button type="button" className="mf-icon-btn" onClick={() => newLoanFor(r.c.id)} title="New loan for client" aria-label="New loan for client"><FiFilePlus size={13} /></button>
-        <button type="button" className="mf-icon-btn" onClick={() => setEditor({ mode: 'edit', customer: r.c })} title="Edit client" aria-label="Edit client"><FiEdit2 size={13} /></button>
-        <button type="button" className="mf-icon-btn mf-icon-btn--danger" onClick={() => setDeleting(r)} title="Delete client" aria-label="Delete client"><FiTrash2 size={13} /></button>
+        <button type="button" className="mf-icon-btn" onClick={() => setProfileId(r.c.id)} title="View profile" aria-label="View profile"><FiEye size={16} /></button>
+        <button type="button" className="mf-icon-btn" onClick={() => newLoanFor(r.c.id)} title="New loan for client" aria-label="New loan for client"><FiFilePlus size={16} /></button>
+        <button type="button" className="mf-icon-btn" onClick={() => setEditor({ mode: 'edit', customer: r.c })} title="Edit client" aria-label="Edit client"><FiEdit2 size={16} /></button>
+        <button type="button" className="mf-icon-btn mf-icon-btn--danger" onClick={() => setDeleting(r)} title="Delete client" aria-label="Delete client"><FiTrash2 size={16} /></button>
       </div>
     );
   }
@@ -150,7 +155,7 @@ export default function Customers() {
         subtitle="Borrower profiles with repayment standing and full loan history."
         actions={
           <button type="button" className="mf-btn mf-btn--primary" onClick={() => setEditor({ mode: 'add' })}>
-            <FiUserPlus size={15} /> Register Client
+            <FiUserPlus size={17} /> Register Client
           </button>
         }
       />
@@ -177,9 +182,8 @@ export default function Customers() {
             options={SEGMENTS.map(s => ({ ...s, count: counts[s.value] }))} />
         </div>
         <div className="mf-toolbar__group">
-          <SearchField value={query} onChange={setQuery} placeholder="Name, phone, ID or CL-code" maxWidth="260px" />
-          <select className="mf-select" style={{ width: 180, height: 36 }} value={sort}
-            onChange={e => setSort(e.target.value)} aria-label="Sort clients">
+          <SearchField value={query} onChange={setQuery} placeholder="Name, phone, NIN or CL-code" />
+          <select className="mf-select" value={sort} onChange={e => setSort(e.target.value)} aria-label="Sort clients">
             {Object.entries(SORTS).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
           </select>
           <Segmented iconOnly ariaLabel="View mode" value={view} onChange={setView}
@@ -189,20 +193,20 @@ export default function Customers() {
 
       {loadError && (
         <div className="mf-alert mf-alert--error" role="alert">
-          <FiAlertCircle size={15} /> {loadError}
+          <FiAlertCircle size={17} /> <span>{loadError}</span>
           <button type="button" className="mf-btn mf-btn--sm mf-alert__action" onClick={() => { setLoading(true); load(); }}>
-            <FiRefreshCw size={12} /> Retry
+            <FiRefreshCw size={14} /> Retry
           </button>
         </div>
       )}
       {loansError && !loadError && (
         <div className="mf-alert mf-alert--warning">
-          <FiAlertTriangle size={15} /> Loan history could not be loaded — scores and exposure are unavailable.
+          <FiAlertTriangle size={17} /> <span>Loan history could not be loaded — scores and exposure are unavailable.</span>
         </div>
       )}
 
       {loading ? (
-        <div className="mf-card mf-card--flush"><TableSkeleton rows={7} cols={7} /></div>
+        <div className="mf-card mf-card--flush"><TableSkeleton rows={7} cols={5} /></div>
       ) : visible.length === 0 ? (
         <div className="mf-card">
           <Empty
@@ -211,7 +215,7 @@ export default function Customers() {
             message={query || segment !== 'all' ? 'Adjust the search or segment.' : 'Register a borrower to begin originating loans.'}
             action={query || segment !== 'all'
               ? <button type="button" className="mf-btn mf-btn--sm" onClick={() => { setQuery(''); setSegment('all'); }}>Clear filters</button>
-              : <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setEditor({ mode: 'add' })}><FiUserPlus size={13} /> Register client</button>}
+              : <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setEditor({ mode: 'add' })}><FiUserPlus size={15} /> Register client</button>}
           />
         </div>
       ) : view === 'grid' ? (
@@ -219,10 +223,10 @@ export default function Customers() {
           {visible.map(r => (
             <article key={r.c.id} className={`mf-client-card${r.standing.status === 'overdue' ? ' mf-client-card--overdue' : ''}`}>
               <button type="button" className="mf-client-card__head" onClick={() => setProfileId(r.c.id)}>
-                <Avatar name={r.c.full_name} size={38} />
+                <Avatar name={r.c.full_name} size={42} />
                 <span className="mf-cell-stack">
                   <span className="mf-cell-title">{r.c.full_name}</span>
-                  <span className="mf-cell-sub mf-mono">{clientCode(r.c.id)} · {r.c.phone}</span>
+                  <span className="mf-cell-sub">{clientCode(r.c.id)} · {r.c.phone}</span>
                 </span>
                 <StandingBadge status={r.standing.status} />
               </button>
@@ -231,7 +235,7 @@ export default function Customers() {
                   <div className="mf-summary-bar__label">Repayment score</div>
                   <div className="mf-client-card__score-num">{r.standing.score ?? '—'}<small>/100</small></div>
                 </div>
-                <span className={`badge badge--${r.standing.grade.tone === 'emerald' ? 'green' : r.standing.grade.tone === 'crimson' ? 'red' : r.standing.grade.tone === 'amber' ? 'yellow' : 'gray'}`}>
+                <span className={`badge badge--${GRADE_BADGE[r.standing.grade.tone] || 'gray'}`}>
                   {r.standing.grade.letter} · {r.standing.grade.label}
                 </span>
               </div>
@@ -239,7 +243,7 @@ export default function Customers() {
                 <div className="mf-kv">
                   <div className="mf-kv__row"><span>Loans</span><span>{r.standing.n} ({r.standing.active + r.standing.pending} open · {r.standing.overdue} overdue)</span></div>
                   <div className="mf-kv__row"><span>Exposure</span><span>TZS {fmt0(r.standing.exposure)}</span></div>
-                  <div className="mf-kv__row"><span>National ID</span><span>{r.c.id_number || '—'}</span></div>
+                  <div className="mf-kv__row"><span>NIN</span><span>{displayNin(r.c.id_number)}</span></div>
                 </div>
               </div>
               <div className="mf-client-card__foot">
@@ -252,7 +256,7 @@ export default function Customers() {
       ) : (
         <section className="mf-card mf-card--flush">
           <div className="mf-table-wrap">
-            <table className="mf-table">
+            <table className="mf-table mf-table--stack">
               <thead>
                 <tr>
                   <th>Client</th>
@@ -269,20 +273,22 @@ export default function Customers() {
                   <tr key={r.c.id} className="is-link" onClick={() => setProfileId(r.c.id)}>
                     <td>
                       <div className="mf-cell-main">
-                        <Avatar name={r.c.full_name} size={32} />
+                        <Avatar name={r.c.full_name} size={38} />
                         <div className="mf-cell-stack">
                           <span className="mf-cell-title">{r.c.full_name}</span>
-                          <span className="mf-cell-sub mf-mono">{clientCode(r.c.id)}{r.c.id_number ? ` · ID ${r.c.id_number}` : ''}</span>
+                          <span className="mf-cell-sub">
+                            {clientCode(r.c.id)}{r.c.id_number ? ` · NIN ${displayNin(r.c.id_number)}` : ''}
+                          </span>
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Contact">
                       <div className="mf-cell-stack">
-                        <span className="mf-mono" style={{ fontSize: 12.5 }}>{r.c.phone}</span>
+                        <span className="mf-num">{r.c.phone}</span>
                         <span className="mf-cell-sub">Since {fmtDay(r.c.registration_date, SHORT_DATE)}</span>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Loans">
                       <span className="mf-loans-mini">
                         <span className="mf-loans-mini__count">{r.standing.n}</span>
                         {r.standing.n > 0 && (
@@ -292,9 +298,9 @@ export default function Customers() {
                         )}
                       </span>
                     </td>
-                    <td className={`is-num${r.standing.exposure > 0 ? '' : ' mf-muted'}`}>{fmt0(r.standing.exposure)}</td>
-                    <td><ScoreCell standing={r.standing} /></td>
-                    <td><StandingBadge status={r.standing.status} /></td>
+                    <td className={`is-num${r.standing.exposure > 0 ? '' : ' mf-muted'}`} data-label="Exposure (TZS)">{fmt0(r.standing.exposure)}</td>
+                    <td data-label="Repayment score"><ScoreCell standing={r.standing} /></td>
+                    <td data-label="Standing"><StandingBadge status={r.standing.status} /></td>
                     <td className="is-actions" onClick={e => e.stopPropagation()}>{rowActions(r)}</td>
                   </tr>
                 ))}
@@ -308,6 +314,7 @@ export default function Customers() {
         <ClientFormModal
           mode={editor.mode}
           customer={editor.customer}
+          customers={customers}
           onClose={() => setEditor(null)}
           onSaved={() => {
             showToast(editor.mode === 'add' ? 'Client registered successfully' : 'Client updated', 'success');
@@ -339,7 +346,7 @@ export default function Customers() {
             ? <button type="button" className="mf-btn mf-btn--ghost" onClick={() => setDeleting(null)}>Close</button>
             : <>
                 <button type="button" className="mf-btn mf-btn--ghost" onClick={() => setDeleting(null)}>Cancel</button>
-                <button type="button" className="mf-btn mf-btn--danger" onClick={confirmDelete}><FiTrash2 size={13} /> Delete</button>
+                <button type="button" className="mf-btn mf-btn--danger" onClick={confirmDelete}><FiTrash2 size={15} /> Delete</button>
               </>}
         >
           {deleting.standing.n > 0 ? (

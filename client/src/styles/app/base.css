@@ -1,43 +1,52 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   BASE — reset · typography · focus · keyframes · security rules
+   BASE — reset · typography · focus · scroll lock · keyframes · security
    ═══════════════════════════════════════════════════════════════════════ */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
-  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
 }
 
 body {
+  min-height: 100vh;
+  min-height: 100dvh;
   font-family: var(--mf-font-sans);
-  font-size: 14px;
+  font-size: var(--mf-fs-base);
+  font-weight: 500;
   line-height: 1.55;
   color: var(--mf-ink-800);
   background: var(--mf-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'cv11', 'ss01';
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
 }
 
-h1, h2, h3, h4, h5, h6 {
+/* Every text element — headings, controls, tables — uses Nunito */
+h1, h2, h3, h4, h5, h6,
+p, span, a, li, dt, dd, label, small, strong, b, em,
+button, input, select, textarea, optgroup, option,
+table, th, td, caption, code, kbd, samp, pre {
   font-family: var(--mf-font-sans);
-  color: var(--mf-ink-900);
-  letter-spacing: -.012em;
-  line-height: 1.25;
 }
-h1 { font-weight: 700; }
-h2, h3 { font-weight: 650; }
-h4, h5, h6 { font-weight: 600; }
+
+h1, h2, h3, h4, h5, h6 { color: var(--mf-ink-900); line-height: 1.25; letter-spacing: -.01em; }
+h1 { font-weight: 800; }
+h2, h3 { font-weight: 700; }
+h4, h5, h6 { font-weight: 700; }
 
 a { color: var(--mf-orange-600); text-decoration: none; }
 a:hover { color: var(--mf-orange-700); text-decoration: underline; text-underline-offset: 2px; }
 
-button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+button, input, select, textarea { font-size: inherit; color: inherit; }
+button, a, [role='button'], label, summary { touch-action: manipulation; }
 button { cursor: pointer; }
-img { max-width: 100%; display: block; }
-code, kbd, samp { font-family: var(--mf-font-mono); }
+img, svg { max-width: 100%; }
+img { display: block; }
 
 :focus { outline: none; }
 :focus-visible { outline: none; box-shadow: var(--mf-focus-ring); }
@@ -46,15 +55,17 @@ code, kbd, samp { font-family: var(--mf-font-mono); }
 
 input[type='checkbox'], input[type='radio'] { accent-color: var(--mf-orange-500); }
 
-/* Figures: tabular, monospaced — every money value in the app */
+/* Money & counts: tabular figures so columns align */
 .mf-num, .mf-mono {
-  font-family: var(--mf-font-mono);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -.01em;
+  font-family: var(--mf-font-sans);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
-/* Body scroll lock when a modal is open */
-body.modal-open { overflow: hidden; }
+/* ── Scroll lock (see utils/scrollLock.js) ─────────────────────────── */
+html.mf-scroll-locked { overflow: hidden; }
+html.mf-scroll-locked body { padding-right: var(--mf-scrollbar-gap, 0px); }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 8px; height: 8px; }
@@ -71,15 +82,18 @@ body.modal-open { overflow: hidden; }
 @keyframes scaleIn    { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: none; } }
 @keyframes popIn      { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
 @keyframes shimmer    { from { background-position: -600px 0; } to { background-position: 600px 0; } }
-@keyframes mf-fade-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-@keyframes mf-pop     { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-@keyframes mf-slide-in-right { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes mf-fade-up { from { opacity: 0; transform: translate3d(0, 8px, 0); } to { opacity: 1; transform: none; } }
+@keyframes mf-pop     { from { opacity: 0; transform: translate3d(0, -4px, 0); } to { opacity: 1; transform: none; } }
+@keyframes mf-sheet-up { from { transform: translate3d(0, 100%, 0); } to { transform: none; } }
+@keyframes mf-slide-in-right { from { transform: translate3d(100%, 0, 0); } to { transform: none; } }
 @keyframes mf-pulse   { 0%, 100% { box-shadow: 0 0 0 0 currentColor; } 70% { box-shadow: 0 0 0 5px transparent; } }
 @keyframes mf-grow-x  { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes mf-grow-y  { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes mf-shake   { 0%, 100% { transform: none; } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
 }
 
 /* ── Suspense fallback for lazy routes ─────────────────────────────── */
@@ -93,20 +107,19 @@ body.modal-open { overflow: hidden; }
 .page-loading-spinner::after,
 .mf-route-loader::after {
   content: '';
-  width: 28px;
-  height: 28px;
-  border: 2px solid var(--mf-border-strong);
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--mf-border-strong);
   border-top-color: var(--mf-orange-500);
   border-radius: 50%;
   animation: spin .7s linear infinite;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   SECURITY — print prevention & tab blur (preserved from previous UI)
+   SECURITY — print prevention & tab blur
    ══════════════════════════════════════════════════════════════════════ */
 @media print {
   body { display: none !important; }
-  .security-watermark { display: none !important; }
 }
 
 .tab-blurred {

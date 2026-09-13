@@ -248,7 +248,7 @@
   border-radius: var(--radius) !important;
 }
 .stat-value {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Nunito', system-ui, sans-serif;
   font-size: 1.7rem;      /* financial value — bold */
   font-weight: 700;
   color: var(--gray-900);
@@ -406,7 +406,7 @@
   flex-wrap: wrap;
 }
 .activity-receipt {
-  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-family: 'Nunito', system-ui, sans-serif; font-variant-numeric: tabular-nums;
   font-size: .72rem;
   color: var(--gray-400);
   background: var(--gray-100);

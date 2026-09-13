@@ -748,12 +748,6 @@ textarea { resize: vertical; min-height: 80px; }
 .icon-btn--edit:hover { background: var(--yellow-lt); border-color: rgba(217,119,6,.22); }
 .icon-btn--del     { color: var(--red); }
 .icon-btn--del:hover { background: var(--red-lt); border-color: rgba(220,38,38,.22); }
-.icon-btn--sms-ty  { color: var(--green); }
-.icon-btn--sms-ty:hover { background: var(--green-lt); border-color: var(--green-border); }
-.icon-btn--sms-rm  { color: var(--yellow); }
-.icon-btn--sms-rm:hover { background: var(--yellow-lt); border-color: rgba(217,119,6,.22); }
-.icon-btn--sms-ov  { color: var(--red); }
-.icon-btn--sms-ov:hover { background: var(--red-lt); border-color: rgba(220,38,38,.22); }
 .icon-btn:disabled { opacity: .3; pointer-events: none; }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -887,7 +881,7 @@ input:-webkit-autofill:focus {
    ══════════════════════════════════════════════════════════════════ */
 .form-label {
   display: block;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Nunito', system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--gray-600);
@@ -902,7 +896,7 @@ input:-webkit-autofill:focus {
 }
 
 .form-static {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Nunito', system-ui, sans-serif;
   font-size: .9375rem;
   font-weight: 400;
   color: var(--gray-800);
@@ -918,7 +912,7 @@ input:-webkit-autofill:focus {
   border: 1.5px solid var(--border-strong);
   border-radius: var(--radius-sm);
   color: var(--gray-800);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Nunito', system-ui, sans-serif;
   font-size: 0.9375rem;
   font-weight: 400;
   line-height: 1.5;

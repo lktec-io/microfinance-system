@@ -22,7 +22,7 @@ if (typeof window !== 'undefined') {
   });
 }
 
-/* Legacy page-specific styles (Expenses, Reports, Users, LoanDetail, SMS).
+/* Legacy page-specific styles (Expenses, Reports, Users, LoanDetail).
    Loaded first so the new design system below wins on shared classes. */
 import './styles/legacy/components.css';
 import './styles/legacy/forms.css';
@@ -30,7 +30,6 @@ import './styles/legacy/layout.css';
 import './styles/legacy/tables.css';
 import './styles/legacy/dashboard.css';
 import './styles/legacy/utilities.css';
-import './styles/legacy/sms.css';
 
 /* Fintech design system */
 import './styles/app/tokens.css';

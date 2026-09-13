@@ -200,10 +200,10 @@
 /* Legacy: if .modal doesn't have .modal-body, use padding */
 .modal:not(:has(.modal-body)) { padding: 1.5rem; }
 
-/* ── DM Sans on modal & card headings (premium fintech) ── */
+/* ── Nunito on modal & card headings ── */
 .modal-title,
 .modal-header h2,
-.card-title { font-family: 'Inter', system-ui, sans-serif; }
+.card-title { font-family: 'Nunito', system-ui, sans-serif; }
 
 .modal-title {
   display: flex;
@@ -216,10 +216,10 @@
   margin: 0;
 }
 
-/* ── DM Sans on KPI / stat numbers across the app ── */
+/* ── Nunito on KPI / stat numbers across the app ── */
 .users-page-title,
 .users-stat-num,
-.exp-stat-value { font-family: 'Inter', system-ui, sans-serif; }
+.exp-stat-value { font-family: 'Nunito', system-ui, sans-serif; }
 
 /* ══════════════════════════════════════════════════════════════════
    STAT CARDS

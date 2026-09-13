@@ -11,14 +11,12 @@ import {
   PageHeader, Tabs, Segmented, SearchField, ProgressBar, DueChip, Avatar, Empty, TableSkeleton,
 } from '../components/ui';
 import StatusBadge           from '../components/common/StatusBadge';
-import SmsSendModal          from '../components/common/SmsSendModal';
 import LoanApplicationWizard from '../components/loans/LoanApplicationWizard';
 import EditLoanModal         from '../components/loans/EditLoanModal';
 import LoanCalculator        from '../components/loans/LoanCalculator';
-import SmsActions            from '../components/loans/SmsActions';
 import '../styles/app/lending.css';
 
-const STATUSES = ['active', 'pending', 'overdue', 'paid'];
+const STATUSES   = ['active', 'pending', 'overdue', 'paid'];
 const SHORT_DATE = { day: '2-digit', month: 'short', year: '2-digit' };
 
 function repaidPct(loan) {
@@ -31,15 +29,15 @@ function toneFor(status) {
 }
 
 /* ── Card view item ────────────────────────────────────────────────── */
-function LoanCard({ loan, onOpen, onEdit, onSms }) {
+function LoanCard({ loan, onOpen, onEdit }) {
   const pct = repaidPct(loan);
   return (
     <article className={`mf-loan-card${loan.status === 'overdue' ? ' mf-loan-card--overdue' : ''}`}>
       <div className="mf-loan-card__head">
-        <Avatar name={loan.customer_name} size={34} />
+        <Avatar name={loan.customer_name} size={38} />
         <div className="mf-cell-stack">
           <span className="mf-cell-title">{loan.customer_name}</span>
-          <span className="mf-cell-sub mf-mono">#{loan.id} · {loan.customer_phone}</span>
+          <span className="mf-cell-sub">#{loan.id} · {loan.customer_phone}</span>
         </div>
         <StatusBadge status={loan.status} />
       </div>
@@ -61,10 +59,8 @@ function LoanCard({ loan, onOpen, onEdit, onSms }) {
       <div className="mf-loan-card__foot">
         <DueChip date={loan.due_date} status={loan.status} />
         <div className="mf-actions">
-          <button type="button" className="mf-icon-btn" onClick={onOpen} title="Open loan" aria-label="Open loan"><FiArrowUpRight size={13} /></button>
-          <button type="button" className="mf-icon-btn" onClick={onEdit} title="Edit loan" aria-label="Edit loan"><FiEdit2 size={13} /></button>
-          <span className="mf-actions__sep" />
-          <SmsActions loan={loan} onSms={onSms} />
+          <button type="button" className="mf-icon-btn" onClick={onOpen} title="Open loan" aria-label="Open loan"><FiArrowUpRight size={16} /></button>
+          <button type="button" className="mf-icon-btn" onClick={onEdit} title="Edit loan" aria-label="Edit loan"><FiEdit2 size={16} /></button>
         </div>
       </div>
     </article>
@@ -91,7 +87,6 @@ export default function Loans() {
 
   const [wizard, setWizard]   = useState(null);   // { customerId, terms }
   const [editing, setEditing] = useState(null);   // loan
-  const [sms, setSms]         = useState(null);   // { loan, type }
 
   const load = useCallback(async () => {
     try {
@@ -108,7 +103,7 @@ export default function Loans() {
 
   useEffect(() => { load(); }, [load]);
 
-  /* Deep links: ?new=1[&customer=ID] · ?status=overdue */
+  /* Deep links: ?new=1[&customer=ID] · ?status=overdue · ?tab=calculator */
   useEffect(() => {
     const s = params.get('status');
     if (STATUSES.includes(s)) { setStatus(s); setTab('portfolio'); }
@@ -146,7 +141,6 @@ export default function Loans() {
     balance:   t.balance   + (l.status !== 'paid' ? Number(l.balance) || 0 : 0),
   }), { principal: 0, payable: 0, repaid: 0, balance: 0 }), [filtered]);
 
-  const openSms  = useCallback((loan, type) => setSms({ loan, type }), []);
   const openLoan = useCallback(loan => loan?.id && navigate(`/loans/${loan.id}`), [navigate]);
 
   return (
@@ -158,10 +152,10 @@ export default function Loans() {
         actions={
           <>
             <button type="button" className="mf-btn mf-btn--ghost" onClick={() => setTab('calculator')}>
-              <FiSliders size={14} /> Calculator
+              <FiSliders size={16} /> Calculator
             </button>
             <button type="button" className="mf-btn mf-btn--primary" onClick={() => setWizard({})}>
-              <FiPlus size={15} /> New Application
+              <FiPlus size={17} /> New Application
             </button>
           </>
         }
@@ -214,7 +208,7 @@ export default function Loans() {
               />
             </div>
             <div className="mf-toolbar__group">
-              <SearchField value={query} onChange={setQuery} placeholder="Client, phone or #loan" maxWidth="280px" />
+              <SearchField value={query} onChange={setQuery} placeholder="Client, phone or #loan" />
               <Segmented
                 iconOnly
                 ariaLabel="View mode"
@@ -227,15 +221,15 @@ export default function Loans() {
 
           {loadError && (
             <div className="mf-alert mf-alert--error" role="alert">
-              <FiAlertCircle size={15} /> {loadError}
+              <FiAlertCircle size={17} /> <span>{loadError}</span>
               <button type="button" className="mf-btn mf-btn--sm mf-alert__action" onClick={() => { setLoading(true); load(); }}>
-                <FiRefreshCw size={12} /> Retry
+                <FiRefreshCw size={14} /> Retry
               </button>
             </div>
           )}
 
           {loading ? (
-            <div className="mf-card mf-card--flush"><TableSkeleton rows={7} cols={8} /></div>
+            <div className="mf-card mf-card--flush"><TableSkeleton rows={7} cols={6} /></div>
           ) : filtered.length === 0 ? (
             <div className="mf-card">
               <Empty
@@ -244,19 +238,19 @@ export default function Loans() {
                 message={query || status !== 'all' ? 'Clear the search or choose another status.' : 'Start an application to originate the first loan.'}
                 action={(query || status !== 'all')
                   ? <button type="button" className="mf-btn mf-btn--sm" onClick={() => { setQuery(''); setStatus('all'); }}>Clear filters</button>
-                  : <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setWizard({})}><FiPlus size={13} /> New application</button>}
+                  : <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setWizard({})}><FiPlus size={15} /> New application</button>}
               />
             </div>
           ) : view === 'cards' ? (
             <div className="mf-card-grid">
               {filtered.map(l => (
-                <LoanCard key={l.id} loan={l} onOpen={() => openLoan(l)} onEdit={() => setEditing(l)} onSms={openSms} />
+                <LoanCard key={l.id} loan={l} onOpen={() => openLoan(l)} onEdit={() => setEditing(l)} />
               ))}
             </div>
           ) : (
             <section className="mf-card mf-card--flush">
               <div className="mf-table-wrap">
-                <table className="mf-table">
+                <table className="mf-table mf-table--stack">
                   <thead>
                     <tr>
                       <th>Client · Loan</th>
@@ -275,43 +269,43 @@ export default function Loans() {
                         <tr key={l.id} className="is-link" onClick={() => openLoan(l)}>
                           <td>
                             <div className="mf-cell-main">
-                              <Avatar name={l.customer_name} size={30} />
+                              <Avatar name={l.customer_name} size={36} />
                               <div className="mf-cell-stack">
                                 <span className="mf-cell-title">{l.customer_name}</span>
-                                <span className="mf-cell-sub mf-mono">#{l.id} · {l.customer_phone}</span>
+                                <span className="mf-cell-sub">#{l.id} · {l.customer_phone}</span>
                               </div>
                             </div>
                           </td>
-                          <td className="is-num">
+                          <td className="is-num" data-label="Principal">
                             <div className="mf-cell-stack" style={{ alignItems: 'flex-end' }}>
                               <span>{fmt0(l.loan_amount)}</span>
                               <span className="mf-cell-sub">{Number(l.interest_rate)}% · {l.duration_value} {l.duration_unit}</span>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="Repaid">
                             <div className="mf-progress-cell">
                               <ProgressBar value={pct} tone={toneFor(l.status)} />
                               <div className="mf-progress-cell__meta"><span>{pct}%</span><span>{fmt0(l.amount_paid)} / {fmt0(l.total_payable)}</span></div>
                             </div>
                           </td>
-                          <td className={`is-num${Number(l.balance) > 0 ? '' : ' mf-tone--emerald'}`}><strong>{fmt0(l.balance)}</strong></td>
-                          <td>
-                            <div className="mf-cell-stack" style={{ gap: '.25rem' }}>
-                              <span className="mf-mono" style={{ fontSize: 12 }}>{fmtDay(l.due_date, SHORT_DATE)}</span>
+                          <td className={`is-num${Number(l.balance) > 0 ? '' : ' mf-tone--emerald'}`} data-label="Balance (TZS)">
+                            <strong>{fmt0(l.balance)}</strong>
+                          </td>
+                          <td data-label="Due">
+                            <div className="mf-cell-stack" style={{ gap: '.3rem' }}>
+                              <span className="mf-num">{fmtDay(l.due_date, SHORT_DATE)}</span>
                               <DueChip date={l.due_date} status={l.status} />
                             </div>
                           </td>
-                          <td><StatusBadge status={l.status} /></td>
+                          <td data-label="Status"><StatusBadge status={l.status} /></td>
                           <td className="is-actions" onClick={e => e.stopPropagation()}>
                             <div className="mf-actions">
                               <button type="button" className="mf-icon-btn" onClick={() => openLoan(l)} title="Open loan" aria-label="Open loan">
-                                <FiArrowUpRight size={13} />
+                                <FiArrowUpRight size={16} />
                               </button>
                               <button type="button" className="mf-icon-btn" onClick={() => setEditing(l)} title="Edit loan" aria-label="Edit loan">
-                                <FiEdit2 size={13} />
+                                <FiEdit2 size={16} />
                               </button>
-                              <span className="mf-actions__sep" />
-                              <SmsActions loan={l} onSms={openSms} />
                             </div>
                           </td>
                         </tr>
@@ -337,7 +331,6 @@ export default function Loans() {
             setCustomers(cs => [{ ...c, loan_count: 0 }, ...cs]);
             showToast('Client registered', 'success');
           }}
-          onSendSms={loan => { setWizard(null); setSms({ loan, type: 'thank_you' }); }}
           onViewLoan={loan => { setWizard(null); openLoan(loan); }}
         />
       )}
@@ -349,8 +342,6 @@ export default function Loans() {
           onSaved={() => { setEditing(null); showToast('Loan updated', 'success'); load(); }}
         />
       )}
-
-      {sms && <SmsSendModal loan={sms.loan} type={sms.type} onClose={() => setSms(null)} />}
     </div>
   );
 }

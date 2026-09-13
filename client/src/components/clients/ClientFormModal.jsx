@@ -2,32 +2,35 @@ import { useState } from 'react';
 import { FiAlertCircle } from 'react-icons/fi';
 import api from '../../api';
 import { Modal } from '../ui';
-import ClientFields, { EMPTY_CLIENT } from './ClientFields';
-import { todayISO } from '../../utils/finance';
+import ClientFields, { initialClientForm, checkClientNin, clientPayload } from './ClientFields';
 
-/** Add / edit client — same payload as the previous Customers page. */
-export default function ClientFormModal({ mode, customer, onClose, onSaved }) {
+/** Register / edit client — POST or PUT /api/customers with NIDA NIN validation. */
+export default function ClientFormModal({ mode, customer, customers = [], onClose, onSaved }) {
   const isEdit = mode === 'edit';
-  const [form, setForm] = useState(() => (isEdit
-    ? {
-        full_name:         customer.full_name,
-        phone:             customer.phone,
-        address:           customer.address,
-        id_number:         customer.id_number || '',
-        registration_date: customer.registration_date?.slice(0, 10) || '',
-      }
-    : { ...EMPTY_CLIENT, registration_date: todayISO() }));
-  const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState('');
+  const record = isEdit ? customer : null;
+
+  const [form, setForm]           = useState(() => initialClientForm(record));
+  const [saving, setSaving]       = useState(false);
+  const [error, setError]         = useState('');
+  const [attempted, setAttempted] = useState(false);
+  const [shakeKey, setShakeKey]   = useState(0);
+
+  const nin = checkClientNin(form, { customers, customer: record });
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setSaving(true);
+    setAttempted(true);
     setError('');
+    if (nin.blocking) {
+      setShakeKey(k => k + 1);
+      return;
+    }
+    setSaving(true);
     try {
+      const payload = clientPayload(form, nin, record);
       const { data } = isEdit
-        ? await api.put(`/customers/${customer.id}`, form)
-        : await api.post('/customers', form);
+        ? await api.put(`/customers/${customer.id}`, payload)
+        : await api.post('/customers', payload);
       onSaved(data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save');
@@ -38,9 +41,10 @@ export default function ClientFormModal({ mode, customer, onClose, onSaved }) {
 
   return (
     <Modal
+      size="lg"
       eyebrow={isEdit ? `CL-${String(customer.id).padStart(5, '0')}` : 'Clients directory'}
       title={isEdit ? 'Edit client profile' : 'Register new client'}
-      subtitle={isEdit ? customer.full_name : 'Capture identity and contact details for the borrower.'}
+      subtitle={isEdit ? customer.full_name : 'Capture identity and contact details. A valid NIDA NIN is required.'}
       onClose={onClose}
       footer={
         <>
@@ -51,9 +55,19 @@ export default function ClientFormModal({ mode, customer, onClose, onSaved }) {
         </>
       }
     >
-      <form id="client-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {error && <div className="mf-alert mf-alert--error" role="alert"><FiAlertCircle size={15} /> {error}</div>}
-        <ClientFields form={form} setForm={setForm} />
+      <form id="client-form" onSubmit={handleSubmit} noValidate={false}
+        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {attempted && nin.blocking && (
+          <div className="mf-alert mf-alert--error" role="alert">
+            <FiAlertCircle size={17} />
+            <span>
+              Fix the National ID number before saving.
+              <span lang="sw" style={{ display: 'block', fontWeight: 600 }}>Rekebisha namba ya NIDA kabla ya kuhifadhi.</span>
+            </span>
+          </div>
+        )}
+        {error && <div className="mf-alert mf-alert--error" role="alert"><FiAlertCircle size={17} /> <span>{error}</span></div>}
+        <ClientFields form={form} setForm={setForm} nin={nin} attempted={attempted} shakeKey={shakeKey} />
       </form>
     </Modal>
   );

@@ -1,10 +1,8 @@
 import { createPortal } from 'react-dom';
 import { useEffect } from 'react';
+import { lockScroll } from '../../utils/scrollLock';
 
 export default function ModalPortal({ children }) {
-  useEffect(() => {
-    document.body.classList.add('modal-open');
-    return () => document.body.classList.remove('modal-open');
-  }, []);
+  useEffect(() => lockScroll(), []);
   return createPortal(children, document.body);
 }

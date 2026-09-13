@@ -1,17 +1,18 @@
 import { useMemo, useState } from 'react';
 import {
   FiArrowLeft, FiArrowRight, FiCheck, FiUserPlus, FiUser, FiAlertTriangle,
-  FiInfo, FiCheckCircle, FiExternalLink, FiMessageSquare, FiEdit2, FiAlertCircle, FiSearch,
+  FiInfo, FiCheckCircle, FiExternalLink, FiEdit2, FiAlertCircle, FiSearch,
 } from 'react-icons/fi';
 import api from '../../api';
 import { Modal, Stepper, SearchField, Avatar, Empty } from '../ui';
-import ClientFields, { EMPTY_CLIENT } from '../clients/ClientFields';
+import ClientFields, { initialClientForm, checkClientNin, clientPayload } from '../clients/ClientFields';
 import { ScoreCard, StandingBadge } from '../clients/Standing';
 import StatusBadge from '../common/StatusBadge';
 import LoanTermsFields, { EMPTY_TERMS, validateTerms } from './LoanTermsFields';
 import QuotePanel from './QuotePanel';
 import { clientStanding, loanQuote, indicativeSchedule, todayISO } from '../../utils/finance';
 import { fmt, fmt0, fmtDay } from '../../utils/format';
+import { displayNin } from '../../utils/nida';
 
 const STEPS = [
   { key: 'applicant', label: 'Applicant',  hint: 'Select & verify client' },
@@ -47,7 +48,7 @@ function ApplicantProfile({ customer, standing }) {
 
       <dl className="mf-dl">
         <div className="mf-dl__item"><dt>Phone</dt><dd className="mf-mono">{customer.phone || '—'}</dd></div>
-        <div className="mf-dl__item"><dt>National ID</dt><dd className="mf-mono">{customer.id_number || '—'}</dd></div>
+        <div className="mf-dl__item"><dt>National ID (NIN)</dt><dd className="mf-mono">{displayNin(customer.id_number)}</dd></div>
         <div className="mf-dl__item"><dt>Registered</dt><dd>{fmtDay(customer.registration_date, LONG_DATE)}</dd></div>
         <div className="mf-dl__item"><dt>Loans on record</dt><dd className="mf-num">{standing.n}</dd></div>
         <div className="mf-dl__item mf-dl__item--span"><dt>Address</dt><dd>{customer.address || '—'}</dd></div>
@@ -88,16 +89,19 @@ function ApplicantProfile({ customer, standing }) {
    ════════════════════════════════════════════════════════════════════ */
 export default function LoanApplicationWizard({
   customers, loans, initialCustomerId, initialTerms,
-  onClose, onCreated, onCustomerCreated, onSendSms, onViewLoan,
+  onClose, onCreated, onCustomerCreated, onViewLoan,
 }) {
   const [step, setStep]             = useState(0);
   const [customerId, setCustomerId] = useState(initialCustomerId ? String(initialCustomerId) : '');
   const [query, setQuery]           = useState('');
 
-  const [registering, setRegistering]   = useState(false);
-  const [clientForm, setClientForm]     = useState({ ...EMPTY_CLIENT });
-  const [clientSaving, setClientSaving] = useState(false);
-  const [clientErr, setClientErr]       = useState('');
+  const [registering, setRegistering]         = useState(false);
+  const [clientForm, setClientForm]           = useState(() => initialClientForm());
+  const [clientSaving, setClientSaving]       = useState(false);
+  const [clientErr, setClientErr]             = useState('');
+  const [clientAttempted, setClientAttempted] = useState(false);
+  const [clientShake, setClientShake]         = useState(0);
+  const clientNin = checkClientNin(clientForm, { customers });
 
   const [terms, setTerms]     = useState({ ...EMPTY_TERMS, start_date: todayISO(), ...(initialTerms || {}) });
   const [touched, setTouched] = useState(false);
@@ -136,14 +140,20 @@ export default function LoanApplicationWizard({
 
   async function registerClient(e) {
     e.preventDefault();
-    setClientSaving(true);
+    setClientAttempted(true);
     setClientErr('');
+    if (clientNin.blocking) {
+      setClientShake(k => k + 1);
+      return;
+    }
+    setClientSaving(true);
     try {
-      const { data } = await api.post('/customers', clientForm);
+      const { data } = await api.post('/customers', clientPayload(clientForm, clientNin));
       onCustomerCreated?.(data);
       setCustomerId(String(data.id));
       setRegistering(false);
-      setClientForm({ ...EMPTY_CLIENT });
+      setClientForm(initialClientForm());
+      setClientAttempted(false);
     } catch (err) {
       setClientErr(err.response?.data?.message || 'Failed to register client');
     } finally {
@@ -191,9 +201,6 @@ export default function LoanApplicationWizard({
       <>
         <button type="button" className="mf-btn mf-btn--ghost" onClick={onClose}>Close</button>
         <span className="mf-modal__foot-spacer" />
-        <button type="button" className="mf-btn mf-btn--ghost" onClick={() => onSendSms(created)}>
-          <FiMessageSquare size={14} /> Send thank-you SMS
-        </button>
         <button type="button" className="mf-btn mf-btn--primary" onClick={() => onViewLoan(created)}>
           View loan <FiExternalLink size={14} />
         </button>
@@ -264,7 +271,7 @@ export default function LoanApplicationWizard({
                 <div className="mf-picker__bar">
                   <SearchField value={query} onChange={setQuery} placeholder="Search name, phone or national ID" />
                   <button type="button" className={`mf-btn ${registering ? 'mf-btn--ghost' : 'mf-btn--dark'}`}
-                    onClick={() => { setRegistering(r => !r); setClientErr(''); }}>
+                    onClick={() => { setRegistering(r => !r); setClientErr(''); setClientAttempted(false); }}>
                     <FiUserPlus size={14} /> {registering ? 'Cancel' : 'New client'}
                   </button>
                 </div>
@@ -273,7 +280,8 @@ export default function LoanApplicationWizard({
                   <form className="mf-picker__register" onSubmit={registerClient}>
                     <div className="mf-section-label" style={{ marginBottom: 0 }}>Register new client</div>
                     {clientErr && <div className="mf-alert mf-alert--error"><FiAlertCircle size={15} /> {clientErr}</div>}
-                    <ClientFields form={clientForm} setForm={setClientForm} compact />
+                    <ClientFields form={clientForm} setForm={setClientForm} compact
+                      nin={clientNin} attempted={clientAttempted} shakeKey={clientShake} />
                     <div className="mf-picker__register-actions">
                       <button type="submit" className="mf-btn mf-btn--primary" disabled={clientSaving}>
                         {clientSaving ? 'Registering…' : 'Register & select'}
@@ -295,7 +303,7 @@ export default function LoanApplicationWizard({
                           <Avatar name={c.full_name} size={32} />
                           <span className="mf-cell-stack">
                             <span className="mf-cell-title">{c.full_name}</span>
-                            <span className="mf-cell-sub mf-mono">{c.phone}{c.id_number ? ` · ${c.id_number}` : ''}</span>
+                            <span className="mf-cell-sub mf-mono">{c.phone}{c.id_number ? ` · ${displayNin(c.id_number)}` : ''}</span>
                           </span>
                           {sel ? <span className="badge badge--orange"><FiCheck size={11} /> Selected</span> : <StandingBadge status={st.status} />}
                         </button>
@@ -344,7 +352,7 @@ export default function LoanApplicationWizard({
                     <Avatar name={customer.full_name} size={36} />
                     <div>
                       <div className="mf-cell-title">{customer.full_name}</div>
-                      <div className="mf-cell-sub mf-mono">{customer.phone}{customer.id_number ? ` · ID ${customer.id_number}` : ''}</div>
+                      <div className="mf-cell-sub mf-mono">{customer.phone}{customer.id_number ? ` · NIN ${displayNin(customer.id_number)}` : ''}</div>
                     </div>
                     <StandingBadge status={standing.status} />
                     <button type="button" className="mf-link-btn" onClick={() => setStep(0)}><FiEdit2 size={11} /> Change</button>

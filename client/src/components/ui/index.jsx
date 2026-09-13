@@ -117,7 +117,7 @@ export function DueChip({ date, status }) {
 export function Avatar({ name, src, size = 32, dark }) {
   return (
     <span className={`mf-avatar${dark ? ' mf-avatar--dark' : ''}`}
-      style={{ width: size, height: size, fontSize: Math.round(size * 0.36) }} aria-hidden="true">
+      style={{ width: size, height: size, fontSize: Math.max(12, Math.round(size * 0.36)) }} aria-hidden="true">
       {src ? <img src={src} alt="" /> : initials(name)}
     </span>
   );

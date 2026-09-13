@@ -49,7 +49,8 @@ function CashFlowChart({ series }) {
       <div className="mf-cashflow__plot" role="img"
         aria-label="Monthly disbursements versus collections over the last 12 months">
         {series.map((s, i) => (
-          <div key={s.key} className={`mf-cashflow__group${i === lastIdx ? ' is-current' : ''}`}>
+          <div key={s.key} className={`mf-cashflow__group${i === lastIdx ? ' is-current' : ''}`}
+            tabIndex={0} aria-label={`${monthLabel(s.key, 'long')}: disbursed TZS ${fmt0(s.disbursed)}, collected TZS ${fmt0(s.collected)}`}>
             <span className="mf-cashflow__bar mf-cashflow__bar--out"
               style={{ '--h': `${(s.disbursed / max) * 100}%`, animationDelay: `${i * 35}ms` }} />
             <span className="mf-cashflow__bar mf-cashflow__bar--in"
@@ -365,7 +366,7 @@ export default function Dashboard() {
             } />
           ) : (
             <div className="mf-table-wrap">
-              <table className="mf-table">
+              <table className="mf-table mf-table--stack">
                 <thead>
                   <tr><th>Loan</th><th className="is-num">Balance</th><th>Due</th><th>Status</th></tr>
                 </thead>
@@ -378,9 +379,9 @@ export default function Dashboard() {
                           <span className="mf-cell-sub mf-mono">#{l.id} · TZS {fmt0(l.loan_amount)}</span>
                         </div>
                       </td>
-                      <td className="is-num">{fmt0(l.balance)}</td>
-                      <td><DueChip date={l.due_date} status={l.status} /></td>
-                      <td><StatusBadge status={l.status} /></td>
+                      <td className="is-num" data-label="Balance (TZS)">{fmt0(l.balance)}</td>
+                      <td data-label="Due"><DueChip date={l.due_date} status={l.status} /></td>
+                      <td data-label="Status"><StatusBadge status={l.status} /></td>
                     </tr>
                   ))}
                 </tbody>

@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   FiEye, FiEyeOff, FiMail, FiLock, FiShield, FiArrowRight,
-  FiActivity, FiMessageSquare, FiUsers, FiAlertCircle,
+  FiActivity, FiCreditCard, FiUsers, FiAlertCircle,
 } from 'react-icons/fi';
 import { useAuth }   from '../context/AuthContext';
 import { BrandMark } from '../layouts/Sidebar';
 
 const FEATURES = [
   { Icon: FiActivity,      title: 'Live portfolio intelligence', desc: 'Disbursements, balances and collection rate at a glance.' },
-  { Icon: FiMessageSquare, title: 'Automated SMS collections',   desc: 'Reminders and overdue notices sent straight from the ledger.' },
+  { Icon: FiCreditCard,    title: 'Repayments & collections',    desc: 'A posted payment ledger and a prioritised collections queue.' },
   { Icon: FiUsers,         title: 'Structured client profiles',  desc: 'Loan history and repayment standing for every borrower.' },
 ];
 

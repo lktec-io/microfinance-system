@@ -13,8 +13,6 @@ import {
   ProgressBar, DueChip, Avatar, Empty, TableSkeleton,
 } from '../components/ui';
 import StatusBadge        from '../components/common/StatusBadge';
-import SmsSendModal       from '../components/common/SmsSendModal';
-import SmsActions         from '../components/loans/SmsActions';
 import RecordPaymentModal from '../components/repayments/RecordPaymentModal';
 import '../styles/app/lending.css';
 import '../styles/app/directory.css';
@@ -65,7 +63,6 @@ export default function Repayments() {
   const [cQuery, setCQuery] = useState('');
 
   const [record, setRecord] = useState(null);   // { loanId }
-  const [sms, setSms]       = useState(null);   // { loan, type }
 
   const load = useCallback(async () => {
     const [r, l] = await Promise.allSettled([api.get('/repayments'), api.get('/loans')]);
@@ -167,17 +164,15 @@ export default function Repayments() {
     return out;
   }, [loans]);
 
-  const openSms = useCallback((loan, type) => setSms({ loan, type }), []);
-
   return (
     <div className="mf-page">
       <PageHeader
         eyebrow="Collections"
         title="Repayments & Collections"
-        subtitle="The payment ledger, the collections queue and SMS billing triggers in one place."
+        subtitle="The posted payment ledger and a prioritised collections queue."
         actions={
           <button type="button" className="mf-btn mf-btn--primary" onClick={() => setRecord({})}>
-            <FiPlus size={15} /> Record Payment
+            <FiPlus size={17} /> Record Payment
           </button>
         }
       />
@@ -214,9 +209,9 @@ export default function Repayments() {
 
       {loadError && (
         <div className="mf-alert mf-alert--error" role="alert">
-          <FiAlertCircle size={15} /> {loadError}
+          <FiAlertCircle size={17} /> <span>{loadError}</span>
           <button type="button" className="mf-btn mf-btn--sm mf-alert__action" onClick={() => { setLoading(true); load(); }}>
-            <FiRefreshCw size={12} /> Retry
+            <FiRefreshCw size={14} /> Retry
           </button>
         </div>
       )}
@@ -243,12 +238,12 @@ export default function Repayments() {
             </div>
             <div className="mf-toolbar__group">
               <span className="mf-toolbar__meta"><strong>{ledger.length}</strong> entries · <strong>TZS {fmtShort(ledgerTotal)}</strong></span>
-              <SearchField value={query} onChange={setQuery} placeholder="Client, receipt or #loan" maxWidth="260px" />
+              <SearchField value={query} onChange={setQuery} placeholder="Client, receipt or #loan" />
             </div>
           </div>
 
           {loading ? (
-            <div className="mf-card mf-card--flush"><TableSkeleton rows={8} cols={7} /></div>
+            <div className="mf-card mf-card--flush"><TableSkeleton rows={8} cols={5} /></div>
           ) : ledger.length === 0 ? (
             <div className="mf-card">
               <Empty Icon={query || preset !== 'all' ? FiSearch : FiBookOpen}
@@ -256,17 +251,17 @@ export default function Repayments() {
                 message={query || preset !== 'all' ? 'Widen the date range or clear the search.' : 'Posted repayments will appear in this ledger.'}
                 action={query || preset !== 'all'
                   ? <button type="button" className="mf-btn mf-btn--sm" onClick={() => { setQuery(''); choosePreset('all'); }}>Reset filters</button>
-                  : <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setRecord({})}><FiPlus size={13} /> Record payment</button>} />
+                  : <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setRecord({})}><FiPlus size={15} /> Record payment</button>} />
             </div>
           ) : (
             <section className="mf-card mf-card--flush">
               <div className="mf-table-wrap">
-                <table className="mf-table">
+                <table className="mf-table mf-table--stack">
                   <thead>
                     <tr>
+                      <th>Client</th>
                       <th>Date</th>
                       <th>Receipt</th>
-                      <th>Client</th>
                       <th>Loan</th>
                       <th className="is-num">Amount (TZS)</th>
                       <th>Recorded by</th>
@@ -278,23 +273,24 @@ export default function Repayments() {
                   <tbody>
                     {ledger.map(r => (
                       <tr key={r.id} className={r.loan_id ? 'is-link' : ''} onClick={() => r.loan_id && navigate(`/loans/${r.loan_id}`)}>
-                        <td className="mf-mono" style={{ fontSize: 12.5, whiteSpace: 'nowrap' }}>{fmtDay(r.payment_date, SHORT_DATE)}</td>
-                        <td><span className="mf-code">{r.receipt_number}</span></td>
                         <td>
                           <div className="mf-cell-main">
-                            <Avatar name={r.customer_name} size={28} />
+                            <Avatar name={r.customer_name} size={34} />
                             <span className="mf-cell-title">{r.customer_name}</span>
                           </div>
                         </td>
-                        <td className="mf-mono" style={{ fontSize: 12.5 }}>#{r.loan_id}</td>
-                        <td className="is-num"><span className="mf-ledger-amount">{fmt(r.amount)}</span></td>
-                        <td>{r.recorded_by || <span className="mf-muted">—</span>}</td>
-                        <td><div className="mf-ledger-note" title={r.notes || ''}>{r.notes || '—'}</div></td>
-                        <td><span className="badge badge--green badge--dot">Posted</span></td>
+                        <td data-label="Date" className="mf-num" style={{ whiteSpace: 'nowrap' }}>{fmtDay(r.payment_date, SHORT_DATE)}</td>
+                        <td data-label="Receipt"><span className="mf-code">{r.receipt_number}</span></td>
+                        <td data-label="Loan" className="mf-num">#{r.loan_id}</td>
+                        <td data-label="Amount (TZS)" className="is-num"><span className="mf-ledger-amount">{fmt(r.amount)}</span></td>
+                        <td data-label="Recorded by">{r.recorded_by || <span className="mf-muted">—</span>}</td>
+                        <td data-label="Notes"><div className="mf-ledger-note" title={r.notes || ''}>{r.notes || '—'}</div></td>
+                        <td data-label="Status"><span className="badge badge--green badge--dot">Posted</span></td>
                         <td className="is-actions" onClick={e => e.stopPropagation()}>
                           {r.loan_id && (
-                            <button type="button" className="mf-icon-btn" onClick={() => navigate(`/loans/${r.loan_id}`)} title="Open loan" aria-label="Open loan">
-                              <FiArrowUpRight size={13} />
+                            <button type="button" className="mf-btn mf-btn--ghost mf-btn--sm" onClick={() => navigate(`/loans/${r.loan_id}`)}
+                              title="Open loan" aria-label={`Open loan #${r.loan_id}`}>
+                              Loan <FiArrowUpRight size={15} />
                             </button>
                           )}
                         </td>
@@ -304,7 +300,7 @@ export default function Repayments() {
                   <tfoot>
                     <tr>
                       <td colSpan={4}>{ledger.length} entr{ledger.length === 1 ? 'y' : 'ies'}{range.from || range.to ? ` · ${range.from || '…'} → ${range.to || '…'}` : ''}</td>
-                      <td className="is-num">{fmt(ledgerTotal)}</td>
+                      <td className="is-num" data-label="Total (TZS)">{fmt(ledgerTotal)}</td>
                       <td colSpan={4} />
                     </tr>
                   </tfoot>
@@ -319,19 +315,19 @@ export default function Repayments() {
             <div className="mf-toolbar__group">
               <Segmented ariaLabel="Collection bucket" value={bucket} onChange={setBucket}
                 options={[
-                  { value: 'all',     label: 'All open',        count: bucketCounts.all },
-                  { value: 'overdue', label: 'Past due',        count: bucketCounts.overdue },
-                  { value: 'due7',    label: 'Due in 7 days',   count: bucketCounts.due7 },
-                  { value: 'later',   label: 'Later',           count: bucketCounts.later },
+                  { value: 'all',     label: 'All open',      count: bucketCounts.all },
+                  { value: 'overdue', label: 'Past due',      count: bucketCounts.overdue },
+                  { value: 'due7',    label: 'Due in 7 days', count: bucketCounts.due7 },
+                  { value: 'later',   label: 'Later',         count: bucketCounts.later },
                 ]} />
             </div>
             <div className="mf-toolbar__group">
-              <SearchField value={cQuery} onChange={setCQuery} placeholder="Client, phone or #loan" maxWidth="260px" />
+              <SearchField value={cQuery} onChange={setCQuery} placeholder="Client, phone or #loan" />
             </div>
           </div>
 
           {loading ? (
-            <div className="mf-card mf-card--flush"><TableSkeleton rows={7} cols={7} /></div>
+            <div className="mf-card mf-card--flush"><TableSkeleton rows={7} cols={5} /></div>
           ) : queue.length === 0 ? (
             <div className="mf-card">
               <Empty Icon={FiInbox} title="Queue is clear" message={cQuery ? 'No open loans match the search.' : 'No open loans in this bucket.'} />
@@ -339,7 +335,7 @@ export default function Repayments() {
           ) : (
             <section className="mf-card mf-card--flush">
               <div className="mf-table-wrap">
-                <table className="mf-table">
+                <table className="mf-table mf-table--stack">
                   <thead>
                     <tr>
                       <th>Client</th>
@@ -349,7 +345,7 @@ export default function Repayments() {
                       <th>Due date</th>
                       <th>Aging</th>
                       <th>Status</th>
-                      <th className="is-actions">Collect · SMS</th>
+                      <th className="is-actions">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -360,31 +356,33 @@ export default function Repayments() {
                         <tr key={l.id} className="is-link" onClick={() => navigate(`/loans/${l.id}`)}>
                           <td>
                             <div className="mf-cell-main">
-                              <Avatar name={l.customer_name} size={30} />
+                              <Avatar name={l.customer_name} size={36} />
                               <div className="mf-cell-stack">
                                 <span className="mf-cell-title">{l.customer_name}</span>
-                                <span className="mf-cell-sub mf-mono">{l.customer_phone}</span>
+                                <span className="mf-cell-sub">{l.customer_phone}</span>
                               </div>
                             </div>
                           </td>
-                          <td><span className="mf-code">#{l.id}</span></td>
-                          <td className="is-num"><strong>{fmt0(l.balance)}</strong></td>
-                          <td>
+                          <td data-label="Loan"><span className="mf-code">#{l.id}</span></td>
+                          <td className="is-num" data-label="Balance (TZS)"><strong>{fmt0(l.balance)}</strong></td>
+                          <td data-label="Repaid">
                             <div className="mf-progress-cell">
                               <ProgressBar value={pct} tone={isPastDue(l) ? 'crimson' : 'orange'} />
                               <div className="mf-progress-cell__meta"><span>{pct}%</span><span>{fmt0(l.amount_paid)}</span></div>
                             </div>
                           </td>
-                          <td className="mf-mono" style={{ fontSize: 12.5, whiteSpace: 'nowrap' }}>{fmtDay(l.due_date, SHORT_DATE)}</td>
-                          <td><DueChip date={l.due_date} status={l.status} /></td>
-                          <td><StatusBadge status={l.status} /></td>
+                          <td data-label="Due date" className="mf-num" style={{ whiteSpace: 'nowrap' }}>{fmtDay(l.due_date, SHORT_DATE)}</td>
+                          <td data-label="Aging"><DueChip date={l.due_date} status={l.status} /></td>
+                          <td data-label="Status"><StatusBadge status={l.status} /></td>
                           <td className="is-actions" onClick={e => e.stopPropagation()}>
                             <div className="mf-actions">
                               <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setRecord({ loanId: l.id })}>
-                                <FiCreditCard size={12} /> Collect
+                                <FiCreditCard size={15} /> Collect
                               </button>
-                              <span className="mf-actions__sep" />
-                              <SmsActions loan={l} onSms={openSms} only={['reminder', 'overdue']} />
+                              <button type="button" className="mf-icon-btn" onClick={() => navigate(`/loans/${l.id}`)}
+                                title="Open loan" aria-label={`Open loan #${l.id}`}>
+                                <FiArrowUpRight size={16} />
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -407,8 +405,6 @@ export default function Repayments() {
           onViewLoan={loan => { setRecord(null); navigate(`/loans/${loan.id}`); }}
         />
       )}
-
-      {sms && <SmsSendModal loan={sms.loan} type={sms.type} onClose={() => setSms(null)} />}
     </div>
   );
 }

@@ -16,7 +16,7 @@ export const NAV_SECTIONS = [
     items: [
       { to: '/loans',      label: 'Loan Management',   Icon: FiLayers,     desc: 'Applications, portfolio & calculator' },
       { to: '/customers',  label: 'Clients Directory', Icon: FiUsers,      desc: 'Profiles, scores & loan history' },
-      { to: '/repayments', label: 'Repayments',        Icon: FiCreditCard, desc: 'Ledger, collections & SMS' },
+      { to: '/repayments', label: 'Repayments',        Icon: FiCreditCard, desc: 'Ledger & collections' },
     ],
   },
   {

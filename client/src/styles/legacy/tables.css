@@ -107,7 +107,7 @@
 /* ── Code in table (receipt number) ── */
 .table code,
 code {
-  font-family: 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
+  font-family: 'Nunito', system-ui, sans-serif; font-variant-numeric: tabular-nums;
   font-size: .8rem;
   background: var(--gray-100);
   color: var(--primary);
@@ -135,8 +135,8 @@ code {
   .table td { font-size: 0.9375rem; padding: .55rem .65rem; }  /* 15px */
 }
 
-/* ── Table header: Poppins 600 (explicit in case body-level changes miss it) ── */
-.table th { font-family: 'Inter', system-ui, sans-serif; }
+/* ── Table header: explicit weight in case body-level changes miss it ── */
+.table th { font-family: 'Nunito', system-ui, sans-serif; }
 
 /* ══════════════════════════════════════════════════════════════════
    ACTION BUTTONS (view / edit / delete) — premium icon buttons

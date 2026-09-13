@@ -31,8 +31,7 @@ const STATUS_LABEL = {
 };
 
 /* ── System status pill ────────────────────────────────────────────── */
-function SystemStatus() {
-  const { status, latency, checkedAt } = useSystemStatus();
+function SystemStatus({ status, latency, checkedAt }) {
   const title = checkedAt
     ? `${STATUS_LABEL[status]} · checked ${new Date(checkedAt).toLocaleTimeString('en-GB')}`
     : STATUS_LABEL[status];
@@ -140,7 +139,7 @@ function NotificationCenter() {
 }
 
 /* ── Profile menu (photo upload logic preserved from previous header) ─ */
-function ProfileMenu() {
+function ProfileMenu({ system }) {
   const { user, logout, isAdmin }     = useAuth();
   const { profileImg, setProfileImg } = useProfileImage();
   const navigate = useNavigate();
@@ -242,6 +241,11 @@ function ProfileMenu() {
               <span className="badge badge--orange" style={{ marginTop: '.35rem' }}>{user.role}</span>
             </div>
           </div>
+          <div className={`mf-menu__status mf-status--${system.status}`} role="status">
+            <span className="mf-status__dot" />
+            {STATUS_LABEL[system.status]}
+            {system.latency != null && <span className="mf-status__latency">{system.latency}ms</span>}
+          </div>
           <div className="mf-menu">
             <button type="button" className="mf-menu__item" role="menuitem"
               onClick={() => { fileRef.current?.click(); setOpen(false); }}>
@@ -280,8 +284,9 @@ function ProfileMenu() {
 }
 
 /* ── Header ────────────────────────────────────────────────────────── */
-export default function Header({ onOpenMobile }) {
+export default function Header({ onOpenMobile, mobileOpen }) {
   const { pathname } = useLocation();
+  const system = useSystemStatus();
   const { section, item, detail } = matchRoute(pathname);
   const [cmdOpen, setCmdOpen] = useState(false);
 
@@ -299,8 +304,9 @@ export default function Header({ onOpenMobile }) {
   return (
     <>
       <header className="mf-header">
-        <button type="button" className="mf-header-btn mf-header__menu" onClick={onOpenMobile} aria-label="Open menu">
-          <FiMenu size={17} />
+        <button type="button" className="mf-header-btn mf-header__menu" onClick={onOpenMobile}
+          aria-label="Open menu" aria-expanded={mobileOpen}>
+          <FiMenu size={20} />
         </button>
 
         <nav className="mf-crumbs" aria-label="Breadcrumb">
@@ -322,10 +328,10 @@ export default function Header({ onOpenMobile }) {
         </button>
 
         <div className="mf-header__actions">
-          <SystemStatus />
+          <SystemStatus {...system} />
           <NotificationCenter />
           <span className="mf-header__divider" />
-          <ProfileMenu />
+          <ProfileMenu system={system} />
         </div>
       </header>
 
