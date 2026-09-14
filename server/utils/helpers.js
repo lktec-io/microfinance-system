@@ -11,6 +11,37 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** 'YYYY-MM-DD' from a DATE column value (Date object) or a date string. */
+function isoDate(value) {
+  if (!value) return null;
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return String(value).slice(0, 10);
+}
+
+// ── Local time (Tanzania, EAT) ────────────────────────────────
+const LOCAL_TZ = 'Africa/Dar_es_Salaam';
+
+/** Current wall-clock time in Tanzania as 'YYYY-MM-DD HH:mm:ss' (optionally offset). */
+function nowLocal(offsetMs = 0) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: LOCAL_TZ, hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(new Date(Date.now() + offsetMs));
+  const get = type => parts.find(p => p.type === type).value;
+  return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}:${get('second')}`;
+}
+
+const TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+
+/** True for a real calendar timestamp in 'YYYY-MM-DD HH:mm:ss' form. */
+function isValidTimestamp(value) {
+  const s = String(value || '');
+  if (!TIMESTAMP_RE.test(s)) return false;
+  const d = new Date(`${s.replace(' ', 'T')}Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 19).replace('T', ' ') === s;
+}
+
 // ── Receipt ───────────────────────────────────────────────────
 function generateReceiptNumber() {
   const date = today().replace(/-/g, '');
@@ -23,6 +54,40 @@ function calcTotalPayable(principal, ratePercent) {
   const p = parseFloat(principal);
   const r = parseFloat(ratePercent);
   return parseFloat((p + (p * r / 100)).toFixed(2));
+}
+
+// ── Repayment frequency & installments ────────────────────────
+// Mirrored exactly in client/src/utils/finance.js so previews match stored values.
+const FREQUENCIES = {
+  daily:   { unit: 'days',   step: 1 },
+  weekly:  { unit: 'days',   step: 7 },
+  monthly: { unit: 'months', step: 1 },
+};
+
+/**
+ * Number of installments between start and due date. The first installment
+ * falls one period after the start date; we keep stepping one period until
+ * the due date is reached.
+ */
+function countInstallments(startDate, dueDate, frequency) {
+  const f     = FREQUENCIES[frequency];
+  const start = isoDate(startDate);
+  const due   = isoDate(dueDate);
+  if (!f || !start || !due) return null;
+  if (due <= start) return 1;
+  let n = 0;
+  let cursor = start;
+  while (cursor < due && n < 3660) {
+    n += 1;
+    cursor = calcDueDate(start, n * f.step, f.unit);
+  }
+  return n;
+}
+
+/** Equal installment, rounded to cents (the final installment absorbs rounding). */
+function calcInstallmentAmount(total, count) {
+  const t = parseFloat(total);
+  return count > 0 && t > 0 ? parseFloat((t / count).toFixed(2)) : null;
 }
 
 // ── Responses ─────────────────────────────────────────────────
@@ -40,4 +105,9 @@ function serverError(res, err, label = 'Server error') {
   return res.status(500).json({ message: 'Internal server error' });
 }
 
-module.exports = { calcDueDate, today, generateReceiptNumber, calcTotalPayable, ok, fail, serverError };
+module.exports = {
+  calcDueDate, today, isoDate, nowLocal, isValidTimestamp,
+  generateReceiptNumber, calcTotalPayable,
+  FREQUENCIES, countInstallments, calcInstallmentAmount,
+  ok, fail, serverError,
+};

@@ -173,6 +173,16 @@ export function SearchField({ value, onChange, placeholder = 'Search…', maxWid
   );
 }
 
+/* ── Bilingual text (English + Kiswahili) ──────────────────────────── */
+export function Bi({ text, block = false }) {
+  return (
+    <>
+      {text.en}
+      <span className={`mf-sw${block ? '' : ' mf-sw--inline'}`} lang="sw">{text.sw}</span>
+    </>
+  );
+}
+
 /* ── Form field ────────────────────────────────────────────────────── */
 export function Field({ label, required, hint, error, span, children }) {
   return (

@@ -94,6 +94,74 @@ async function runMigrations() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `)
   );
+
+  // ── 2026-09 feature release — additive, nullable columns only ────────────
+  // Client verification (KYC) type: nida | voter | driving | none
+  await safe('customers.id_type', () =>
+    pool.query('ALTER TABLE customers ADD COLUMN id_type VARCHAR(20) NULL DEFAULT NULL AFTER address')
+  );
+
+  // Repayment frequency + installment plan
+  await safe('loans.repayment_frequency', () =>
+    pool.query('ALTER TABLE loans ADD COLUMN repayment_frequency VARCHAR(10) NULL DEFAULT NULL')
+  );
+  await safe('loans.installment_count', () =>
+    pool.query('ALTER TABLE loans ADD COLUMN installment_count INT NULL DEFAULT NULL')
+  );
+  await safe('loans.installment_amount', () =>
+    pool.query('ALTER TABLE loans ADD COLUMN installment_amount DECIMAL(12,2) NULL DEFAULT NULL')
+  );
+
+  // Payment timestamp, payment mode and mobile-money agent fees
+  await safe('repayments.paid_at', () =>
+    pool.query('ALTER TABLE repayments ADD COLUMN paid_at DATETIME NULL DEFAULT NULL AFTER payment_date')
+  );
+  await safe('repayments.payment_mode', () =>
+    pool.query("ALTER TABLE repayments ADD COLUMN payment_mode VARCHAR(20) NOT NULL DEFAULT 'cash'")
+  );
+  await safe('repayments.mobile_provider', () =>
+    pool.query('ALTER TABLE repayments ADD COLUMN mobile_provider VARCHAR(20) NULL DEFAULT NULL')
+  );
+  await safe('repayments.amount_sent', () =>
+    pool.query('ALTER TABLE repayments ADD COLUMN amount_sent DECIMAL(12,2) NULL DEFAULT NULL')
+  );
+  await safe('repayments.agent_fee', () =>
+    pool.query('ALTER TABLE repayments ADD COLUMN agent_fee DECIMAL(12,2) NOT NULL DEFAULT 0.00')
+  );
+
+  // Guarantors & collateral — removed automatically with their loan
+  await safe('create loan_guarantors table', () =>
+    pool.query(`
+      CREATE TABLE IF NOT EXISTS loan_guarantors (
+        id            INT           PRIMARY KEY AUTO_INCREMENT,
+        loan_id       INT           NOT NULL,
+        full_name     VARCHAR(100)  NOT NULL,
+        phone         VARCHAR(20)   NOT NULL,
+        relationship  VARCHAR(60)   DEFAULT NULL,
+        id_number     VARCHAR(50)   DEFAULT NULL,
+        created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_guarantor_loan FOREIGN KEY (loan_id)
+          REFERENCES loans(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        INDEX idx_guarantor_loan (loan_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
+  );
+  await safe('create loan_collaterals table', () =>
+    pool.query(`
+      CREATE TABLE IF NOT EXISTS loan_collaterals (
+        id               INT            PRIMARY KEY AUTO_INCREMENT,
+        loan_id          INT            NOT NULL,
+        description      VARCHAR(255)   NOT NULL,
+        serial_number    VARCHAR(100)   DEFAULT NULL,
+        item_condition   VARCHAR(60)    DEFAULT NULL,
+        estimated_value  DECIMAL(12,2)  NOT NULL DEFAULT 0.00,
+        created_at       TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_collateral_loan FOREIGN KEY (loan_id)
+          REFERENCES loans(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        INDEX idx_collateral_loan (loan_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
+  );
 }
 
 module.exports = { pool, testConnection, runMigrations };

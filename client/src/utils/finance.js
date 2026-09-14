@@ -1,14 +1,57 @@
 /*
  * Client-side finance helpers.
  *
- * calcTotalPayable / calcDueDate mirror server/utils/helpers.js exactly so
- * every preview in the UI matches what the API will store. The server stays
- * the source of truth — values returned by the API are always displayed
- * after a loan is created.
+ * calcTotalPayable / calcDueDate / countInstallments / calcInstallmentAmount
+ * mirror server/utils/helpers.js exactly so every preview in the UI matches
+ * what the API stores. The server stays the source of truth — values
+ * returned by the API are always displayed after a loan is created.
  */
 
 export function todayISO() {
   return new Date().toISOString().slice(0, 10);
+}
+
+/** Local (device) calendar date as YYYY-MM-DD. */
+export function localDateISO(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+const EAT = 'Africa/Dar_es_Salaam';
+
+/**
+ * Tanzania (EAT) wall-clock time as 'YYYY-MM-DDTHH:mm:ss' — the value format of
+ * <input type="datetime-local" step="1">. Independent of the device timezone so
+ * payment times match the server's clock. Falls back to device time if the
+ * browser lacks timezone data.
+ */
+export function nowEatInput(offsetMs = 0) {
+  const d = new Date(Date.now() + offsetMs);
+  try {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: EAT, hourCycle: 'h23',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+    }).formatToParts(d);
+    const get = type => parts.find(p => p.type === type)?.value;
+    return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`;
+  } catch {
+    const p = n => String(n).padStart(2, '0');
+    return `${localDateISO(d)}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  }
+}
+
+/** 'YYYY-MM-DDTHH:mm[:ss]' → 'YYYY-MM-DD HH:mm:ss' (the API timestamp format). */
+export function inputToTimestamp(value) {
+  if (!value) return '';
+  const [date, time = '00:00:00'] = String(value).split('T');
+  const [h = '00', m = '00', s = '00'] = time.split(':');
+  return `${date} ${h.padStart(2, '0')}:${m.padStart(2, '0')}:${String(s).slice(0, 2).padStart(2, '0')}`;
+}
+
+export function isoDate(value) {
+  if (!value) return null;
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return String(value).slice(0, 10);
 }
 
 export function calcTotalPayable(principal, ratePercent) {
@@ -28,12 +71,46 @@ export function calcDueDate(startDate, value, unit) {
   return d.toISOString().slice(0, 10);
 }
 
+/* ── Repayment frequency ───────────────────────────────────────────── */
+
+export const FREQUENCIES = {
+  daily:   { unit: 'days',   step: 1 },
+  weekly:  { unit: 'days',   step: 7 },
+  monthly: { unit: 'months', step: 1 },
+};
+export const FREQUENCY_ORDER = ['daily', 'weekly', 'monthly'];
+
+/** Installments from start to due date — first installment one period after start. */
+export function countInstallments(startDate, dueDate, frequency) {
+  const f     = FREQUENCIES[frequency];
+  const start = isoDate(startDate);
+  const due   = isoDate(dueDate);
+  if (!f || !start || !due) return null;
+  if (due <= start) return 1;
+  let n = 0;
+  let cursor = start;
+  while (cursor < due && n < 3660) {
+    n += 1;
+    cursor = calcDueDate(start, n * f.step, f.unit);
+  }
+  return n;
+}
+
+export function calcInstallmentAmount(total, count) {
+  const t = parseFloat(total);
+  return count > 0 && t > 0 ? parseFloat((t / count).toFixed(2)) : null;
+}
+
 /** Full quote for a set of loan terms, or null when terms are incomplete. */
-export function loanQuote({ loan_amount, interest_rate, duration_value, duration_unit, start_date }) {
+export function loanQuote({ loan_amount, interest_rate, duration_value, duration_unit, start_date, repayment_frequency }) {
   const total = calcTotalPayable(loan_amount, interest_rate);
   if (total == null) return null;
   const principal = parseFloat(loan_amount);
   const periods   = parseInt(duration_value, 10);
+  const startDate = start_date || todayISO();
+  const dueDate   = calcDueDate(startDate, duration_value, duration_unit);
+  const frequency = FREQUENCIES[repayment_frequency] ? repayment_frequency : null;
+  const installmentCount = frequency && dueDate ? countInstallments(startDate, dueDate, frequency) : null;
   return {
     principal,
     rate:        parseFloat(interest_rate),
@@ -41,28 +118,62 @@ export function loanQuote({ loan_amount, interest_rate, duration_value, duration
     total,
     periods:     periods > 0 ? periods : null,
     unit:        duration_unit,
-    startDate:   start_date || todayISO(),
-    dueDate:     calcDueDate(start_date || todayISO(), duration_value, duration_unit),
-    installment: periods > 0 ? parseFloat((total / periods).toFixed(2)) : null,
+    startDate,
+    dueDate,
+    frequency,
+    installmentCount,
+    installment: calcInstallmentAmount(total, installmentCount),
   };
 }
 
-/**
- * Indicative equal-installment schedule. The system books a single due date
- * per loan; this split is guidance for the officer and the client only.
- */
+/** Installment schedule for a quote (dates follow the repayment frequency). */
 export function indicativeSchedule(quote, limit = 60) {
-  if (!quote?.periods) return [];
-  const n = Math.min(quote.periods, limit);
+  if (!quote?.frequency || !quote.installmentCount || !quote.installment) return [];
+  const f = FREQUENCIES[quote.frequency];
+  const n = Math.min(quote.installmentCount, limit);
   const rows = [];
   let remaining = quote.total;
   for (let i = 1; i <= n; i++) {
-    const isLast = i === quote.periods;
+    const isLast = i === quote.installmentCount;
     const amount = isLast ? parseFloat(remaining.toFixed(2)) : quote.installment;
     remaining = Math.max(0, parseFloat((remaining - amount).toFixed(2)));
-    rows.push({ index: i, date: calcDueDate(quote.startDate, i, quote.unit), amount, remaining });
+    rows.push({ index: i, date: calcDueDate(quote.startDate, i * f.step, f.unit), amount, remaining });
   }
   return rows;
+}
+
+/**
+ * Where a loan stands against its installment plan today.
+ * Returns null for loans without a plan (legacy single-payment loans).
+ */
+export function repaymentStatus(loan, today = nowEatInput().slice(0, 10)) {
+  const frequency = loan?.repayment_frequency;
+  const count     = Number(loan?.installment_count);
+  const amount    = Number(loan?.installment_amount);
+  if (!FREQUENCIES[frequency] || !(count > 0) || !(amount > 0)) return null;
+
+  const f     = FREQUENCIES[frequency];
+  const start = isoDate(loan.start_date);
+  const total = Number(loan.total_payable) || 0;
+  const paid  = Number(loan.amount_paid) || 0;
+
+  let due = 0;
+  for (let i = 1; i <= count; i++) {
+    if (calcDueDate(start, i * f.step, f.unit) <= today) due = i;
+    else break;
+  }
+  const expected = due >= count ? total : parseFloat((due * amount).toFixed(2));
+  const diff     = parseFloat((paid - expected).toFixed(2));
+  const covered  = Math.min(count, Math.floor((paid + 0.005) / amount));
+
+  return {
+    frequency, count, amount, total, paid, due, expected,
+    arrears:   diff < 0 ? -diff : 0,
+    ahead:     diff > 0 ? diff : 0,
+    covered,
+    remaining: Math.max(0, count - covered),
+    nextDue:   due < count ? calcDueDate(start, (due + 1) * f.step, f.unit) : null,
+  };
 }
 
 /** Whole days from today until `dateStr` (negative when in the past). */

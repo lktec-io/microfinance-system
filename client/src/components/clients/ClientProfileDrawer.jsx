@@ -5,7 +5,7 @@ import StatusBadge from '../common/StatusBadge';
 import { Avatar, ProgressBar, DueChip, Empty } from '../ui';
 import { ScoreCard, StandingBadge } from './Standing';
 import { fmt0, fmtDay } from '../../utils/format';
-import { displayNin } from '../../utils/nida';
+import { detectIdType, displayId } from '../../utils/kyc';
 
 const LONG_DATE = { day: '2-digit', month: 'short', year: 'numeric' };
 
@@ -65,7 +65,13 @@ export default function ClientProfileDrawer({ customer, loans, standing, onClose
               <div className="mf-section-label">Identity & contact</div>
               <dl className="mf-dl">
                 <div className="mf-dl__item"><dt>Phone</dt><dd className="mf-mono">{customer.phone || '—'}</dd></div>
-                <div className="mf-dl__item"><dt>National ID (NIN)</dt><dd className="mf-mono">{displayNin(customer.id_number)}</dd></div>
+                <div className="mf-dl__item">
+                  <dt>Identification</dt>
+                  <dd className="mf-mono">
+                    {displayId(customer)}
+                    {detectIdType(customer) === 'none' && <> <span className="badge badge--yellow">Unverified</span></>}
+                  </dd>
+                </div>
                 <div className="mf-dl__item mf-dl__item--span"><dt>Address</dt><dd>{customer.address || '—'}</dd></div>
                 <div className="mf-dl__item mf-dl__item--span"><dt>Registered</dt><dd>{fmtDay(customer.registration_date, LONG_DATE)}</dd></div>
               </dl>

@@ -4,21 +4,27 @@ import {
   FiInfo, FiCheckCircle, FiExternalLink, FiEdit2, FiAlertCircle, FiSearch,
 } from 'react-icons/fi';
 import api from '../../api';
-import { Modal, Stepper, SearchField, Avatar, Empty } from '../ui';
-import ClientFields, { initialClientForm, checkClientNin, clientPayload } from '../clients/ClientFields';
+import { Modal, Stepper, SearchField, Avatar, Empty, Bi } from '../ui';
+import ClientFields, { initialClientForm, checkClientId, clientPayload } from '../clients/ClientFields';
 import { ScoreCard, StandingBadge } from '../clients/Standing';
 import StatusBadge from '../common/StatusBadge';
 import LoanTermsFields, { EMPTY_TERMS, validateTerms } from './LoanTermsFields';
 import QuotePanel from './QuotePanel';
+import SecurityFields, { EMPTY_SECURITY_DRAFTS, securitiesPayload, securityDraftsDirty } from './SecurityFields';
+import SecurityList from './SecurityList';
 import { clientStanding, loanQuote, indicativeSchedule, todayISO } from '../../utils/finance';
 import { fmt, fmt0, fmtDay } from '../../utils/format';
-import { displayNin } from '../../utils/nida';
+import { detectIdType, displayId } from '../../utils/kyc';
+import { frequencyLabel, money, perInterval } from '../../utils/labels';
+import { t } from '../../i18n/bilingual';
 
 const STEPS = [
-  { key: 'applicant', label: 'Applicant',  hint: 'Select & verify client' },
-  { key: 'terms',     label: 'Loan terms', hint: 'Amount, rate & tenor'   },
-  { key: 'review',    label: 'Review',     hint: 'Confirm & submit'       },
+  { key: 'applicant', label: 'Applicant',  hint: 'Select & verify client'    },
+  { key: 'terms',     label: 'Loan terms', hint: 'Amount, rate & frequency'  },
+  { key: 'security',  label: 'Security',   hint: 'Guarantors & collateral'   },
+  { key: 'review',    label: 'Review',     hint: 'Confirm & submit'          },
 ];
+const STEP = { applicant: 0, terms: 1, security: 2, review: 3 };
 
 const LONG_DATE = { day: '2-digit', month: 'short', year: 'numeric' };
 
@@ -48,7 +54,7 @@ function ApplicantProfile({ customer, standing }) {
 
       <dl className="mf-dl">
         <div className="mf-dl__item"><dt>Phone</dt><dd className="mf-mono">{customer.phone || '—'}</dd></div>
-        <div className="mf-dl__item"><dt>National ID (NIN)</dt><dd className="mf-mono">{displayNin(customer.id_number)}</dd></div>
+        <div className="mf-dl__item"><dt>Identification</dt><dd className="mf-mono">{displayId(customer)}</dd></div>
         <div className="mf-dl__item"><dt>Registered</dt><dd>{fmtDay(customer.registration_date, LONG_DATE)}</dd></div>
         <div className="mf-dl__item"><dt>Loans on record</dt><dd className="mf-num">{standing.n}</dd></div>
         <div className="mf-dl__item mf-dl__item--span"><dt>Address</dt><dd>{customer.address || '—'}</dd></div>
@@ -63,6 +69,11 @@ function ApplicantProfile({ customer, standing }) {
 
       <ScoreCard standing={standing} />
 
+      {detectIdType(customer) === 'none' && (
+        <div className="mf-alert mf-alert--warning">
+          <FiAlertTriangle size={15} /> <span><Bi text={t('kyc.noneTitle')} block /></span>
+        </div>
+      )}
       {standing.overdue > 0 && (
         <div className="mf-alert mf-alert--danger">
           <FiAlertTriangle size={15} />
@@ -91,7 +102,7 @@ export default function LoanApplicationWizard({
   customers, loans, initialCustomerId, initialTerms,
   onClose, onCreated, onCustomerCreated, onViewLoan,
 }) {
-  const [step, setStep]             = useState(0);
+  const [step, setStep]             = useState(STEP.applicant);
   const [customerId, setCustomerId] = useState(initialCustomerId ? String(initialCustomerId) : '');
   const [query, setQuery]           = useState('');
 
@@ -101,10 +112,16 @@ export default function LoanApplicationWizard({
   const [clientErr, setClientErr]             = useState('');
   const [clientAttempted, setClientAttempted] = useState(false);
   const [clientShake, setClientShake]         = useState(0);
-  const clientNin = checkClientNin(clientForm, { customers });
+  const clientCheck = checkClientId(clientForm, { customers });
 
   const [terms, setTerms]     = useState({ ...EMPTY_TERMS, start_date: todayISO(), ...(initialTerms || {}) });
   const [touched, setTouched] = useState(false);
+
+  const [securities, setSecurities]               = useState([]);
+  const [securityDrafts, setSecurityDrafts]       = useState(EMPTY_SECURITY_DRAFTS);
+  const [securityAttempted, setSecurityAttempted] = useState(false);
+  const securityDirty = securityDraftsDirty(securityDrafts);
+
   const [ack, setAck]         = useState(false);
   const [saving, setSaving]   = useState(false);
   const [error, setError]     = useState('');
@@ -142,13 +159,13 @@ export default function LoanApplicationWizard({
     e.preventDefault();
     setClientAttempted(true);
     setClientErr('');
-    if (clientNin.blocking) {
+    if (clientCheck.blocking) {
       setClientShake(k => k + 1);
       return;
     }
     setClientSaving(true);
     try {
-      const { data } = await api.post('/customers', clientPayload(clientForm, clientNin));
+      const { data } = await api.post('/customers', clientPayload(clientForm, clientCheck));
       onCustomerCreated?.(data);
       setCustomerId(String(data.id));
       setRegistering(false);
@@ -162,10 +179,14 @@ export default function LoanApplicationWizard({
   }
 
   function next() {
-    if (step === 0 && !customer) return;
-    if (step === 1) {
+    if (step === STEP.applicant && !customer) return;
+    if (step === STEP.terms) {
       setTouched(true);
       if (!termsValid) return;
+    }
+    if (step === STEP.security && securityDirty) {
+      setSecurityAttempted(true);
+      return;
     }
     setStep(s => Math.min(STEPS.length - 1, s + 1));
   }
@@ -176,16 +197,18 @@ export default function LoanApplicationWizard({
     setError('');
     try {
       const { data } = await api.post('/loans', {
-        customer_id:    customer.id,
-        loan_amount:    terms.loan_amount,
-        interest_rate:  terms.interest_rate,
-        duration_value: terms.duration_value,
-        duration_unit:  terms.duration_unit,
-        start_date:     terms.start_date,
-        purpose:        terms.purpose,
+        customer_id:         customer.id,
+        loan_amount:         terms.loan_amount,
+        interest_rate:       terms.interest_rate,
+        duration_value:      terms.duration_value,
+        duration_unit:       terms.duration_unit,
+        repayment_frequency: terms.repayment_frequency,
+        start_date:          terms.start_date,
+        purpose:             terms.purpose,
+        securities:          securitiesPayload(securities),
       });
       const loan = { ...data, customer_name: customer.full_name, customer_phone: customer.phone };
-      setCreated(loan);
+      setCreated({ ...loan, securityCount: securities.length });
       onCreated?.(loan);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create loan');
@@ -209,14 +232,14 @@ export default function LoanApplicationWizard({
   } else {
     footer = (
       <>
-        {step === 0
+        {step === STEP.applicant
           ? <button type="button" className="mf-btn mf-btn--ghost" onClick={onClose}>Cancel</button>
           : <button type="button" className="mf-btn mf-btn--ghost" onClick={() => setStep(s => s - 1)}><FiArrowLeft size={14} /> Back</button>}
         <span className="mf-modal__foot-spacer" />
         <span className="mf-picker__hint">Step {step + 1} of {STEPS.length}</span>
         {step < STEPS.length - 1 ? (
           <button type="button" className="mf-btn mf-btn--primary" onClick={next}
-            disabled={(step === 0 && (!customer || registering))}>
+            disabled={step === STEP.applicant && (!customer || registering)}>
             Continue <FiArrowRight size={14} />
           </button>
         ) : (
@@ -228,12 +251,16 @@ export default function LoanApplicationWizard({
     );
   }
 
+  const installmentPlan = quote?.installment
+    ? t('freq.installments', { count: quote.installmentCount, amount: money(quote.installment) })
+    : null;
+
   return (
     <Modal
       size="xl"
       eyebrow="Loan origination"
       title={created ? 'Application complete' : 'New loan application'}
-      subtitle={created ? undefined : 'Verify the applicant, set terms, then review before booking.'}
+      subtitle={created ? undefined : 'Verify the applicant, set terms, add guarantors or collateral, then review.'}
       onClose={onClose}
       dismissible={false}
       footer={footer}
@@ -255,12 +282,21 @@ export default function LoanApplicationWizard({
               <div className="mf-dl__item"><dt>Total payable</dt><dd className="mf-num">TZS {fmt(created.total_payable)}</dd></div>
               <div className="mf-dl__item"><dt>Due date</dt><dd>{fmtDay(created.due_date, LONG_DATE)}</dd></div>
               <div className="mf-dl__item"><dt>Status</dt><dd><StatusBadge status={created.status} /></dd></div>
+              <div className="mf-dl__item">
+                <dt>Installments</dt>
+                <dd className="mf-num">
+                  {created.installment_count
+                    ? `${created.installment_count} × TZS ${money(created.installment_amount)} ${perInterval(created.repayment_frequency).en}`
+                    : '—'}
+                </dd>
+              </div>
+              <div className="mf-dl__item"><dt>Guarantors &amp; assets</dt><dd className="mf-num">{created.securityCount}</dd></div>
             </dl>
           </div>
         )}
 
         {/* ── Step 1: Applicant ── */}
-        {!created && step === 0 && (
+        {!created && step === STEP.applicant && (
           <div className="mf-wizard__pane" key="applicant">
             <div className="mf-wizard__split">
               <div className="mf-picker">
@@ -269,7 +305,7 @@ export default function LoanApplicationWizard({
                   <p>Search the clients directory. Selection loads the applicant's standing.</p>
                 </div>
                 <div className="mf-picker__bar">
-                  <SearchField value={query} onChange={setQuery} placeholder="Search name, phone or national ID" />
+                  <SearchField value={query} onChange={setQuery} placeholder="Search name, phone or ID number" />
                   <button type="button" className={`mf-btn ${registering ? 'mf-btn--ghost' : 'mf-btn--dark'}`}
                     onClick={() => { setRegistering(r => !r); setClientErr(''); setClientAttempted(false); }}>
                     <FiUserPlus size={14} /> {registering ? 'Cancel' : 'New client'}
@@ -281,7 +317,7 @@ export default function LoanApplicationWizard({
                     <div className="mf-section-label" style={{ marginBottom: 0 }}>Register new client</div>
                     {clientErr && <div className="mf-alert mf-alert--error"><FiAlertCircle size={15} /> {clientErr}</div>}
                     <ClientFields form={clientForm} setForm={setClientForm} compact
-                      nin={clientNin} attempted={clientAttempted} shakeKey={clientShake} />
+                      check={clientCheck} attempted={clientAttempted} shakeKey={clientShake} />
                     <div className="mf-picker__register-actions">
                       <button type="submit" className="mf-btn mf-btn--primary" disabled={clientSaving}>
                         {clientSaving ? 'Registering…' : 'Register & select'}
@@ -303,7 +339,7 @@ export default function LoanApplicationWizard({
                           <Avatar name={c.full_name} size={32} />
                           <span className="mf-cell-stack">
                             <span className="mf-cell-title">{c.full_name}</span>
-                            <span className="mf-cell-sub mf-mono">{c.phone}{c.id_number ? ` · ${displayNin(c.id_number)}` : ''}</span>
+                            <span className="mf-cell-sub mf-mono">{c.phone} · {displayId(c)}</span>
                           </span>
                           {sel ? <span className="badge badge--orange"><FiCheck size={11} /> Selected</span> : <StandingBadge status={st.status} />}
                         </button>
@@ -322,27 +358,56 @@ export default function LoanApplicationWizard({
         )}
 
         {/* ── Step 2: Terms ── */}
-        {!created && step === 1 && (
+        {!created && step === STEP.terms && (
           <div className="mf-wizard__pane" key="terms">
             <div className="mf-wizard__split">
               <div>
                 <div className="mf-wizard__heading">
                   <h3>Loan terms for {customer?.full_name}</h3>
-                  <p>Flat interest on principal. The quote updates as you type.</p>
+                  <p>Flat interest on principal. The installment updates as you type.</p>
                 </div>
                 <LoanTermsFields form={terms} setForm={setTerms} errors={touched ? termErrors : {}} />
               </div>
               <QuotePanel quote={quote}>
                 <p className="mf-quote__foot">
-                  New loans are booked with status <b>Active</b> and a single due date. Installments shown are an indicative split.
+                  New loans are booked <b>Active</b>. Every repayment is tracked against this installment plan.
                 </p>
               </QuotePanel>
             </div>
           </div>
         )}
 
-        {/* ── Step 3: Review ── */}
-        {!created && step === 2 && customer && quote && (
+        {/* ── Step 3: Guarantors & collateral ── */}
+        {!created && step === STEP.security && (
+          <div className="mf-wizard__pane" key="security">
+            <div className="mf-wizard__split">
+              <div>
+                <div className="mf-wizard__heading">
+                  <h3><Bi text={t('security.title')} /></h3>
+                  <p>{t('security.stepHint').en}<span className="mf-sw" lang="sw">{t('security.stepHint').sw}</span></p>
+                </div>
+                <SecurityFields
+                  items={securities}
+                  setItems={setSecurities}
+                  principal={quote?.principal}
+                  drafts={securityDrafts}
+                  setDrafts={setSecurityDrafts}
+                  pendingError={securityAttempted && securityDirty}
+                />
+              </div>
+              <QuotePanel quote={quote} title="Loan quote">
+                <p className="mf-quote__foot">
+                  {securities.length
+                    ? <><b>{securities.length}</b> guarantor{securities.length === 1 ? '' : 's'} / asset{securities.length === 1 ? '' : 's'} will be saved with this loan.</>
+                    : 'No security added yet — the loan can still be booked unsecured.'}
+                </p>
+              </QuotePanel>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 4: Review ── */}
+        {!created && step === STEP.review && customer && quote && (
           <div className="mf-wizard__pane" key="review">
             <div className="mf-wizard__split">
               <div className="mf-review">
@@ -352,10 +417,10 @@ export default function LoanApplicationWizard({
                     <Avatar name={customer.full_name} size={36} />
                     <div>
                       <div className="mf-cell-title">{customer.full_name}</div>
-                      <div className="mf-cell-sub mf-mono">{customer.phone}{customer.id_number ? ` · NIN ${displayNin(customer.id_number)}` : ''}</div>
+                      <div className="mf-cell-sub mf-mono">{customer.phone} · {displayId(customer)}</div>
                     </div>
                     <StandingBadge status={standing.status} />
-                    <button type="button" className="mf-link-btn" onClick={() => setStep(0)}><FiEdit2 size={11} /> Change</button>
+                    <button type="button" className="mf-link-btn" onClick={() => setStep(STEP.applicant)}><FiEdit2 size={11} /> Change</button>
                   </div>
                 </section>
 
@@ -366,15 +431,39 @@ export default function LoanApplicationWizard({
                     <div className="mf-dl__item"><dt>Interest rate</dt><dd className="mf-num">{quote.rate}% flat</dd></div>
                     <div className="mf-dl__item"><dt>Tenor</dt><dd>{quote.periods} {quote.unit}</dd></div>
                     <div className="mf-dl__item"><dt>Start date</dt><dd>{fmtDay(terms.start_date || todayISO(), LONG_DATE)}</dd></div>
+                    <div className="mf-dl__item"><dt>Frequency</dt><dd>{frequencyLabel(quote.frequency).en} · {frequencyLabel(quote.frequency).sw}</dd></div>
+                    <div className="mf-dl__item">
+                      <dt>Installment</dt>
+                      <dd className="mf-num">{quote.installment ? `TZS ${money(quote.installment)} ${perInterval(quote.frequency).en}` : '—'}</dd>
+                    </div>
                     <div className="mf-dl__item mf-dl__item--span"><dt>Purpose</dt><dd>{terms.purpose || '—'}</dd></div>
                   </dl>
-                  <button type="button" className="mf-link-btn" style={{ marginTop: '.5rem' }} onClick={() => setStep(1)}>
+                  <button type="button" className="mf-link-btn" style={{ marginTop: '.5rem' }} onClick={() => setStep(STEP.terms)}>
                     <FiEdit2 size={11} /> Edit terms
                   </button>
                 </section>
 
                 <section>
-                  <div className="mf-section-label">Indicative schedule</div>
+                  <div className="mf-section-label">Guarantors &amp; collateral</div>
+                  {securities.length > 0 ? (
+                    <SecurityList items={securities} principal={quote.principal} />
+                  ) : (
+                    <div className="mf-alert mf-alert--warning">
+                      <FiAlertTriangle size={15} /> <span><Bi text={t('security.none')} block /></span>
+                    </div>
+                  )}
+                  <button type="button" className="mf-link-btn" style={{ marginTop: '.5rem' }} onClick={() => setStep(STEP.security)}>
+                    <FiEdit2 size={11} /> Edit security
+                  </button>
+                </section>
+
+                <section>
+                  <div className="mf-section-label">Installment schedule</div>
+                  {installmentPlan && (
+                    <p className="mf-plan__expected" style={{ marginBottom: '.5rem' }}>
+                      {installmentPlan.en}<span className="mf-sw" lang="sw">{installmentPlan.sw}</span>
+                    </p>
+                  )}
                   <div className="mf-table-wrap" style={{ border: '1px solid var(--mf-border)' }}>
                     <table className="mf-table">
                       <thead><tr><th>#</th><th>Date</th><th className="is-num">Installment</th><th className="is-num">Remaining</th></tr></thead>
@@ -388,8 +477,14 @@ export default function LoanApplicationWizard({
                           </tr>
                         ))}
                       </tbody>
-                      {quote.periods > schedule.length && (
-                        <tfoot><tr><td colSpan={4} className="mf-muted">+ {quote.periods - schedule.length} more period{quote.periods - schedule.length === 1 ? '' : 's'}</td></tr></tfoot>
+                      {quote.installmentCount > schedule.length && (
+                        <tfoot>
+                          <tr>
+                            <td colSpan={4} className="mf-muted">
+                              + {quote.installmentCount - schedule.length} more installment{quote.installmentCount - schedule.length === 1 ? '' : 's'}
+                            </td>
+                          </tr>
+                        </tfoot>
                       )}
                     </table>
                   </div>
@@ -403,7 +498,7 @@ export default function LoanApplicationWizard({
 
                 <label className={`mf-check mf-review__ack${ack ? ' is-checked' : ''}`}>
                   <input type="checkbox" checked={ack} onChange={e => setAck(e.target.checked)} />
-                  <span>I have verified the applicant's identity and confirmed these terms with the client.</span>
+                  <span>I have verified the applicant's identity, guarantors and collateral, and confirmed these terms with the client.</span>
                 </label>
 
                 {error && <div className="mf-alert mf-alert--error" role="alert"><FiAlertCircle size={15} /> {error}</div>}

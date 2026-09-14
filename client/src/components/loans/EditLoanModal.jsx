@@ -3,22 +3,24 @@ import { FiAlertCircle } from 'react-icons/fi';
 import api from '../../api';
 import { Modal, Field } from '../ui';
 import LoanTermsFields from './LoanTermsFields';
-import { loanQuote } from '../../utils/finance';
+import { calcInstallmentAmount, countInstallments, loanQuote, todayISO } from '../../utils/finance';
 import { fmt } from '../../utils/format';
+import { money, perInterval } from '../../utils/labels';
 
 const STATUSES = ['pending', 'active', 'paid', 'overdue'];
 
-/** Edit loan — same fields and PUT /api/loans/:id payload as the previous UI. */
+/** Edit loan — PUT /api/loans/:id. The server recomputes totals and the installment plan. */
 export default function EditLoanModal({ loan, onClose, onSaved }) {
   const [form, setForm] = useState(() => ({
-    loan_amount:    loan.loan_amount,
-    interest_rate:  loan.interest_rate,
-    duration_value: loan.duration_value,
-    duration_unit:  loan.duration_unit || 'months',
-    start_date:     loan.start_date?.slice(0, 10) || '',
-    due_date:       loan.due_date?.slice(0, 10) || '',
-    status:         loan.status,
-    purpose:        loan.purpose || '',
+    loan_amount:         loan.loan_amount,
+    interest_rate:       loan.interest_rate,
+    duration_value:      loan.duration_value,
+    duration_unit:       loan.duration_unit || 'months',
+    repayment_frequency: loan.repayment_frequency || '',
+    start_date:          loan.start_date?.slice(0, 10) || '',
+    due_date:            loan.due_date?.slice(0, 10) || '',
+    status:              loan.status,
+    purpose:             loan.purpose || '',
   }));
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
@@ -26,6 +28,13 @@ export default function EditLoanModal({ loan, onClose, onSaved }) {
   const quote      = loanQuote(form);
   const paid       = Number(loan.amount_paid) || 0;
   const newBalance = quote ? Math.max(0, quote.total - paid) : null;
+
+  // The server counts installments up to the due date saved on the loan
+  const planDue    = form.due_date || quote?.dueDate;
+  const planCount  = quote && form.repayment_frequency && planDue
+    ? countInstallments(form.start_date || todayISO(), planDue, form.repayment_frequency)
+    : null;
+  const planAmount = quote ? calcInstallmentAmount(quote.total, planCount) : null;
 
   const set = key => e => {
     const value = e.target.value;
@@ -72,13 +81,18 @@ export default function EditLoanModal({ loan, onClose, onSaved }) {
 
         {error && <div className="mf-alert mf-alert--error" role="alert"><FiAlertCircle size={15} /> {error}</div>}
 
-        <LoanTermsFields form={form} setForm={setForm} showPurpose={false} />
+        <LoanTermsFields form={form} setForm={setForm} showPurpose={false} allowSingle />
 
         {quote && (
           <div className="mf-alert mf-alert--info">
             <span>
               Recalculated total payable <strong className="mf-mono">TZS {fmt(quote.total)}</strong>
               {' '}· new balance <strong className="mf-mono">TZS {fmt(newBalance)}</strong>
+              {planAmount && (
+                <>
+                  {' '}· plan <strong className="mf-mono">{planCount} × TZS {money(planAmount)}</strong> {perInterval(form.repayment_frequency).en}
+                </>
+              )}
             </span>
           </div>
         )}

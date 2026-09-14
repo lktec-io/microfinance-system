@@ -32,6 +32,17 @@ export function initials(name, max = 2) {
   return String(name).trim().split(/\s+/).map(w => w[0]).join('').slice(0, max).toUpperCase();
 }
 
+/**
+ * 'YYYY-MM-DD HH:mm:ss' from a stored DATETIME. The API pool runs at +00:00,
+ * so the wall-clock value round-trips unchanged — read it as text, never
+ * through Date (which would shift it into the device timezone).
+ */
+export function fmtTimestamp(value) {
+  if (!value) return '';
+  const m = String(value).match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})/);
+  return m ? `${m[1]} ${m[2]}` : '';
+}
+
 export function fmtShort(n) {
   const v = Number(n) || 0;
   if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`;

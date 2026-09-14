@@ -1,8 +1,10 @@
-import { Field } from '../ui';
+import { Field, Bi } from '../ui';
+import { FREQUENCIES, FREQUENCY_ORDER } from '../../utils/finance';
+import { t } from '../../i18n/bilingual';
 
 export const EMPTY_TERMS = {
   loan_amount: '', interest_rate: '', duration_value: '',
-  duration_unit: 'months', start_date: '', purpose: '',
+  duration_unit: 'months', start_date: '', repayment_frequency: 'monthly', purpose: '',
 };
 
 export const UNITS = [
@@ -11,23 +13,29 @@ export const UNITS = [
   { value: 'months', label: 'Months' },
 ];
 
-/** Mirrors the API's required-field checks, with friendlier messages. */
-export function validateTerms(t) {
+/**
+ * Mirrors the API's required-field checks, with friendlier messages.
+ * `allowSingle` accepts an empty frequency (legacy single-payment loans being edited).
+ */
+export function validateTerms(terms, { allowSingle = false } = {}) {
   const errors = {};
-  if (!(parseFloat(t.loan_amount) > 0)) errors.loan_amount = 'Enter an amount greater than zero';
-  const rate = parseFloat(t.interest_rate);
-  if (t.interest_rate === '' || Number.isNaN(rate) || rate < 0) errors.interest_rate = 'Enter a rate of 0% or more';
-  const dur = Number(t.duration_value);
+  if (!(parseFloat(terms.loan_amount) > 0)) errors.loan_amount = 'Enter an amount greater than zero';
+  const rate = parseFloat(terms.interest_rate);
+  if (terms.interest_rate === '' || Number.isNaN(rate) || rate < 0) errors.interest_rate = 'Enter a rate of 0% or more';
+  const dur = Number(terms.duration_value);
   if (!Number.isInteger(dur) || dur < 1) errors.duration_value = 'Whole number, at least 1';
-  if (!UNITS.some(u => u.value === t.duration_unit)) errors.duration_unit = 'Choose a unit';
+  if (!UNITS.some(u => u.value === terms.duration_unit)) errors.duration_unit = 'Choose a unit';
+  const freq = terms.repayment_frequency;
+  if (!(FREQUENCIES[freq] || (allowSingle && !freq))) errors.repayment_frequency = 'Choose how often the client repays';
   return errors;
 }
 
-export default function LoanTermsFields({ form, setForm, errors = {}, showPurpose = true }) {
+export default function LoanTermsFields({ form, setForm, errors = {}, showPurpose = true, allowSingle = false }) {
   const set = key => e => {
     const value = e.target.value;
     setForm(f => ({ ...f, [key]: value }));
   };
+  const single = t('freq.single');
 
   return (
     <div className="mf-form-grid">
@@ -49,6 +57,17 @@ export default function LoanTermsFields({ form, setForm, errors = {}, showPurpos
       <Field label="Tenor unit" required error={errors.duration_unit}>
         <select className="mf-select" value={form.duration_unit} onChange={set('duration_unit')}>
           {UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+        </select>
+      </Field>
+      <Field label={<Bi text={t('freq.label')} />} required error={errors.repayment_frequency}>
+        <select className="mf-select" value={form.repayment_frequency ?? ''} onChange={set('repayment_frequency')}
+          aria-invalid={!!errors.repayment_frequency}>
+          {allowSingle && <option value="">{single.en} · {single.sw}</option>}
+          {!allowSingle && !FREQUENCIES[form.repayment_frequency] && <option value="" disabled>Choose…</option>}
+          {FREQUENCY_ORDER.map(f => {
+            const label = t(`freq.${f}`);
+            return <option key={f} value={f}>{label.en} · {label.sw}</option>;
+          })}
         </select>
       </Field>
       <Field label="Start date" hint="Leave empty to start today">

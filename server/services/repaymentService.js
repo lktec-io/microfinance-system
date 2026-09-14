@@ -1,5 +1,8 @@
 const { pool } = require('../config/database');
-const { generateReceiptNumber, today } = require('../utils/helpers');
+const { generateReceiptNumber, nowLocal } = require('../utils/helpers');
+
+const PAYMENT_MODES   = ['cash', 'mobile_money', 'bank'];
+const MOBILE_PROVIDERS = ['mpesa', 'tigopesa', 'airtelmoney', 'halopesa'];
 
 async function findAll() {
   const [rows] = await pool.query(`
@@ -10,7 +13,7 @@ async function findAll() {
     JOIN loans l     ON l.id = r.loan_id
     JOIN customers c ON c.id = l.customer_id
     LEFT JOIN users u ON u.id = r.created_by
-    ORDER BY r.payment_date DESC, r.created_at DESC
+    ORDER BY r.payment_date DESC, r.paid_at DESC, r.created_at DESC
   `);
   return rows;
 }
@@ -21,7 +24,7 @@ async function findByLoan(loanId) {
      FROM repayments r
      LEFT JOIN users u ON u.id = r.created_by
      WHERE r.loan_id = ?
-     ORDER BY r.payment_date DESC`,
+     ORDER BY r.payment_date DESC, r.paid_at DESC`,
     [loanId]
   );
   return rows;
@@ -41,8 +44,33 @@ async function findById(id) {
   return rows[0] || null;
 }
 
-async function create({ loan_id, amount, payment_date, notes, created_by }) {
-  const payAmount = parseFloat(amount);
+/**
+ * Post a repayment.
+ *
+ * Mobile money: the client sends `amount_sent`; the agent fee (makato) is
+ * recorded separately in `agent_fee` and the loan is credited with
+ * amount_sent − agent_fee. Fees never count as loan collection.
+ *
+ * Timestamp: `paid_at` ('YYYY-MM-DD HH:mm:ss', Tanzania time) is stored as-is.
+ * When omitted, today's payments get the current time; backdated payments
+ * without a time keep a NULL time rather than an invented one.
+ */
+async function create({
+  loan_id, amount, payment_date, paid_at, notes, created_by,
+  payment_mode, mobile_provider, amount_sent, agent_fee,
+}) {
+  const mode      = PAYMENT_MODES.includes(payment_mode) ? payment_mode : 'cash';
+  const isMobile  = mode === 'mobile_money';
+  const sent      = isMobile ? parseFloat(parseFloat(amount_sent).toFixed(2)) : null;
+  const fee       = isMobile ? parseFloat(parseFloat(agent_fee || 0).toFixed(2)) : 0;
+  const payAmount = isMobile ? parseFloat((sent - fee).toFixed(2)) : parseFloat(amount);
+  const provider  = isMobile && MOBILE_PROVIDERS.includes(mobile_provider) ? mobile_provider : null;
+
+  const localNow  = nowLocal();
+  const localDate = localNow.slice(0, 10);
+  const paidAt    = paid_at || (!payment_date || payment_date === localDate ? localNow : null);
+  const pDate     = paid_at ? paid_at.slice(0, 10) : (payment_date || localDate);
+
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
@@ -50,6 +78,7 @@ async function create({ loan_id, amount, payment_date, notes, created_by }) {
     const [[loan]] = await conn.query('SELECT * FROM loans WHERE id = ? FOR UPDATE', [loan_id]);
     if (!loan)                           throw Object.assign(new Error('Loan not found'), { status: 404 });
     if (loan.status === 'paid')          throw Object.assign(new Error('Loan is already fully paid'), { status: 400 });
+    if (!(payAmount > 0))                throw Object.assign(new Error('Amount credited to the loan must be greater than zero'), { status: 400 });
     if (payAmount > parseFloat(loan.balance)) {
       throw Object.assign(
         new Error(`Amount exceeds outstanding balance of ${loan.balance}`),
@@ -58,7 +87,6 @@ async function create({ loan_id, amount, payment_date, notes, created_by }) {
     }
 
     const receiptNumber  = generateReceiptNumber();
-    const pDate          = payment_date || today();
     const newAmountPaid  = parseFloat(loan.amount_paid) + payAmount;
     const newBalance     = Math.max(
       parseFloat((parseFloat(loan.total_payable) - newAmountPaid).toFixed(2)),
@@ -67,8 +95,12 @@ async function create({ loan_id, amount, payment_date, notes, created_by }) {
     const newStatus      = newBalance <= 0 ? 'paid' : 'active';
 
     const [repResult] = await conn.query(
-      'INSERT INTO repayments (loan_id, amount, payment_date, receipt_number, notes, created_by) VALUES (?, ?, ?, ?, ?, ?)',
-      [loan_id, payAmount, pDate, receiptNumber, notes || null, created_by]
+      `INSERT INTO repayments
+         (loan_id, amount, payment_date, paid_at, receipt_number, notes, created_by,
+          payment_mode, mobile_provider, amount_sent, agent_fee)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [loan_id, payAmount, pDate, paidAt, receiptNumber, notes || null, created_by,
+       mode, provider, sent, fee]
     );
     await conn.query(
       'UPDATE loans SET amount_paid=?, balance=?, status=? WHERE id=?',
@@ -86,4 +118,4 @@ async function create({ loan_id, amount, payment_date, notes, created_by }) {
   }
 }
 
-module.exports = { findAll, findByLoan, findById, create };
+module.exports = { PAYMENT_MODES, MOBILE_PROVIDERS, findAll, findByLoan, findById, create };

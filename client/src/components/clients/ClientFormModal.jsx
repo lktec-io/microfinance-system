@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { FiAlertCircle } from 'react-icons/fi';
 import api from '../../api';
 import { Modal } from '../ui';
-import ClientFields, { initialClientForm, checkClientNin, clientPayload } from './ClientFields';
+import ClientFields, { initialClientForm, checkClientId, clientPayload } from './ClientFields';
 import { t } from '../../i18n/bilingual';
 
-/** Register / edit client — POST or PUT /api/customers with NIDA NIN validation. */
+/** Register / edit client — POST or PUT /api/customers with verification-type checks. */
 export default function ClientFormModal({ mode, customer, customers = [], onClose, onSaved }) {
   const isEdit = mode === 'edit';
   const record = isEdit ? customer : null;
@@ -16,19 +16,20 @@ export default function ClientFormModal({ mode, customer, customers = [], onClos
   const [attempted, setAttempted] = useState(false);
   const [shakeKey, setShakeKey]   = useState(0);
 
-  const nin = checkClientNin(form, { customers, customer: record });
+  const check  = checkClientId(form, { customers, customer: record });
+  const fixMsg = t(check.type === 'nida' ? 'nida.fixBeforeSave' : 'kyc.fixBeforeSave');
 
   async function handleSubmit(e) {
     e.preventDefault();
     setAttempted(true);
     setError('');
-    if (nin.blocking) {
+    if (check.blocking) {
       setShakeKey(k => k + 1);
       return;
     }
     setSaving(true);
     try {
-      const payload = clientPayload(form, nin, record);
+      const payload = clientPayload(form, check, record);
       const { data } = isEdit
         ? await api.put(`/customers/${customer.id}`, payload)
         : await api.post('/customers', payload);
@@ -45,7 +46,7 @@ export default function ClientFormModal({ mode, customer, customers = [], onClos
       size="lg"
       eyebrow={isEdit ? `CL-${String(customer.id).padStart(5, '0')}` : 'Clients directory'}
       title={isEdit ? 'Edit client profile' : 'Register new client'}
-      subtitle={isEdit ? customer.full_name : 'Capture identity and contact details. A valid NIDA NIN is required.'}
+      subtitle={isEdit ? customer.full_name : 'Capture contact details and choose how the client is identified.'}
       onClose={onClose}
       footer={
         <>
@@ -58,17 +59,18 @@ export default function ClientFormModal({ mode, customer, customers = [], onClos
     >
       <form id="client-form" onSubmit={handleSubmit} noValidate={false}
         style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {attempted && nin.blocking && (
+        {attempted && check.blocking && (
           <div className="mf-alert mf-alert--error" role="alert">
             <FiAlertCircle size={17} />
             <span>
-              {t('nida.fixBeforeSave').en}
-              <span lang="sw" style={{ display: 'block', fontWeight: 600 }}>{t('nida.fixBeforeSave').sw}</span>
+              {fixMsg.en}
+              <span lang="sw" style={{ display: 'block', fontWeight: 600 }}>{fixMsg.sw}</span>
             </span>
           </div>
         )}
         {error && <div className="mf-alert mf-alert--error" role="alert"><FiAlertCircle size={17} /> <span>{error}</span></div>}
-        <ClientFields form={form} setForm={setForm} nin={nin} attempted={attempted} shakeKey={shakeKey} />
+        <ClientFields form={form} setForm={setForm} check={check} customer={record}
+          attempted={attempted} shakeKey={shakeKey} />
       </form>
     </Modal>
   );

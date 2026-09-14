@@ -5,7 +5,7 @@ const { pool } = require('../config/database');
  * (children before parents). The `users` table is never touched, so every
  * staff and admin account survives the reset.
  */
-const RESET_TABLES = ['sms_logs', 'repayments', 'loans', 'customers', 'expenses'];
+const RESET_TABLES = ['sms_logs', 'repayments', 'loan_guarantors', 'loan_collaterals', 'loans', 'customers', 'expenses'];
 
 async function findAdminCredentials(userId) {
   const [rows] = await pool.query(

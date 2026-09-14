@@ -152,6 +152,182 @@ export const MESSAGES = {
     en: 'The reset did not run. No data was changed.',
     sw: 'Ufutaji haukufanyika. Hakuna taarifa iliyobadilishwa.',
   },
+
+  /* ── Client verification (KYC) ───────────────────────────────────── */
+  'kyc.typeLabel': { en: 'Verification type', sw: 'Aina ya utambulisho' },
+  'kyc.nida':      { en: 'National ID (NIDA)', sw: 'Kitambulisho cha Taifa (NIDA)' },
+  'kyc.voter':     { en: "Voter's ID", sw: 'Kadi ya Mpiga Kura' },
+  'kyc.driving':   { en: 'Driving License', sw: 'Leseni ya Udereva' },
+  'kyc.none':      { en: 'None', sw: 'Hakuna' },
+  'kyc.voterNumber':   { en: "Voter's ID number", sw: 'Namba ya kadi ya mpiga kura' },
+  'kyc.drivingNumber': { en: 'Driving licence number', sw: 'Namba ya leseni ya udereva' },
+  'kyc.otherHint': {
+    en: 'Letters, digits, "-" or "/" — 5 to 20 characters, exactly as printed on the card.',
+    sw: 'Herufi, tarakimu, "-" au "/" — herufi 5 hadi 20, kama ilivyoandikwa kwenye kadi.',
+  },
+  'kyc.otherRequired': { en: '{label} is required.', sw: '{label} inahitajika.' },
+  'kyc.otherChars': {
+    en: 'Use letters, digits, "-" or "/" only.',
+    sw: 'Tumia herufi, tarakimu, "-" au "/" pekee.',
+  },
+  'kyc.otherLength': {
+    en: 'Must be 5 to 20 characters.',
+    sw: 'Lazima iwe na herufi 5 hadi 20.',
+  },
+  'kyc.otherRepeated': {
+    en: 'Repeated-character pattern — this is not a real ID number.',
+    sw: 'Herufi zinazojirudia — hii si namba halisi ya utambulisho.',
+  },
+  'kyc.otherDuplicate': {
+    en: 'This {label} is already registered to {name} ({code}).',
+    sw: '{label} hii tayari imesajiliwa kwa {name} ({code}).',
+  },
+  'kyc.noneTitle': {
+    en: 'Registering without formal identification',
+    sw: 'Usajili bila kitambulisho rasmi',
+  },
+  'kyc.noneBody': {
+    en: 'This client will be saved with no verified ID. Confirm their identity by other means before lending.',
+    sw: 'Mteja atahifadhiwa bila kitambulisho kilichothibitishwa. Thibitisha utambulisho wake kwa njia nyingine kabla ya kukopesha.',
+  },
+  'kyc.fixBeforeSave': {
+    en: 'Fix the identification details before saving.',
+    sw: 'Rekebisha taarifa za utambulisho kabla ya kuhifadhi.',
+  },
+
+  /* ── Repayment frequency ─────────────────────────────────────────── */
+  'freq.label':   { en: 'Repayment frequency', sw: 'Mzunguko wa marejesho' },
+  'freq.daily':   { en: 'Daily', sw: 'Kila siku' },
+  'freq.weekly':  { en: 'Weekly', sw: 'Kila wiki' },
+  'freq.monthly': { en: 'Monthly', sw: 'Kila mwezi' },
+  'freq.per.daily':   { en: 'per day', sw: 'kwa siku' },
+  'freq.per.weekly':  { en: 'per week', sw: 'kwa wiki' },
+  'freq.per.monthly': { en: 'per month', sw: 'kwa mwezi' },
+  'freq.installments': {
+    en: '{count} installments of TZS {amount} each',
+    sw: 'Awamu {count} za TZS {amount} kila moja',
+  },
+
+  /* ── Record payment ──────────────────────────────────────────────── */
+  'pay.expected': {
+    en: 'Expected: {count} installments of TZS {amount} each',
+    sw: 'Inatarajiwa: awamu {count} za TZS {amount} kila moja',
+  },
+  'pay.dueByToday': {
+    en: '{due} of {count} installments due by today — TZS {expected}',
+    sw: 'Awamu {due} kati ya {count} zimefika muda leo — TZS {expected}',
+  },
+  'pay.arrears':  { en: 'Behind schedule by TZS {amount}', sw: 'Nyuma ya ratiba kwa TZS {amount}' },
+  'pay.ahead':    { en: 'Ahead of schedule by TZS {amount}', sw: 'Mbele ya ratiba kwa TZS {amount}' },
+  'pay.onTrack':  { en: 'On schedule', sw: 'Kwa wakati' },
+  'pay.noSchedule': {
+    en: 'Single repayment by the due date — this loan has no installment plan.',
+    sw: 'Malipo mara moja kabla ya tarehe ya mwisho — mkopo huu hauna mpango wa awamu.',
+  },
+  'pay.mode':   { en: 'Payment mode', sw: 'Njia ya malipo' },
+  'pay.cash':   { en: 'Cash', sw: 'Taslimu' },
+  'pay.mobile': { en: 'Mobile Money', sw: 'Pesa kwa simu' },
+  'pay.bank':   { en: 'Bank transfer', sw: 'Uhamisho wa benki' },
+  'pay.provider':   { en: 'Mobile money provider', sw: 'Mtoa huduma wa pesa kwa simu' },
+  'pay.amountSent': { en: 'Amount sent', sw: 'Kiasi kilichotumwa' },
+  'pay.agentFee':   { en: 'Agent fee / commission', sw: 'Makato' },
+  'pay.credited':   { en: 'Credited to the loan', sw: 'Kinachoingia kwenye mkopo' },
+  'pay.feeRange': {
+    en: 'Agent fees are usually TZS 500–1,000. Double-check this amount.',
+    sw: 'Makato kwa kawaida ni TZS 500–1,000. Hakiki kiasi hiki.',
+  },
+  'pay.feeTooHigh': {
+    en: 'The agent fee must be less than the amount sent.',
+    sw: 'Makato lazima yawe chini ya kiasi kilichotumwa.',
+  },
+  'pay.timestamp':  { en: 'Payment date & time', sw: 'Tarehe na saa ya malipo' },
+  'pay.futureTime': {
+    en: 'Payment time cannot be in the future.',
+    sw: 'Saa ya malipo haiwezi kuwa ya baadaye.',
+  },
+
+  /* ── Guarantors & collateral ─────────────────────────────────────── */
+  'security.title':      { en: 'Guarantors & assets', sw: 'Wadhamini na dhamana' },
+  'security.guarantor':  { en: 'Personal guarantor', sw: 'Mzamini Mtu' },
+  'security.collateral': { en: 'Collateral asset', sw: 'Dhamana ya Kitu' },
+  'security.none': {
+    en: 'No guarantor or collateral added — this loan will be unsecured.',
+    sw: 'Hakuna mzamini wala dhamana iliyoongezwa — mkopo huu hautakuwa na dhamana.',
+  },
+
+  'security.stepHint': {
+    en: 'Optional — add every guarantor and pledged asset for this loan.',
+    sw: 'Si lazima — ongeza kila mzamini na kila kitu kilichowekwa dhamana kwa mkopo huu.',
+  },
+  'security.addGuarantor':  { en: 'Add guarantor', sw: 'Ongeza mzamini' },
+  'security.addCollateral': { en: 'Add asset', sw: 'Ongeza dhamana' },
+  'security.fullName':      { en: 'Full name', sw: 'Jina kamili' },
+  'security.phone':         { en: 'Phone number', sw: 'Namba ya simu' },
+  'security.relationship':  { en: 'Relationship', sw: 'Uhusiano' },
+  'security.idNumber':      { en: 'ID number', sw: 'Namba ya kitambulisho' },
+  'security.description':   { en: 'Asset name / description', sw: 'Jina / maelezo ya kitu' },
+  'security.descriptionHint': {
+    en: 'e.g. Pikipiki Boxer 150, TV Samsung 43", Sinki',
+    sw: 'mf. Pikipiki Boxer 150, TV Samsung inchi 43, Sinki',
+  },
+  'security.serial':    { en: 'Serial number', sw: 'Namba ya utambulisho (serial)' },
+  'security.condition': { en: 'Condition', sw: 'Hali ya kitu' },
+  'security.value':     { en: 'Estimated market value (TZS)', sw: 'Thamani ya soko inayokadiriwa (TZS)' },
+  'security.cond.new':  { en: 'New', sw: 'Mpya' },
+  'security.cond.good': { en: 'Good', sw: 'Nzuri' },
+  'security.cond.fair': { en: 'Fair', sw: 'Wastani' },
+  'security.cond.poor': { en: 'Poor', sw: 'Chakavu' },
+  'security.coverage': {
+    en: 'Assets cover {pct}% of the principal',
+    sw: 'Dhamana inafikia {pct}% ya kiasi cha mkopo',
+  },
+  'security.draftPending': {
+    en: 'Add or clear the details you started before continuing.',
+    sw: 'Ongeza au futa taarifa ulizoanza kujaza kabla ya kuendelea.',
+  },
+  'security.errName':        { en: "Enter the guarantor's full name.", sw: 'Weka jina kamili la mzamini.' },
+  'security.errPhone':       { en: 'Enter a valid phone number.', sw: 'Weka namba sahihi ya simu.' },
+  'security.errDescription': { en: 'Describe the asset.', sw: 'Eleza kitu kinachowekwa dhamana.' },
+  'security.errValue': {
+    en: 'Enter a market value greater than zero.',
+    sw: 'Weka thamani ya soko iliyo zaidi ya sifuri.',
+  },
+
+  /* ── Extra KYC / frequency / payment copy ────────────────────────── */
+  'kyc.idLabel':    { en: 'Identification', sw: 'Utambulisho' },
+  'kyc.unverified': { en: 'Unverified', sw: 'Hajathibitishwa' },
+  'kyc.otherAccepted': {
+    en: 'Format accepted — check the number against the physical card.',
+    sw: 'Muundo umekubaliwa — linganisha namba na kadi halisi.',
+  },
+  'freq.single': { en: 'Single payment (no schedule)', sw: 'Malipo mara moja (bila ratiba)' },
+  'pay.nextDue':  { en: 'Next installment due {date}', sw: 'Awamu inayofuata inadaiwa {date}' },
+  'pay.settled':  { en: 'Loan fully repaid', sw: 'Mkopo umelipwa wote' },
+  'pay.sentRequired': { en: 'Enter the amount sent.', sw: 'Weka kiasi kilichotumwa.' },
+  'pay.timeRequired': { en: 'Enter the payment date and time.', sw: 'Weka tarehe na saa ya malipo.' },
+  'pay.timeHint': {
+    en: 'Tanzania time (EAT), to the second',
+    sw: 'Saa za Tanzania (EAT), hadi sekunde',
+  },
+
+  /* ── Dashboard ───────────────────────────────────────────────────── */
+  'dash.commissionTitle': {
+    en: 'Total Mobile Money Commission Ledger',
+    sw: 'Daftari la Jumla ya Makato ya Pesa kwa Simu',
+  },
+  'dash.commissionSub': {
+    en: 'Agent fees (makato) on mobile money repayments — kept separate from loan collections.',
+    sw: 'Makato ya mawakala kwenye marejesho ya pesa kwa simu — hayachanganywi na makusanyo ya mikopo.',
+  },
+  'dash.commissionTotal': { en: 'Agent fees recorded', sw: 'Makato yaliyorekodiwa' },
+  'dash.commissionEmpty': {
+    en: 'No mobile money repayments yet',
+    sw: 'Bado hakuna marejesho ya pesa kwa simu',
+  },
+  'dash.commissionEmptyBody': {
+    en: 'Record a repayment with Payment mode “Mobile Money” to start the ledger.',
+    sw: 'Rekodi marejesho kwa njia ya “Pesa kwa simu” ili kuanza daftari.',
+  },
 };
 
 /** Look up a message in both languages, filling {placeholders}. */

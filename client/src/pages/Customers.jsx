@@ -8,7 +8,8 @@ import api from '../api';
 import { useToast } from '../context/ToastContext';
 import { fmt0, fmtDay, fmtShort } from '../utils/format';
 import { clientStanding } from '../utils/finance';
-import { displayNin, normalizeNin } from '../utils/nida';
+import { normalizeNin } from '../utils/nida';
+import { displayId } from '../utils/kyc';
 import {
   PageHeader, MetricCard, Segmented, SearchField, Avatar, Empty, TableSkeleton, Modal,
 } from '../components/ui';
@@ -182,7 +183,7 @@ export default function Customers() {
             options={SEGMENTS.map(s => ({ ...s, count: counts[s.value] }))} />
         </div>
         <div className="mf-toolbar__group">
-          <SearchField value={query} onChange={setQuery} placeholder="Name, phone, NIN or CL-code" />
+          <SearchField value={query} onChange={setQuery} placeholder="Name, phone, ID number or CL-code" />
           <select className="mf-select" value={sort} onChange={e => setSort(e.target.value)} aria-label="Sort clients">
             {Object.entries(SORTS).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
           </select>
@@ -243,7 +244,7 @@ export default function Customers() {
                 <div className="mf-kv">
                   <div className="mf-kv__row"><span>Loans</span><span>{r.standing.n} ({r.standing.active + r.standing.pending} open · {r.standing.overdue} overdue)</span></div>
                   <div className="mf-kv__row"><span>Exposure</span><span>TZS {fmt0(r.standing.exposure)}</span></div>
-                  <div className="mf-kv__row"><span>NIN</span><span>{displayNin(r.c.id_number)}</span></div>
+                  <div className="mf-kv__row"><span>ID</span><span>{displayId(r.c)}</span></div>
                 </div>
               </div>
               <div className="mf-client-card__foot">
@@ -277,7 +278,7 @@ export default function Customers() {
                         <div className="mf-cell-stack">
                           <span className="mf-cell-title">{r.c.full_name}</span>
                           <span className="mf-cell-sub">
-                            {clientCode(r.c.id)}{r.c.id_number ? ` · NIN ${displayNin(r.c.id_number)}` : ''}
+                            {clientCode(r.c.id)} · {displayId(r.c)}
                           </span>
                         </div>
                       </div>

@@ -64,4 +64,16 @@ const getOverdue = asyncHandler(async (_req, res) => {
   }
 });
 
-module.exports = { getSummary, getRecent, getDaily, getMonthly, getOverdue };
+const COMMISSIONS_DEFAULT = { count: 0, total_fees: 0, total_sent: 0, total_credited: 0, month_fees: 0, by_provider: [], recent: [] };
+
+const getCommissions = asyncHandler(async (_req, res) => {
+  try {
+    const data = await svc.getCommissions();
+    safeSend(res, data);
+  } catch (err) {
+    logger.error('getCommissions failed', err);
+    safeSend(res, COMMISSIONS_DEFAULT);
+  }
+});
+
+module.exports = { getSummary, getRecent, getDaily, getMonthly, getOverdue, getCommissions };

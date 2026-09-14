@@ -36,6 +36,7 @@ export default function LoanCalculator({ onStartApplication }) {
             <FiInfo size={14} />
             <span>
               Interest = principal × rate ÷ 100, charged once over the tenor. Due date = start date + tenor.
+              Installment = total payable ÷ number of repayment intervals up to the due date.
               Final figures are confirmed by the server when the loan is booked.
             </span>
           </div>
@@ -52,9 +53,9 @@ export default function LoanCalculator({ onStartApplication }) {
       <section className="mf-card mf-card--flush">
         <div className="mf-card__head">
           <div>
-            <h2 className="mf-card__title"><FiCalendar size={15} /> Indicative repayment schedule</h2>
+            <h2 className="mf-card__title"><FiCalendar size={15} /> Repayment schedule</h2>
             <div className="mf-card__sub">
-              Equal split of the total payable per period — guidance for the client. The system tracks a single due date per loan.
+              Equal installments at the selected frequency — the same plan is stored with the loan and tracked on every payment.
             </div>
           </div>
         </div>
@@ -65,7 +66,7 @@ export default function LoanCalculator({ onStartApplication }) {
             <table className="mf-table">
               <thead>
                 <tr>
-                  <th style={{ width: 70 }}>Period</th>
+                  <th style={{ width: 70 }}>#</th>
                   <th>Date</th>
                   <th className="is-num">Installment (TZS)</th>
                   <th className="is-num">Remaining (TZS)</th>
@@ -84,9 +85,9 @@ export default function LoanCalculator({ onStartApplication }) {
               <tfoot>
                 <tr>
                   <td colSpan={2}>
-                    {quote.periods > SCHEDULE_LIMIT
-                      ? `First ${SCHEDULE_LIMIT} of ${quote.periods} periods`
-                      : `${quote.periods} period${quote.periods === 1 ? '' : 's'}`}
+                    {quote.installmentCount > SCHEDULE_LIMIT
+                      ? `First ${SCHEDULE_LIMIT} of ${quote.installmentCount} installments`
+                      : `${quote.installmentCount} installment${quote.installmentCount === 1 ? '' : 's'}`}
                   </td>
                   <td className="is-num">{fmt(quote.total)}</td>
                   <td className="is-num">—</td>

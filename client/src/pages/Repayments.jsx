@@ -6,8 +6,9 @@ import {
 } from 'react-icons/fi';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
-import { fmt, fmt0, fmtDay, fmtShort } from '../utils/format';
-import { daysUntil, lastMonthKeys, monthLabel } from '../utils/finance';
+import { fmt, fmt0, fmtDay, fmtShort, fmtTimestamp } from '../utils/format';
+import { daysUntil, isoDate, lastMonthKeys, monthLabel, repaymentStatus } from '../utils/finance';
+import { frequencyLabel, money, paymentModeLabel } from '../utils/labels';
 import {
   PageHeader, Tabs, Segmented, SearchField, MetricCard, MiniBars, StackBar,
   ProgressBar, DueChip, Avatar, Empty, TableSkeleton,
@@ -130,11 +131,14 @@ export default function Repayments() {
       if (!q) return true;
       return r.customer_name?.toLowerCase().includes(q)
         || r.receipt_number?.toLowerCase().includes(q)
-        || `#${r.loan_id}` === q || String(r.loan_id) === q;
+        || `#${r.loan_id}` === q || String(r.loan_id) === q
+        || paymentModeLabel(r).toLowerCase().includes(q);
     });
   }, [repayments, query, range]);
 
   const ledgerTotal = ledger.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+  // Mobile money agent fees are reported separately — never part of the collected total
+  const ledgerFees  = ledger.reduce((s, r) => s + (Number(r.agent_fee) || 0), 0);
 
   /* ── Collections queue ── */
   const queue = useMemo(() => {
@@ -237,7 +241,10 @@ export default function Repayments() {
               )}
             </div>
             <div className="mf-toolbar__group">
-              <span className="mf-toolbar__meta"><strong>{ledger.length}</strong> entries · <strong>TZS {fmtShort(ledgerTotal)}</strong></span>
+              <span className="mf-toolbar__meta">
+                <strong>{ledger.length}</strong> entries · <strong>TZS {fmtShort(ledgerTotal)}</strong>
+                {ledgerFees > 0 && <> · agent fees <strong>TZS {fmtShort(ledgerFees)}</strong></>}
+              </span>
               <SearchField value={query} onChange={setQuery} placeholder="Client, receipt or #loan" />
             </div>
           </div>
@@ -260,10 +267,11 @@ export default function Repayments() {
                   <thead>
                     <tr>
                       <th>Client</th>
-                      <th>Date</th>
+                      <th>Date &amp; time</th>
                       <th>Receipt</th>
                       <th>Loan</th>
                       <th className="is-num">Amount (TZS)</th>
+                      <th>Mode</th>
                       <th>Recorded by</th>
                       <th>Notes</th>
                       <th>Status</th>
@@ -279,10 +287,25 @@ export default function Repayments() {
                             <span className="mf-cell-title">{r.customer_name}</span>
                           </div>
                         </td>
-                        <td data-label="Date" className="mf-num" style={{ whiteSpace: 'nowrap' }}>{fmtDay(r.payment_date, SHORT_DATE)}</td>
+                        <td data-label="Date & time">
+                          {r.paid_at ? (
+                            <span className="mf-stamp">{fmtTimestamp(r.paid_at)}</span>
+                          ) : (
+                            <span className="mf-cell-stack">
+                              <span className="mf-stamp">{isoDate(r.payment_date)}</span>
+                              <span className="mf-stamp mf-stamp--muted">time not recorded</span>
+                            </span>
+                          )}
+                        </td>
                         <td data-label="Receipt"><span className="mf-code">{r.receipt_number}</span></td>
                         <td data-label="Loan" className="mf-num">#{r.loan_id}</td>
                         <td data-label="Amount (TZS)" className="is-num"><span className="mf-ledger-amount">{fmt(r.amount)}</span></td>
+                        <td data-label="Mode">
+                          <span className="mf-cell-stack">
+                            <span className={`badge ${r.payment_mode === 'mobile_money' ? 'badge--orange' : 'badge--gray'}`}>{paymentModeLabel(r)}</span>
+                            {Number(r.agent_fee) > 0 && <span className="mf-cell-sub">Fee TZS {money(r.agent_fee)}</span>}
+                          </span>
+                        </td>
                         <td data-label="Recorded by">{r.recorded_by || <span className="mf-muted">—</span>}</td>
                         <td data-label="Notes"><div className="mf-ledger-note" title={r.notes || ''}>{r.notes || '—'}</div></td>
                         <td data-label="Status"><span className="badge badge--green badge--dot">Posted</span></td>
@@ -301,7 +324,7 @@ export default function Repayments() {
                     <tr>
                       <td colSpan={4}>{ledger.length} entr{ledger.length === 1 ? 'y' : 'ies'}{range.from || range.to ? ` · ${range.from || '…'} → ${range.to || '…'}` : ''}</td>
                       <td className="is-num" data-label="Total (TZS)">{fmt(ledgerTotal)}</td>
-                      <td colSpan={4} />
+                      <td colSpan={5} />
                     </tr>
                   </tfoot>
                 </table>
@@ -352,6 +375,7 @@ export default function Repayments() {
                     {queue.map(({ loan: l }) => {
                       const total = Number(l.total_payable) || 0;
                       const pct = total > 0 ? Math.min(100, Math.round(((Number(l.amount_paid) || 0) / total) * 100)) : 0;
+                      const plan = repaymentStatus(l);
                       return (
                         <tr key={l.id} className="is-link" onClick={() => navigate(`/loans/${l.id}`)}>
                           <td>
@@ -369,6 +393,14 @@ export default function Repayments() {
                             <div className="mf-progress-cell">
                               <ProgressBar value={pct} tone={isPastDue(l) ? 'crimson' : 'orange'} />
                               <div className="mf-progress-cell__meta"><span>{pct}%</span><span>{fmt0(l.amount_paid)}</span></div>
+                              {plan && (
+                                <div className="mf-progress-cell__meta">
+                                  <span>{plan.covered}/{plan.count} · {frequencyLabel(plan.frequency).en}</span>
+                                  {plan.arrears > 0
+                                    ? <span className="mf-tone--crimson" title="Behind schedule">−{fmt0(plan.arrears)}</span>
+                                    : <span>On schedule</span>}
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td data-label="Due date" className="mf-num" style={{ whiteSpace: 'nowrap' }}>{fmtDay(l.due_date, SHORT_DATE)}</td>

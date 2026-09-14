@@ -38,6 +38,7 @@ import './styles/app/elements.css';
 import './styles/app/patterns.css';
 import './styles/app/shell.css';
 import './styles/app/auth.css';
+import './styles/app/modules.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

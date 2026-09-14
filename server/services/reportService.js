@@ -107,4 +107,51 @@ async function getOverdue() {
   return rows;
 }
 
-module.exports = { getSummary, getRecent, getDaily, getMonthly, getOverdue };
+/**
+ * Mobile-money agent fees (makato), kept separate from loan collections.
+ * `amount` on each repayment is what was credited to the loan; `agent_fee`
+ * is the commission portion of the money the client sent.
+ */
+async function getCommissions() {
+  const [[totals]] = await pool.query(`
+    SELECT COUNT(*)                          AS count,
+           COALESCE(SUM(agent_fee), 0)       AS total_fees,
+           COALESCE(SUM(amount_sent), 0)     AS total_sent,
+           COALESCE(SUM(amount), 0)          AS total_credited,
+           COALESCE(SUM(CASE WHEN DATE_FORMAT(payment_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+                             THEN agent_fee ELSE 0 END), 0) AS month_fees
+    FROM repayments
+    WHERE payment_mode = 'mobile_money'
+  `);
+  const [byProvider] = await pool.query(`
+    SELECT COALESCE(mobile_provider, 'other') AS provider,
+           COUNT(*)                           AS count,
+           COALESCE(SUM(agent_fee), 0)        AS total_fees
+    FROM repayments
+    WHERE payment_mode = 'mobile_money'
+    GROUP BY provider
+    ORDER BY total_fees DESC
+  `);
+  const [recent] = await pool.query(`
+    SELECT r.id, r.receipt_number, r.agent_fee, r.amount_sent, r.amount,
+           r.mobile_provider, r.payment_date, r.paid_at, r.loan_id,
+           c.full_name AS customer_name
+    FROM repayments r
+    JOIN loans l     ON l.id = r.loan_id
+    JOIN customers c ON c.id = l.customer_id
+    WHERE r.payment_mode = 'mobile_money'
+    ORDER BY COALESCE(r.paid_at, r.created_at) DESC
+    LIMIT 6
+  `);
+  return {
+    count:          Number(totals.count || 0),
+    total_fees:     Number(totals.total_fees || 0),
+    total_sent:     Number(totals.total_sent || 0),
+    total_credited: Number(totals.total_credited || 0),
+    month_fees:     Number(totals.month_fees || 0),
+    by_provider:    byProvider.map(p => ({ provider: p.provider, count: Number(p.count), total_fees: Number(p.total_fees) })),
+    recent,
+  };
+}
+
+module.exports = { getSummary, getRecent, getDaily, getMonthly, getOverdue, getCommissions };

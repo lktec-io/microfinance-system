@@ -9,5 +9,6 @@ router.get('/recent',   ctrl.getRecent);
 router.get('/daily',    ctrl.getDaily);
 router.get('/monthly',  ctrl.getMonthly);
 router.get('/overdue',  ctrl.getOverdue);
+router.get('/commissions', ctrl.getCommissions);
 
 module.exports = router;

@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  FiArrowLeft, FiPrinter, FiCreditCard,
+  FiArrowLeft, FiCreditCard,
   FiUser, FiPhone, FiMapPin,
   FiCalendar, FiDollarSign, FiPercent, FiClock,
-  FiTrash2, FiX, FiEdit2,
+  FiTrash2, FiX, FiEdit2, FiRepeat,
 } from 'react-icons/fi';
 import api          from '../api';
 import { useToast }  from '../context/ToastContext';
-import { fmt }       from '../utils/format';
+import { fmt, fmtTimestamp } from '../utils/format';
+import { isoDate }   from '../utils/finance';
+import { frequencyLabel, money, paymentModeLabel, perInterval } from '../utils/labels';
+import { t }         from '../i18n/bilingual';
 import StatusBadge   from '../components/common/StatusBadge';
 import Spinner       from '../components/common/Spinner';
+import RecordPaymentModal from '../components/repayments/RecordPaymentModal';
+import PlanStatus    from '../components/repayments/PlanStatus';
+import SecurityList, { securitiesFromLoan } from '../components/loans/SecurityList';
 
 function InfoRow({ Icon, label, value, valueClass }) {
   return (
@@ -32,10 +38,6 @@ export default function LoanDetail() {
   const [loan,      setLoan]      = useState(null);
   const [loading,   setLoading]   = useState(true);
   const [payModal,  setPayModal]  = useState(false);
-  const [form,      setForm]      = useState({ amount: '', payment_date: '', notes: '' });
-  const [saving,    setSaving]    = useState(false);
-  const [error,     setError]     = useState('');
-  const [receipt,   setReceipt]   = useState(null);
   const [delModal,  setDelModal]  = useState(false);
   const [editModal,  setEditModal] = useState(false);
   const [editForm,   setEditForm]  = useState({ status: '', due_date: '', purpose: '' });
@@ -65,37 +67,6 @@ export default function LoanDetail() {
     }
     fetchLoan();
   }, [id]);
-
-  function openPayment() {
-    setForm({ amount: '', payment_date: new Date().toISOString().slice(0, 10), notes: '' });
-    setError('');
-    setPayModal(true);
-  }
-
-  async function handlePayment(e) {
-    e.preventDefault();
-    if (parseFloat(form.amount) <= 0) {
-      setError('Amount must be greater than zero');
-      return;
-    }
-    if (parseFloat(form.amount) > parseFloat(loan.balance)) {
-      setError(`Amount cannot exceed balance of TZS ${fmt(loan.balance)}`);
-      return;
-    }
-    setSaving(true);
-    setError('');
-    try {
-      const { data } = await api.post('/repayments', { loan_id: Number(id), ...form });
-      setPayModal(false);
-      setReceipt(data);
-      showToast('Payment recorded successfully', 'success');
-      fetchLoan();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Payment failed');
-    } finally {
-      setSaving(false);
-    }
-  }
 
   async function handleDeleteLoan() {
     try {
@@ -141,6 +112,9 @@ export default function LoanDetail() {
   const daysLeft   = loan.due_date
     ? Math.ceil((new Date(loan.due_date) - new Date()) / 86400000)
     : null;
+
+  const frequency  = frequencyLabel(loan.repayment_frequency);
+  const securities = securitiesFromLoan(loan);
 
   return (
     <div className="page">
@@ -215,6 +189,12 @@ export default function LoanDetail() {
               <InfoRow Icon={FiCalendar} label="Duration"
                 value={`${loan.duration_value} ${loan.duration_unit}`}
               />
+              <InfoRow Icon={FiRepeat} label="Repayment Frequency" value={`${frequency.en} · ${frequency.sw}`} />
+              {loan.installment_count > 0 && (
+                <InfoRow Icon={FiCalendar} label="Installments"
+                  value={`${loan.installment_count} × TZS ${money(loan.installment_amount)} ${perInterval(loan.repayment_frequency).en}`}
+                />
+              )}
               <InfoRow Icon={FiCalendar} label="Start Date"  value={loan.start_date?.slice(0, 10) || '—'} />
               <InfoRow Icon={FiCalendar} label="Due Date"
                 value={loan.due_date?.slice(0, 10) || '—'}
@@ -229,6 +209,12 @@ export default function LoanDetail() {
               {loan.purpose && (
                 <InfoRow Icon={FiDollarSign} label="Purpose" value={loan.purpose} />
               )}
+            </div>
+
+            {/* Installment plan status */}
+            <div className="info-section">
+              <div className="info-section-title">Installment Status</div>
+              <PlanStatus loan={loan} />
             </div>
 
             {/* Progress */}
@@ -250,7 +236,7 @@ export default function LoanDetail() {
             </div>
 
             {loan.status !== 'paid' && (
-              <button className="btn btn--primary btn--block" onClick={openPayment}
+              <button className="btn btn--primary btn--block" onClick={() => setPayModal(true)}
                 style={{ marginTop: '1.25rem' }}>
                 <FiCreditCard size={18} /> Record Payment
               </button>
@@ -277,7 +263,7 @@ export default function LoanDetail() {
                   <FiCreditCard size={40} style={{ color: 'var(--gray-200)' }} />
                   <p>No payments recorded yet</p>
                   {loan.status !== 'paid' && (
-                    <button className="btn btn--primary" onClick={openPayment}>
+                    <button className="btn btn--primary" onClick={() => setPayModal(true)}>
                       Record First Payment
                     </button>
                   )}
@@ -291,12 +277,17 @@ export default function LoanDetail() {
                       <div className="repayment-item-body">
                         <div className="repayment-item-top">
                           <strong>TZS {fmt(r.amount)}</strong>
-                          <span className="badge badge--green" style={{ fontSize: '.72rem' }}>paid</span>
+                          <span className="badge badge--green" style={{ fontSize: '.72rem' }}>{paymentModeLabel(r)}</span>
                         </div>
                         <div className="repayment-item-meta">
-                          <span>{r.payment_date?.slice(0, 10)}</span>
+                          <span className="mf-stamp">{fmtTimestamp(r.paid_at) || isoDate(r.payment_date)}</span>
                           <code style={{ fontSize: '.75rem' }}>{r.receipt_number}</code>
                         </div>
+                        {Number(r.agent_fee) > 0 && (
+                          <div className="repayment-item-note">
+                            Sent TZS {fmt(r.amount_sent)} · agent fee (makato) TZS {fmt(r.agent_fee)}
+                          </div>
+                        )}
                         {r.notes && <div className="repayment-item-note">{r.notes}</div>}
                       </div>
                     </div>
@@ -304,6 +295,22 @@ export default function LoanDetail() {
                 </div>
               )
             }
+          </section>
+
+          {/* Guarantors & collateral */}
+          <section className="card">
+            <div className="card-header">
+              <h2 className="card-title">Guarantors &amp; Collateral</h2>
+              <span className="badge badge--orange">{securities.length}</span>
+            </div>
+            {securities.length === 0 ? (
+              <p className="mf-muted" style={{ fontSize: '.88rem' }}>
+                {t('security.none').en}
+                <span className="mf-sw" lang="sw">{t('security.none').sw}</span>
+              </p>
+            ) : (
+              <SecurityList items={securities} principal={Number(loan.loan_amount)} />
+            )}
           </section>
 
           {/* Loan Summary Box */}
@@ -333,70 +340,15 @@ export default function LoanDetail() {
         </div>
       </div>
 
-      {/* ── Payment Modal ── */}
+      {/* ── Record Payment (shared with Repayments page) ── */}
       {payModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>Record Payment — Loan #{id}</h2>
-              <button className="modal-close" onClick={() => setPayModal(false)} aria-label="Close"><FiX size={18} /></button>
-            </div>
-
-            <div className="alert alert--info" style={{ marginBottom: '1rem' }}>
-              Outstanding Balance: <strong>TZS {fmt(loan.balance)}</strong>
-            </div>
-
-            {error && <div className="alert alert--error">{error}</div>}
-
-            <form onSubmit={handlePayment} className="modal-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Amount (TZS) *</label>
-                  <input
-                    type="number" min="1" step="0.01" required
-                    max={loan.balance}
-                    value={form.amount}
-                    placeholder={`Max: ${fmt(loan.balance)}`}
-                    onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Payment Date</label>
-                  <input type="date" value={form.payment_date}
-                    onChange={e => setForm(f => ({ ...f, payment_date: e.target.value }))} />
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Notes (optional)</label>
-                <input placeholder="e.g. Cash payment, Mobile money…"
-                  value={form.notes}
-                  onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
-              </div>
-
-              {form.amount && (
-                <div className="payment-preview">
-                  <div>
-                    <span>Paying:</span>
-                    <strong>TZS {fmt(form.amount)}</strong>
-                  </div>
-                  <div>
-                    <span>New balance:</span>
-                    <strong className={Math.max(0, loan.balance - form.amount) > 0 ? 'text-red' : 'text-green'}>
-                      TZS {fmt(Math.max(0, parseFloat(loan.balance) - parseFloat(form.amount || 0)))}
-                    </strong>
-                  </div>
-                </div>
-              )}
-
-              <div className="modal-actions">
-                <button type="button" className="btn btn--ghost" onClick={() => setPayModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn--primary" disabled={saving}>
-                  {saving ? 'Processing…' : 'Confirm Payment'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <RecordPaymentModal
+          loans={[loan]}
+          initialLoanId={loan.id}
+          onClose={() => setPayModal(false)}
+          onRecorded={data => { showToast(`Payment ${data.receipt_number} recorded`, 'success'); fetchLoan(); }}
+          onViewLoan={() => setPayModal(false)}
+        />
       )}
 
       {/* ── Delete Confirm ── */}
@@ -405,7 +357,7 @@ export default function LoanDetail() {
           <div className="modal modal--sm">
             <h2>Delete Loan #{id}?</h2>
             <p style={{ margin: '1rem 0', color: 'var(--gray-600)' }}>
-              This loan has no payments and will be permanently removed.
+              This loan has no payments and will be permanently removed, together with its guarantors and collateral records.
             </p>
             <div className="modal-actions">
               <button className="btn btn--ghost" onClick={() => setDelModal(false)}>Cancel</button>
@@ -453,90 +405,6 @@ export default function LoanDetail() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── Receipt Modal ── */}
-      {receipt && (
-        <div className="modal-overlay">
-          <div className="modal receipt-modal" id="receipt-print">
-            <div className="receipt-header">
-              <div className="receipt-logo">BC</div>
-              <h2>Baraka Microcredit</h2>
-              <p>Official Payment Receipt</p>
-            </div>
-
-            <div className="receipt-divider">— — — — — — — — — — — — — —</div>
-
-            <div className="receipt-body">
-              <div className="receipt-row">
-                <span>Receipt No.</span>
-                <strong>{receipt.receipt_number}</strong>
-              </div>
-              <div className="receipt-row">
-                <span>Payment Date</span>
-                <strong>{receipt.payment_date?.slice(0, 10)}</strong>
-              </div>
-              <div className="receipt-row">
-                <span>Customer</span>
-                <strong>{loan.customer_name}</strong>
-              </div>
-              <div className="receipt-row">
-                <span>Customer Phone</span>
-                <strong>{loan.customer_phone}</strong>
-              </div>
-              <div className="receipt-row">
-                <span>Loan Reference</span>
-                <strong>#{id}</strong>
-              </div>
-              <div className="receipt-row">
-                <span>Loan Amount</span>
-                <strong>TZS {fmt(loan.loan_amount)}</strong>
-              </div>
-            </div>
-
-            <div className="receipt-divider">— — — — — — — — — — — — — —</div>
-
-            <div className="receipt-amount-box">
-              <span>AMOUNT PAID</span>
-              <strong>TZS {fmt(receipt.amount)}</strong>
-            </div>
-
-            <div className="receipt-divider">— — — — — — — — — — — — — —</div>
-
-            <div className="receipt-body">
-              <div className="receipt-row">
-                <span>Remaining Balance</span>
-                <strong className={receipt.new_balance > 0 ? 'text-red' : 'text-green'}>
-                  TZS {fmt(receipt.new_balance)}
-                </strong>
-              </div>
-              <div className="receipt-row">
-                <span>Loan Status</span>
-                <StatusBadge status={receipt.loan_status} />
-              </div>
-              {receipt.notes && (
-                <div className="receipt-row">
-                  <span>Notes</span>
-                  <span>{receipt.notes}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="receipt-footer">
-              <p>Thank you for your payment</p>
-              <p style={{ fontSize: '.72rem', opacity: .6 }}>
-                Printed on {new Date().toLocaleDateString()}
-              </p>
-            </div>
-
-            <div className="modal-actions no-print" style={{ marginTop: '1.5rem' }}>
-              <button className="btn btn--ghost" onClick={() => setReceipt(null)}>Close</button>
-              <button className="btn btn--primary" onClick={() => window.print()}>
-                <FiPrinter size={16} /> Print Receipt
-              </button>
-            </div>
           </div>
         </div>
       )}

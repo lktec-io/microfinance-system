@@ -2,11 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FiRefreshCw, FiPlus, FiAlertTriangle, FiArrowRight, FiTrendingUp,
-  FiBriefcase, FiPieChart, FiPercent, FiActivity, FiLayers, FiBarChart2,
+  FiBriefcase, FiPieChart, FiPercent, FiActivity, FiLayers, FiBarChart2, FiSmartphone,
 } from 'react-icons/fi';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
-import { fmt0, fmtShort, fmtDay } from '../utils/format';
+import { fmt0, fmtShort, fmtDay, fmtTimestamp } from '../utils/format';
+import { providerLabel } from '../utils/labels';
+import { t } from '../i18n/bilingual';
 import { collectionRate, lastMonthKeys, monthLabel } from '../utils/finance';
 import {
   PageHeader, MetricCard, MiniBars, StackBar, Meter, DueChip, Empty, TableSkeleton,
@@ -19,6 +21,10 @@ const EMPTY_SUMMARY = {
   repayments: 0, collected: 0, outstanding: 0,
   active_loans: 0, overdue_loans: 0,
   loan_status: { active: 0, pending: 0, paid: 0, overdue: 0 },
+};
+
+const EMPTY_COMMISSIONS = {
+  count: 0, total_fees: 0, total_sent: 0, total_credited: 0, month_fees: 0, by_provider: [], recent: [],
 };
 
 const STATUS_TONES = [
@@ -85,18 +91,20 @@ export default function Dashboard() {
   const [monthly, setMonthly]   = useState({ loans: [], repayments: [] });
   const [pastDue, setPastDue]   = useState([]);
   const [expenses, setExpenses] = useState({ total: 0, count: 0 });
+  const [commissions, setCommissions] = useState(EMPTY_COMMISSIONS);
   const [loading, setLoading]       = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError]           = useState('');
   const [updatedAt, setUpdatedAt]   = useState(null);
 
   const load = useCallback(async () => {
-    const [sum, rec, mon, due, exp] = await Promise.allSettled([
+    const [sum, rec, mon, due, exp, com] = await Promise.allSettled([
       api.get('/reports/summary'),
       api.get('/reports/recent'),
       api.get('/reports/monthly'),
       api.get('/reports/overdue'),
       api.get('/expenses/summary'),
+      api.get('/reports/commissions'),
     ]);
 
     if (sum.status === 'fulfilled') {
@@ -127,6 +135,15 @@ export default function Dashboard() {
     if (exp.status === 'fulfilled') {
       const raw = exp.value.data ?? {};
       setExpenses({ total: Number(raw.total || 0), count: Number(raw.count || 0) });
+    }
+    if (com.status === 'fulfilled') {
+      const raw = com.value.data ?? {};
+      setCommissions({
+        ...EMPTY_COMMISSIONS,
+        ...raw,
+        by_provider: Array.isArray(raw.by_provider) ? raw.by_provider : [],
+        recent:      Array.isArray(raw.recent) ? raw.recent : [],
+      });
     }
     setUpdatedAt(new Date());
   }, []);
@@ -180,6 +197,9 @@ export default function Dashboard() {
   }, [recent]);
 
   const firstName = user?.name?.split(' ')[0] || 'there';
+  const providerMax = Math.max(0, ...commissions.by_provider.map(p => Number(p.total_fees) || 0));
+  const commissionTitle = t('dash.commissionTitle');
+  const commissionSub   = t('dash.commissionSub');
 
   return (
     <div className="mf-page">
@@ -310,6 +330,69 @@ export default function Dashboard() {
           </div>
         </section>
       </div>
+
+      {/* ── Mobile money commission ledger ── */}
+      <section className="mf-card" aria-labelledby="mf-commission-title">
+        <div className="mf-card__head">
+          <div>
+            <h2 className="mf-card__title" id="mf-commission-title"><FiSmartphone size={15} /> {commissionTitle.en}</h2>
+            <div className="mf-card__sub">
+              {commissionSub.en}
+              <span className="mf-sw" lang="sw">{commissionTitle.sw} — {commissionSub.sw}</span>
+            </div>
+          </div>
+          <button type="button" className="mf-link-btn" onClick={() => navigate('/repayments')}>
+            Ledger <FiArrowRight size={12} />
+          </button>
+        </div>
+        {loading ? <div className="skeleton" style={{ height: 160 }} /> : commissions.count === 0 ? (
+          <Empty Icon={FiSmartphone} title={t('dash.commissionEmpty').en} message={t('dash.commissionEmptyBody').en} />
+        ) : (
+          <div className="mf-commission">
+            <div className="mf-commission__total">
+              <span className="mf-commission__label">
+                {t('dash.commissionTotal').en} · {t('dash.commissionTotal').sw}
+              </span>
+              <span className="mf-commission__value"><small>TZS</small>{fmt0(commissions.total_fees)}</span>
+              <div className="mf-kv">
+                <div className="mf-kv__row"><span>This month</span><span>TZS {fmt0(commissions.month_fees)}</span></div>
+                <div className="mf-kv__row"><span>Mobile money payments</span><span>{commissions.count}</span></div>
+                <div className="mf-kv__row"><span>Sent by clients</span><span>TZS {fmt0(commissions.total_sent)}</span></div>
+                <div className="mf-kv__row"><span>Credited to loans</span><span>TZS {fmt0(commissions.total_credited)}</span></div>
+              </div>
+              {commissions.by_provider.length > 0 && (
+                <ul className="mf-commission__providers" aria-label="Agent fees by provider">
+                  {commissions.by_provider.map(p => (
+                    <li key={p.provider} className="mf-commission__provider">
+                      <span>{providerLabel(p.provider)}</span>
+                      <span className="mf-commission__track" aria-hidden="true">
+                        <span style={{ width: `${providerMax > 0 ? (Number(p.total_fees) / providerMax) * 100 : 0}%` }} />
+                      </span>
+                      <b title={`${p.count} payments`}>TZS {fmtShort(p.total_fees)}</b>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div className="mf-section-label">Latest agent fees</div>
+              <ul className="mf-commission__recent">
+                {commissions.recent.map(r => (
+                  <li key={r.id}>
+                    <button type="button" className="mf-commission__row" onClick={() => navigate(`/loans/${r.loan_id}`)}>
+                      <span className="mf-commission__row-title">{r.customer_name}</span>
+                      <span className="mf-commission__row-fee">TZS {fmt0(r.agent_fee)}</span>
+                      <span className="mf-commission__row-meta">
+                        {providerLabel(r.mobile_provider)} · {fmtTimestamp(r.paid_at) || String(r.payment_date || '').slice(0, 10)} · {r.receipt_number}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* ── Activity + latest loans ── */}
       <div className="mf-dash-row mf-dash-row--even">
