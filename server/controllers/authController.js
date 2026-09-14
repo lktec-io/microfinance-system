@@ -65,7 +65,6 @@ const forgotPassword = asyncHandler(async (req, res) => {
     return fail(res, 'A server error occurred. Please try again later.', 500);
   }
   if (!user) {
-    console.log(`[forgot-password] No active user found for email: ${email} — returning generic response`);
     return res.json({ message: GENERIC_RESET_MSG });
   }
 
@@ -73,7 +72,6 @@ const forgotPassword = asyncHandler(async (req, res) => {
   let rawToken, hashed, expires;
   try {
     ({ rawToken, hashed, expires } = tokenSvc.generateResetToken());
-    console.log(`[forgot-password] Token generated for userId=${user.id}`);
   } catch (cryptoErr) {
     console.error('[forgot-password] ❌ Token generation failed:', cryptoErr.message);
     if (cryptoErr.stack) console.error(cryptoErr.stack);
@@ -83,7 +81,6 @@ const forgotPassword = asyncHandler(async (req, res) => {
   // Step 3: Persist token to database
   try {
     await svc.setResetToken(user.id, hashed, expires);
-    console.log(`[forgot-password] Reset token saved for userId=${user.id} expires=${expires.toISOString()}`);
   } catch (dbErr) {
     console.error('[forgot-password] ❌ Database error while saving reset token:', dbErr.message);
     if (dbErr.stack) console.error(dbErr.stack);
@@ -94,7 +91,6 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const resetUrl = `${process.env.CLIENT_URL}/reset-password/${rawToken}`;
   try {
     await emailSvc.sendResetEmail(user.email, user.name, resetUrl);
-    console.log(`[forgot-password] ✅ Reset email sent to ${user.email}`);
   } catch (emailErr) {
     console.error('[forgot-password] ❌ Email send failed:', emailErr.message);
     try { await svc.clearResetToken(user.id); } catch (_) {}
@@ -113,13 +109,9 @@ const resetPassword = asyncHandler(async (req, res) => {
   }
 
   const hashed = tokenSvc.hashToken(token);
-  // Log first 8 chars only — enough to cross-reference without exposing the full token
-  console.log(`[reset-password] token_len=${token?.length} hash_prefix=${hashed?.slice(0,8)}`);
-
-  const user = await svc.findUserByResetToken(hashed);
+  const user   = await svc.findUserByResetToken(hashed);
 
   if (!user) {
-    console.error('[reset-password] ❌ findUserByResetToken returned null — see service log above for details');
     return fail(res, 'Reset link is invalid or has expired. Please request a new one.', 400);
   }
 

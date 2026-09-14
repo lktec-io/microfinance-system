@@ -3,6 +3,7 @@ import { FiAlertCircle } from 'react-icons/fi';
 import api from '../../api';
 import { Modal } from '../ui';
 import ClientFields, { initialClientForm, checkClientNin, clientPayload } from './ClientFields';
+import { t } from '../../i18n/bilingual';
 
 /** Register / edit client — POST or PUT /api/customers with NIDA NIN validation. */
 export default function ClientFormModal({ mode, customer, customers = [], onClose, onSaved }) {
@@ -61,8 +62,8 @@ export default function ClientFormModal({ mode, customer, customers = [], onClos
           <div className="mf-alert mf-alert--error" role="alert">
             <FiAlertCircle size={17} />
             <span>
-              Fix the National ID number before saving.
-              <span lang="sw" style={{ display: 'block', fontWeight: 600 }}>Rekebisha namba ya NIDA kabla ya kuhifadhi.</span>
+              {t('nida.fixBeforeSave').en}
+              <span lang="sw" style={{ display: 'block', fontWeight: 600 }}>{t('nida.fixBeforeSave').sw}</span>
             </span>
           </div>
         )}

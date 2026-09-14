@@ -1,26 +1,42 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   FiEye, FiEyeOff, FiMail, FiLock, FiShield, FiArrowRight,
-  FiActivity, FiCreditCard, FiUsers, FiAlertCircle,
+  FiActivity, FiCreditCard, FiUsers, FiAlertCircle, FiCheck,
 } from 'react-icons/fi';
-import { useAuth }   from '../context/AuthContext';
+import { useAuth, readRememberedEmail } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { BrandMark } from '../layouts/Sidebar';
+import { t } from '../i18n/bilingual';
 
 const FEATURES = [
-  { Icon: FiActivity,      title: 'Live portfolio intelligence', desc: 'Disbursements, balances and collection rate at a glance.' },
-  { Icon: FiCreditCard,    title: 'Repayments & collections',    desc: 'A posted payment ledger and a prioritised collections queue.' },
-  { Icon: FiUsers,         title: 'Structured client profiles',  desc: 'Loan history and repayment standing for every borrower.' },
+  { Icon: FiActivity,   title: 'Live portfolio intelligence', desc: 'Disbursements, balances and collection rate at a glance.' },
+  { Icon: FiCreditCard, title: 'Repayments & collections',    desc: 'A posted payment ledger and a prioritised collections queue.' },
+  { Icon: FiUsers,      title: 'Structured client profiles',  desc: 'Loan history and repayment standing for every borrower.' },
 ];
 
 export default function Login() {
-  const { login }  = useAuth();
-  const navigate   = useNavigate();
-  const [form, setForm]             = useState({ email: '', password: '' });
+  const { login }     = useAuth();
+  const { showToast } = useToast();
+  const navigate      = useNavigate();
+  const [params, setParams] = useSearchParams();
+
+  const [rememberedEmail]           = useState(readRememberedEmail);
+  const [form, setForm]             = useState(() => ({ email: rememberedEmail, password: '' }));
+  const [rememberMe, setRememberMe] = useState(Boolean(rememberedEmail));
   const [error, setError]           = useState('');
   const [loading, setLoading]       = useState(false);
   const [showPw, setShowPw]         = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const resetToastShown = useRef(false);
+
+  /* Arriving from a completed system reset: confirm it once, then clean the URL */
+  useEffect(() => {
+    if (params.get('reset') !== '1' || resetToastShown.current) return;
+    resetToastShown.current = true;
+    const done = t('reset.success');
+    showToast(`${done.en} — ${done.sw}`, 'success', 9000);
+    setParams({}, { replace: true });
+  }, [params, setParams, showToast]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -35,6 +51,9 @@ export default function Login() {
       setLoading(false);
     }
   }
+
+  const remember     = t('auth.remember');
+  const rememberHint = t('auth.rememberHint');
 
   return (
     <div className="mf-auth">
@@ -80,22 +99,23 @@ export default function Login() {
           <h1 className="mf-auth__title">Welcome back</h1>
           <p className="mf-auth__sub">Sign in with your staff account to continue.</p>
 
-          <form className="mf-auth__form" onSubmit={handleSubmit} noValidate={false}>
+          <form className="mf-auth__form" onSubmit={handleSubmit}>
             {error && (
               <div className="mf-alert mf-alert--error" role="alert">
-                <FiAlertCircle size={15} /> {error}
+                <FiAlertCircle size={17} /> <span>{error}</span>
               </div>
             )}
 
             <label className="mf-field">
               <span className="mf-label">Email address</span>
               <span className="mf-input-icon">
-                <FiMail size={15} />
+                <FiMail size={16} />
                 <input
                   id="email"
                   type="email"
                   required
                   autoComplete="username"
+                  autoFocus={!rememberedEmail}
                   className="mf-input mf-auth__input"
                   placeholder="you@company.com"
                   value={form.email}
@@ -107,14 +127,15 @@ export default function Login() {
             <label className="mf-field">
               <span className="mf-label">Password</span>
               <span className="mf-input-icon">
-                <FiLock size={15} />
+                <FiLock size={16} />
                 <input
                   id="password"
                   type={showPw ? 'text' : 'password'}
                   required
                   autoComplete="current-password"
+                  autoFocus={Boolean(rememberedEmail)}
                   className="mf-input mf-auth__input"
-                  style={{ paddingRight: '2.6rem' }}
+                  style={{ paddingRight: '3rem' }}
                   placeholder="••••••••"
                   value={form.password}
                   onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
@@ -123,18 +144,30 @@ export default function Login() {
                   type="button"
                   className="mf-auth__pw-toggle"
                   onClick={() => setShowPw(v => !v)}
-                  tabIndex={-1}
                   aria-label={showPw ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPw}
                 >
-                  {showPw ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                  {showPw ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                 </button>
               </span>
             </label>
 
             <div className="mf-auth__row">
-              <label className="mf-check">
-                <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />
-                Remember me
+              <label className="mf-checkbox">
+                <input
+                  type="checkbox"
+                  className="mf-checkbox__input"
+                  checked={rememberMe}
+                  onChange={e => setRememberMe(e.target.checked)}
+                  aria-describedby="remember-hint"
+                />
+                <span className="mf-checkbox__box" aria-hidden="true"><FiCheck size={14} /></span>
+                <span className="mf-checkbox__text">
+                  <span className="mf-checkbox__label">
+                    {remember.en} <span className="mf-checkbox__sw" lang="sw">· {remember.sw}</span>
+                  </span>
+                  <span id="remember-hint" className="mf-checkbox__hint">{rememberHint.en}</span>
+                </span>
               </label>
               <Link to="/forgot-password" className="mf-auth__link">Forgot password?</Link>
             </div>
@@ -142,12 +175,12 @@ export default function Login() {
             <button type="submit" className="mf-btn mf-btn--primary mf-btn--lg mf-btn--block" disabled={loading}>
               {loading
                 ? <><span className="mf-spinner-inline" /> Verifying…</>
-                : <>Sign in <FiArrowRight size={16} /></>}
+                : <>Sign in <FiArrowRight size={17} /></>}
             </button>
           </form>
 
           <div className="mf-auth__foot">
-            <FiShield size={13} /> Encrypted connection · access is logged and monitored
+            <FiShield size={14} /> Encrypted connection · access is logged and monitored
           </div>
         </div>
       </main>

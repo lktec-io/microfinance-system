@@ -46,6 +46,7 @@ app.use('/api/repayments', require('./routes/repayments'));
 app.use('/api/reports',    require('./routes/reports'));
 app.use('/api/expenses',   require('./routes/expenses'));
 app.use('/api/sms',        require('./routes/sms'));
+app.use('/api/admin',      require('./routes/admin'));
 
 // ── Health ────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) =>

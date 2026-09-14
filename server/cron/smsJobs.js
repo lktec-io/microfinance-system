@@ -77,6 +77,14 @@ async function sendOverdueNotifications() {
 }
 
 function start() {
+  // SMS was retired from the product (2026-09). The daily job stays OFF so the
+  // server sends nothing and consumes no Beem credit, unless an operator
+  // explicitly re-enables it with SMS_CRON_ENABLED=true.
+  if (process.env.SMS_CRON_ENABLED !== 'true') {
+    logger.info('SMS cron disabled — no automatic SMS will be sent (set SMS_CRON_ENABLED=true to re-enable)');
+    return;
+  }
+
   // Daily at 09:00 East Africa Time
   cron.schedule('0 9 * * *', async () => {
     await sendRepaymentReminders();

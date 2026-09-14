@@ -5,6 +5,7 @@ import Header               from './Header';
 import { useSecurityGuard } from '../hooks/useSecurityGuard';
 import { useMediaQuery }    from '../hooks/useMediaQuery';
 import { lockScroll }       from '../utils/scrollLock';
+import ErrorBoundary        from '../components/common/ErrorBoundary';
 
 const COLLAPSE_KEY  = 'mf_sidebar_collapsed';
 const DESKTOP_QUERY = '(min-width: 1024px)';
@@ -86,9 +87,11 @@ export default function Layout({ children }) {
 
         <main className="mf-content" id="main-content">
           <div key={pathname} className="mf-route">
-            <Suspense fallback={<div className="mf-route-loader" aria-label="Loading" />}>
-              {children}
-            </Suspense>
+            <ErrorBoundary resetKey={pathname}>
+              <Suspense fallback={<div className="mf-route-loader" aria-label="Loading" />}>
+                {children}
+              </Suspense>
+            </ErrorBoundary>
           </div>
         </main>
 

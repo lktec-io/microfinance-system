@@ -198,8 +198,7 @@ function ProfileMenu({ system }) {
           reader.readAsDataURL(file);
         });
       }
-    } catch (err) {
-      console.error('Profile upload failed:', err);
+    } catch {
       setUploadErr(true);
     } finally {
       setUploading(false);

@@ -8,7 +8,10 @@
  *
  * Format enforced: 20 digits, printed as YYYYMMDD-XXXXX-XXXXX-XX, where the
  * first 8 digits are the holder's date of birth.
+ *
+ * All messages come from the bilingual catalogue (i18n/bilingual.js).
  */
+import { t } from '../i18n/bilingual';
 
 export const NIN_LENGTH = 20;
 export const NIN_MIN_YEAR = 1900;
@@ -62,7 +65,8 @@ function ageOn(dob, now) {
   return age;
 }
 
-const fail = (code, en, sw, digits, extra = {}) => ({ valid: false, code, en, sw, digits, ...extra });
+const fail = (code, key, params, digits, extra = {}) =>
+  ({ valid: false, code, ...t(key, params), digits, ...extra });
 
 /**
  * Validate a NIN.
@@ -74,51 +78,25 @@ const fail = (code, en, sw, digits, extra = {}) => ({ valid: false, code, en, sw
  * @param {Date}    [opts.now]
  */
 export function validateNin(value, { customers = [], excludeId = null, required = true, now = new Date() } = {}) {
-  const raw    = String(value ?? '').trim();
-  const digits = normalizeNin(raw);
+  const digits = normalizeNin(String(value ?? '').trim());
 
   if (!digits) {
     return required
-      ? fail('required', 'National ID number (NIN) is required.', 'Namba ya Utambulisho wa Taifa (NIN) inahitajika.', '')
+      ? fail('required', 'nida.required', {}, '')
       : { valid: true, empty: true, digits: '', warnings: [] };
   }
 
-  if (!/^\d+$/.test(digits)) {
-    return fail('digits',
-      'Use digits only — letters and symbols are not allowed.',
-      'Tumia tarakimu pekee — herufi na alama haziruhusiwi.', digits);
-  }
+  if (!/^\d+$/.test(digits)) return fail('digits', 'nida.digits', {}, digits);
 
   if (digits.length !== NIN_LENGTH) {
-    return fail('length',
-      `Must be exactly ${NIN_LENGTH} digits — ${digits.length} entered.`,
-      `Lazima iwe tarakimu ${NIN_LENGTH} kamili — umeingiza ${digits.length}.`,
-      digits, { partial: digits.length < NIN_LENGTH });
+    return fail('length', 'nida.length', { expected: NIN_LENGTH, count: digits.length }, digits,
+      { partial: digits.length < NIN_LENGTH });
   }
 
-  if (new RegExp(`(\\d)\\1{${REPEAT_RUN - 1},}`).test(digits)) {
-    return fail('repeated',
-      'Repeated-digit pattern detected — this is not a valid NIN.',
-      'Tarakimu zinazojirudia zimegunduliwa — hii si NIN halali.', digits);
-  }
-
-  if (new Set(digits).size < MIN_DISTINCT) {
-    return fail('variety',
-      'Too few distinct digits — this looks like a placeholder, not a real NIN.',
-      'Tarakimu tofauti ni chache mno — hii inaonekana si NIN halisi.', digits);
-  }
-
-  if (hasSequentialRun(digits, SEQUENCE_RUN)) {
-    return fail('sequential',
-      'Sequential pattern detected (e.g. 12345…) — this is not a valid NIN.',
-      'Mfuatano wa tarakimu (mf. 12345…) umegunduliwa — hii si NIN halali.', digits);
-  }
-
-  if (hasRepeatingBlock(digits)) {
-    return fail('block',
-      'Repeating block pattern detected — this is not a valid NIN.',
-      'Mpangilio unaojirudia umegunduliwa — hii si NIN halali.', digits);
-  }
+  if (new RegExp(`(\\d)\\1{${REPEAT_RUN - 1},}`).test(digits)) return fail('repeated', 'nida.repeated', {}, digits);
+  if (new Set(digits).size < MIN_DISTINCT)                   return fail('variety', 'nida.variety', {}, digits);
+  if (hasSequentialRun(digits, SEQUENCE_RUN))                return fail('sequential', 'nida.sequential', {}, digits);
+  if (hasRepeatingBlock(digits))                             return fail('block', 'nida.block', {}, digits);
 
   const year  = Number(digits.slice(0, 4));
   const month = Number(digits.slice(4, 6));
@@ -126,52 +104,29 @@ export function validateNin(value, { customers = [], excludeId = null, required 
   const currentYear = now.getFullYear();
 
   if (year < NIN_MIN_YEAR || year > currentYear) {
-    return fail('year',
-      `Birth year ${year} is out of range (${NIN_MIN_YEAR}–${currentYear}).`,
-      `Mwaka wa kuzaliwa ${year} uko nje ya kiwango (${NIN_MIN_YEAR}–${currentYear}).`, digits);
+    return fail('year', 'nida.year', { year, min: NIN_MIN_YEAR, max: currentYear }, digits);
   }
   if (month < 1 || month > 12) {
-    return fail('month',
-      `Birth month “${digits.slice(4, 6)}” is invalid — digits 5–6 must be 01–12.`,
-      `Mwezi wa kuzaliwa “${digits.slice(4, 6)}” si sahihi — tarakimu 5–6 lazima ziwe 01–12.`, digits);
+    return fail('month', 'nida.month', { month: digits.slice(4, 6) }, digits);
   }
-  const daysInMonth = new Date(year, month, 0).getDate();
-  if (day < 1 || day > daysInMonth) {
-    return fail('day',
-      `Birth day “${digits.slice(6, 8)}” does not exist in that month.`,
-      `Siku ya kuzaliwa “${digits.slice(6, 8)}” haipo katika mwezi huo.`, digits);
+  if (day < 1 || day > new Date(year, month, 0).getDate()) {
+    return fail('day', 'nida.day', { day: digits.slice(6, 8) }, digits);
   }
 
   const dob = new Date(year, month - 1, day);
-  if (dob > now) {
-    return fail('future',
-      'Date of birth encoded in the NIN is in the future.',
-      'Tarehe ya kuzaliwa iliyo kwenye NIN iko mbele ya leo.', digits);
-  }
+  if (dob > now) return fail('future', 'nida.future', {}, digits);
 
   const duplicate = customers.find(c =>
     c.id !== excludeId && c.id_number && normalizeNin(c.id_number) === digits);
   if (duplicate) {
     const code = `CL-${String(duplicate.id).padStart(5, '0')}`;
-    return fail('duplicate',
-      `This NIN is already registered to ${duplicate.full_name} (${code}).`,
-      `NIN hii tayari imesajiliwa kwa ${duplicate.full_name} (${code}).`, digits, { duplicate });
+    return fail('duplicate', 'nida.duplicate', { name: duplicate.full_name, code }, digits, { duplicate });
   }
 
   const age = ageOn(dob, now);
   const warnings = [];
-  if (age < 18) {
-    warnings.push({
-      en: `Holder is ${age} — under 18. Confirm borrower eligibility.`,
-      sw: `Mmiliki ana miaka ${age} — chini ya 18. Thibitisha ustahiki wa mkopaji.`,
-    });
-  }
-  if (age > 100) {
-    warnings.push({
-      en: `Holder would be ${age} years old — double-check the number.`,
-      sw: `Mmiliki angekuwa na miaka ${age} — hakiki namba tena.`,
-    });
-  }
+  if (age < 18)  warnings.push(t('nida.minor', { age }));
+  if (age > 100) warnings.push(t('nida.elderly', { age }));
 
   return { valid: true, digits, formatted: formatNin(digits), dob, age, warnings };
 }

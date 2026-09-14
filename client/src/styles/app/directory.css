@@ -12,7 +12,7 @@
   border: 1px solid var(--mf-border);
   border-radius: var(--mf-radius-lg);
   transition: border-color var(--mf-dur) var(--mf-ease), transform var(--mf-dur) var(--mf-ease), box-shadow var(--mf-dur) var(--mf-ease);
-  animation: mf-fade-up .3s var(--mf-ease) both;
+  animation: mf-fade-up .3s var(--mf-ease) backwards;
 }
 .mf-client-card--overdue { border-left: 4px solid var(--mf-crimson-600); }
 .mf-client-card__head {

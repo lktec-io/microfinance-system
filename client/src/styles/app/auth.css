@@ -53,11 +53,12 @@
   align-items: flex-start;
   padding: 1.75rem 1.25rem calc(2rem + var(--mf-safe-bottom));
 }
-.mf-auth__card { width: 100%; max-width: 440px; animation: mf-fade-up .35s var(--mf-ease) both; }
+.mf-auth__card { width: 100%; max-width: 440px; animation: mf-fade-up .35s var(--mf-ease) backwards; }
 .mf-auth__title { margin-top: .45rem; font-size: var(--mf-fs-2xl); font-weight: 800; letter-spacing: -.02em; }
 .mf-auth__sub { margin-top: .35rem; font-size: var(--mf-fs-sm); font-weight: 500; color: var(--mf-ink-500); }
 .mf-auth__form { display: flex; flex-direction: column; gap: 1.1rem; margin-top: 1.5rem; }
-.mf-auth__row { display: flex; align-items: center; justify-content: space-between; gap: .5rem 1rem; flex-wrap: wrap; }
+.mf-auth__row { display: flex; align-items: flex-start; justify-content: space-between; gap: .25rem 1rem; flex-wrap: wrap; }
+.mf-auth__row .mf-checkbox { flex: 1 1 220px; }
 .mf-auth__link { display: inline-flex; align-items: center; min-height: var(--mf-touch); font-size: var(--mf-fs-sm); font-weight: 800; }
 .mf-auth__input { height: 52px !important; }
 .mf-auth__pw-toggle {

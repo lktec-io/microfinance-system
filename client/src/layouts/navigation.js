@@ -1,6 +1,6 @@
 import {
   FiGrid, FiLayers, FiUsers, FiCreditCard,
-  FiFileText, FiBarChart2, FiShield,
+  FiFileText, FiBarChart2, FiShield, FiSettings,
 } from 'react-icons/fi';
 
 /* Single source of truth for sidebar, breadcrumbs and command palette. */
@@ -30,7 +30,8 @@ export const NAV_SECTIONS = [
     label: 'Administration',
     adminOnly: true,
     items: [
-      { to: '/users', label: 'User Management', Icon: FiShield, desc: 'Staff accounts & roles' },
+      { to: '/users',    label: 'User Management', Icon: FiShield,   desc: 'Staff accounts & roles' },
+      { to: '/settings', label: 'System Settings', Icon: FiSettings, desc: 'Session details & system reset' },
     ],
   },
 ];

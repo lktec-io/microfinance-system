@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { FiAlertOctagon, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
 import { formatNin, normalizeNin, NIN_LENGTH } from '../../utils/nida';
 import { fmtDay } from '../../utils/format';
+import { t } from '../../i18n/bilingual';
 
 const LONG_DATE = { day: '2-digit', month: 'short', year: 'numeric' };
 
@@ -60,13 +61,17 @@ export default function NinField({ value, onChange, result, blocking, attempted,
     onChange(/^[\d\s-]*$/.test(raw) ? formatNin(raw) : raw);
   }
 
-  const digits = result.digits || '';
-  const dobISO = digits.length >= 8 ? `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}` : null;
+  const digits   = result.digits || '';
+  const dobISO   = digits.length >= 8 ? `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}` : null;
+  const label    = t('nida.label');
+  const verified = t('nida.verified');
+  const hint     = t('nida.hint');
+  const left     = t('nida.remaining', { count: NIN_LENGTH - digitCount });
 
   return (
     <div className="mf-nin">
       <label className="mf-label" htmlFor={id}>
-        National ID number (NIDA NIN){required && <span className="mf-req">*</span>}
+        {label.en}{required && <span className="mf-req">*</span>}
       </label>
 
       <div className="mf-nin__control" ref={controlRef}>
@@ -98,13 +103,13 @@ export default function NinField({ value, onChange, result, blocking, attempted,
 
         {isAdvice && (
           <Feedback tone="warning" Icon={FiAlertTriangle}
-            en={`Stored ID fails NIDA checks: ${result.en} Update it to the client's 20-digit NIN.`}
-            sw={`Namba iliyohifadhiwa haipiti ukaguzi wa NIDA: ${result.sw}`} />
+            en={t('nida.legacy', { reason: result.en }).en}
+            sw={t('nida.legacy', { reason: result.sw }).sw} />
         )}
 
         {result.valid && !result.empty && (
           <>
-            <Feedback tone="success" Icon={FiCheckCircle} en="NIN structure verified" sw="Muundo wa NIN umethibitishwa">
+            <Feedback tone="success" Icon={FiCheckCircle} en={verified.en} sw={verified.sw}>
               <div className="mf-nin__segments">
                 {dobISO && <span className="mf-nin__seg">Birth date <b>{fmtDay(dobISO, LONG_DATE)}</b></span>}
                 {result.age != null && <span className="mf-nin__seg">Age <b>{result.age}</b></span>}
@@ -121,11 +126,12 @@ export default function NinField({ value, onChange, result, blocking, attempted,
 
         {!showError && waitingForInput && (
           <p className="mf-hint">
-            {result.code === 'length'
-              ? `${NIN_LENGTH - digitCount} more digit${NIN_LENGTH - digitCount === 1 ? '' : 's'} · `
-              : ''}
-            20 digits from the NIDA card — the first 8 are the date of birth (YYYYMMDD).
-            <span lang="sw"> Tarakimu 20 kutoka kitambulisho cha NIDA.</span>
+            {result.code === 'length' && <>{left.en} · </>}
+            {hint.en}
+            <span lang="sw" style={{ display: 'block' }}>
+              {result.code === 'length' && <>{left.sw} · </>}
+              {hint.sw}
+            </span>
           </p>
         )}
       </div>

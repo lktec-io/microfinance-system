@@ -283,7 +283,73 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
   font-size: var(--mf-fs-sm); font-weight: 600; color: var(--mf-ink-700);
   cursor: pointer; user-select: none;
 }
-.mf-check input { width: 20px; height: 20px; flex-shrink: 0; }
+.mf-check input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  border: 2px solid var(--mf-ink-300);
+  border-radius: var(--mf-radius-xs);
+  background: var(--mf-surface) center / 14px no-repeat;
+  cursor: pointer;
+  transition: background-color var(--mf-dur) var(--mf-ease), border-color var(--mf-dur) var(--mf-ease), box-shadow var(--mf-dur) var(--mf-ease);
+}
+.mf-check input[type='checkbox']:checked {
+  border-color: var(--mf-orange-500);
+  background-color: var(--mf-orange-500);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='square'%3e%3cpath d='M5 12.5l4.5 4.5L19 7.5'/%3e%3c/svg%3e");
+}
+.mf-check input[type='checkbox']:focus-visible { border-color: var(--mf-orange-500); box-shadow: var(--mf-focus-ring); }
+
+/* ── Custom checkbox (Remember me and other opt-ins) ───────────────── */
+.mf-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: .7rem;
+  min-height: var(--mf-touch);
+  padding: .4rem 0;
+  cursor: pointer;
+  user-select: none;
+}
+.mf-checkbox__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.mf-checkbox__box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border: 2px solid var(--mf-ink-300);
+  border-radius: var(--mf-radius-xs);
+  background: var(--mf-surface);
+  color: #FFFFFF;
+  transition: background-color var(--mf-dur) var(--mf-ease), border-color var(--mf-dur) var(--mf-ease), box-shadow var(--mf-dur) var(--mf-ease), transform var(--mf-dur) var(--mf-ease);
+}
+.mf-checkbox__box svg { stroke-width: 3.5; opacity: 0; transform: scale(.4); transition: opacity var(--mf-dur) var(--mf-ease), transform var(--mf-dur) var(--mf-ease); }
+.mf-checkbox__input:checked + .mf-checkbox__box { border-color: var(--mf-orange-500); background: var(--mf-orange-500); }
+.mf-checkbox__input:checked + .mf-checkbox__box svg { opacity: 1; transform: none; }
+.mf-checkbox__input:focus-visible + .mf-checkbox__box { border-color: var(--mf-orange-500); box-shadow: var(--mf-focus-ring); }
+.mf-checkbox__input:disabled + .mf-checkbox__box { opacity: .45; }
+.mf-checkbox:active .mf-checkbox__box { transform: scale(.92); }
+.mf-checkbox__text { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.mf-checkbox__label { font-size: var(--mf-fs-sm); font-weight: 700; line-height: 1.35; color: var(--mf-ink-800); }
+.mf-checkbox__sw { font-weight: 600; color: var(--mf-ink-500); }
+.mf-checkbox__hint { font-size: var(--mf-fs-xs); font-weight: 600; line-height: 1.35; color: var(--mf-ink-500); }
+@media (hover: hover) {
+  .mf-checkbox:hover .mf-checkbox__box { border-color: var(--mf-orange-400); }
+  .mf-check input[type='checkbox']:hover { border-color: var(--mf-orange-400); }
+}
 
 /* Search field component */
 .mf-search { position: relative; display: flex; align-items: center; width: 100%; min-width: 0; }
