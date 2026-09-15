@@ -332,9 +332,10 @@ export default function Dashboard() {
       </div>
 
       {/* ── Mobile money commission ledger ── */}
-      <section className="mf-card" aria-labelledby="mf-commission-title">
+      <section className="mf-card mf-commission-card" aria-labelledby="mf-commission-title">
         <div className="mf-card__head">
           <div>
+            <div className="mf-commission-card__eyebrow">Mobile money · Pesa kwa simu</div>
             <h2 className="mf-card__title" id="mf-commission-title"><FiSmartphone size={15} /> {commissionTitle.en}</h2>
             <div className="mf-card__sub">
               {commissionSub.en}
@@ -345,7 +346,7 @@ export default function Dashboard() {
             Ledger <FiArrowRight size={12} />
           </button>
         </div>
-        {loading ? <div className="skeleton" style={{ height: 160 }} /> : commissions.count === 0 ? (
+        {loading ? <div className="skeleton" style={{ height: 180 }} /> : commissions.count === 0 ? (
           <Empty Icon={FiSmartphone} title={t('dash.commissionEmpty').en} message={t('dash.commissionEmptyBody').en} />
         ) : (
           <div className="mf-commission">
@@ -354,41 +355,61 @@ export default function Dashboard() {
                 {t('dash.commissionTotal').en} · {t('dash.commissionTotal').sw}
               </span>
               <span className="mf-commission__value"><small>TZS</small>{fmt0(commissions.total_fees)}</span>
-              <div className="mf-kv">
-                <div className="mf-kv__row"><span>This month</span><span>TZS {fmt0(commissions.month_fees)}</span></div>
-                <div className="mf-kv__row"><span>Mobile money payments</span><span>{commissions.count}</span></div>
-                <div className="mf-kv__row"><span>Sent by clients</span><span>TZS {fmt0(commissions.total_sent)}</span></div>
-                <div className="mf-kv__row"><span>Credited to loans</span><span>TZS {fmt0(commissions.total_credited)}</span></div>
-              </div>
-              {commissions.by_provider.length > 0 && (
-                <ul className="mf-commission__providers" aria-label="Agent fees by provider">
-                  {commissions.by_provider.map(p => (
-                    <li key={p.provider} className="mf-commission__provider">
-                      <span>{providerLabel(p.provider)}</span>
-                      <span className="mf-commission__track" aria-hidden="true">
-                        <span style={{ width: `${providerMax > 0 ? (Number(p.total_fees) / providerMax) * 100 : 0}%` }} />
-                      </span>
-                      <b title={`${p.count} payments`}>TZS {fmtShort(p.total_fees)}</b>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <dl className="mf-commission__stats">
+                <div><dt>This month</dt><dd>TZS {fmt0(commissions.month_fees)}</dd></div>
+                <div><dt>Mobile money payments</dt><dd>{commissions.count}</dd></div>
+                <div><dt>Sent by clients</dt><dd>TZS {fmt0(commissions.total_sent)}</dd></div>
+                <div><dt>Credited to loans</dt><dd>TZS {fmt0(commissions.total_credited)}</dd></div>
+              </dl>
             </div>
-            <div style={{ minWidth: 0 }}>
-              <div className="mf-section-label">Latest agent fees</div>
-              <ul className="mf-commission__recent">
-                {commissions.recent.map(r => (
-                  <li key={r.id}>
-                    <button type="button" className="mf-commission__row" onClick={() => navigate(`/loans/${r.loan_id}`)}>
-                      <span className="mf-commission__row-title">{r.customer_name}</span>
-                      <span className="mf-commission__row-fee">TZS {fmt0(r.agent_fee)}</span>
-                      <span className="mf-commission__row-meta">
-                        {providerLabel(r.mobile_provider)} · {fmtTimestamp(r.paid_at) || String(r.payment_date || '').slice(0, 10)} · {r.receipt_number}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+
+            <div className="mf-commission__side">
+              {commissions.by_provider.length > 0 && (
+                <div>
+                  <div className="mf-commission__heading">
+                    {t('dash.providerHeading').en} · {t('dash.providerHeading').sw}
+                  </div>
+                  <ul className="mf-commission__providers" aria-label="Agent fees by provider">
+                    {commissions.by_provider.map(p => {
+                      const fees  = Number(p.total_fees) || 0;
+                      const share = commissions.total_fees > 0 ? Math.round((fees / commissions.total_fees) * 100) : 0;
+                      return (
+                        <li key={p.provider} className="mf-commission__provider">
+                          <div className="mf-commission__provider-row">
+                            <span className="mf-commission__provider-name">{providerLabel(p.provider)}</span>
+                            <b>TZS {fmt0(fees)}</b>
+                          </div>
+                          <span className="mf-commission__track" aria-hidden="true">
+                            <span style={{ width: `${providerMax > 0 ? (fees / providerMax) * 100 : 0}%` }} />
+                          </span>
+                          <span className="mf-commission__provider-meta">
+                            {t('dash.providerPayments', { count: p.count }).en} · {share}% of all agent fees
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+
+              {commissions.recent.length > 0 && (
+                <div>
+                  <div className="mf-commission__heading">Latest agent fees · Makato ya karibuni</div>
+                  <ul className="mf-commission__recent">
+                    {commissions.recent.map(r => (
+                      <li key={r.id}>
+                        <button type="button" className="mf-commission__row" onClick={() => navigate(`/loans/${r.loan_id}`)}>
+                          <span className="mf-commission__row-title">{r.customer_name}</span>
+                          <span className="mf-commission__row-fee">TZS {fmt0(r.agent_fee)}</span>
+                          <span className="mf-commission__row-meta">
+                            {providerLabel(r.mobile_provider)} · {fmtTimestamp(r.paid_at) || String(r.payment_date || '').slice(0, 10)} · {r.receipt_number}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         )}

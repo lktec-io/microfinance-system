@@ -1,6 +1,6 @@
 const svc    = require('../services/repaymentService');
 const { asyncHandler } = require('../middleware/errorHandler');
-const { fail, isValidTimestamp, nowLocal } = require('../utils/helpers');
+const { fail, isValidTimestamp, nowLocal, MAX_MONEY } = require('../utils/helpers');
 
 const CLOCK_DRIFT_MS = 10 * 60 * 1000;   // tolerate a device clock up to 10 minutes fast
 
@@ -33,9 +33,11 @@ const create = asyncHandler(async (req, res) => {
     if (!(sent > 0))  return fail(res, 'Amount sent must be greater than zero');
     if (!(fee >= 0))  return fail(res, 'Agent fee cannot be negative');
     if (fee >= sent)  return fail(res, 'Agent fee must be less than the amount sent');
+    if (sent > MAX_MONEY) return fail(res, 'Amount sent is too large');
   } else {
     if (!amount)                 return fail(res, 'Loan ID and amount are required');
     if (parseFloat(amount) <= 0) return fail(res, 'Amount must be greater than zero');
+    if (parseFloat(amount) > MAX_MONEY) return fail(res, 'Amount is too large');
   }
 
   if (paid_at != null && paid_at !== '') {

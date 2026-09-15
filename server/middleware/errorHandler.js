@@ -17,6 +17,16 @@ function globalErrorHandler(err, req, res, _next) {
   if (err.code === 'ER_ROW_IS_REFERENCED_2') {
     return res.status(400).json({ message: 'Cannot delete — record has dependent data' });
   }
+  // New columns/tables not created yet — the backend was deployed without a restart
+  if (err.code === 'ER_BAD_FIELD_ERROR' || err.code === 'ER_NO_SUCH_TABLE') {
+    return res.status(503).json({
+      message: 'The database is missing a required update. Ask the administrator to restart the backend, then try again.',
+    });
+  }
+  if (['ER_DATA_TOO_LONG', 'ER_WARN_DATA_OUT_OF_RANGE', 'WARN_DATA_TRUNCATED',
+       'ER_TRUNCATED_WRONG_VALUE', 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD'].includes(err.code)) {
+    return res.status(400).json({ message: 'One of the values is too long or out of range. Check the amounts and text fields.' });
+  }
 
   const status = err.status || err.statusCode || 500;
   // Never leak MySQL error messages, stack traces, or DB schema to the client

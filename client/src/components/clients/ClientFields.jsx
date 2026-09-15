@@ -215,13 +215,14 @@ export default function ClientFields({ form, setForm, check, customer = null, at
         )}
 
         {check.type === 'none' && (
-          <div className="mf-kyc__panel mf-alert mf-alert--warning" role="status" key="none">
-            <FiAlertTriangle size={17} aria-hidden="true" />
-            <span>
-              <span className="mf-kyc__notice-title">{noneTitle.en}</span>
-              {noneBody.en}
-              <span className="mf-sw" lang="sw"><span className="mf-kyc__notice-title">{noneTitle.sw}</span>{noneBody.sw}</span>
-            </span>
+          <div className="mf-kyc__panel mf-kyc-none" role="alert" key="none">
+            <FiAlertTriangle size={22} aria-hidden="true" />
+            <div>
+              <strong className="mf-kyc-none__title" lang="sw">{noneTitle.sw}</strong>
+              <strong className="mf-kyc-none__title">{noneTitle.en}</strong>
+              <p className="mf-kyc-none__body">{noneBody.en}</p>
+              <p className="mf-kyc-none__body" lang="sw">{noneBody.sw}</p>
+            </div>
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 const svc    = require('../services/loanService');
 const { asyncHandler } = require('../middleware/errorHandler');
-const { fail, FREQUENCIES } = require('../utils/helpers');
+const { fail, FREQUENCIES, MAX_MONEY } = require('../utils/helpers');
 
 const MAX_SECURITIES = 20;
 
@@ -24,6 +24,7 @@ function securitiesError(securities) {
       if (!String(s.description || '').trim()) return `Asset ${n}: description is required`;
       const value = parseFloat(s.estimated_value);
       if (!(value >= 0)) return `Asset ${n}: estimated market value must be 0 or more`;
+      if (value > MAX_MONEY) return `Asset ${n}: estimated market value is too large`;
     } else {
       return `Item ${n}: type must be "guarantor" or "collateral"`;
     }

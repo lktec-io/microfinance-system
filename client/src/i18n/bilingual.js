@@ -183,8 +183,12 @@ export const MESSAGES = {
     sw: '{label} hii tayari imesajiliwa kwa {name} ({code}).',
   },
   'kyc.noneTitle': {
-    en: 'Registering without formal identification',
-    sw: 'Usajili bila kitambulisho rasmi',
+    en: 'This client is being registered without formal identification.',
+    sw: 'Huyu mteja anasajiliwa bila kitambulisho rasmi.',
+  },
+  'kyc.noneExisting': {
+    en: 'This client is registered without formal identification.',
+    sw: 'Huyu mteja amesajiliwa bila kitambulisho rasmi.',
   },
   'kyc.noneBody': {
     en: 'This client will be saved with no verified ID. Confirm their identity by other means before lending.',
@@ -327,6 +331,39 @@ export const MESSAGES = {
   'dash.commissionEmptyBody': {
     en: 'Record a repayment with Payment mode “Mobile Money” to start the ledger.',
     sw: 'Rekodi marejesho kwa njia ya “Pesa kwa simu” ili kuanza daftari.',
+  },
+  'dash.providerHeading': { en: 'Fees by provider', sw: 'Makato kwa mtoa huduma' },
+  'dash.providerPayments': { en: '{count} payments', sw: 'malipo {count}' },
+
+  /* ── Live calculator banner ──────────────────────────────────────── */
+  'calc.title': { en: 'Installment per interval', sw: 'Kiasi cha kila awamu' },
+  'calc.empty': {
+    en: 'Enter principal, interest rate, tenor and frequency to see the installment.',
+    sw: 'Weka kiasi cha mkopo, riba, muda na mzunguko ili kuona kiasi cha kila awamu.',
+  },
+  'calc.single': {
+    en: 'Single repayment of TZS {amount} on the due date.',
+    sw: 'Malipo mara moja ya TZS {amount} siku ya mwisho.',
+  },
+
+  /* ── Record payment extras ───────────────────────────────────────── */
+  'pay.live':     { en: 'Live', sw: 'Moja kwa moja' },
+  'pay.liveHint': {
+    en: 'Updates every second until you change it',
+    sw: 'Inajisasisha kila sekunde hadi uibadilishe',
+  },
+  'pay.useNow':   { en: 'Use current time', sw: 'Tumia saa ya sasa' },
+  'pay.quickFee': { en: 'Quick fee', sw: 'Makato ya haraka' },
+
+  /* ── Collateral coverage meter ───────────────────────────────────── */
+  'security.coverageTitle': { en: 'Collateral coverage', sw: 'Kiwango cha dhamana' },
+  'security.coverageEmpty': {
+    en: 'No assets pledged yet — 0% of the principal is covered.',
+    sw: 'Bado hakuna kitu kilichowekwa dhamana — 0% ya kiasi cha mkopo.',
+  },
+  'security.coverageDraft': {
+    en: 'Including the asset being entered: {pct}%',
+    sw: 'Pamoja na kitu unachojaza sasa: {pct}%',
   },
 };
 

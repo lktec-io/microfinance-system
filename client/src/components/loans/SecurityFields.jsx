@@ -46,6 +46,38 @@ export function securitiesPayload(items) {
   return items.map(({ key, ...item }) => item);
 }
 
+/** Live asset-to-loan coverage, including the asset currently being typed. */
+function CoverageMeter({ principal, assetValue, draftValue }) {
+  const base      = Number(principal) || 0;
+  const pct       = base > 0 ? Math.round((assetValue / base) * 100) : 0;
+  const withDraft = base > 0 && draftValue > 0 ? Math.round(((assetValue + draftValue) / base) * 100) : null;
+  const title     = t('security.coverageTitle');
+  const coverage  = t('security.coverage', { pct });
+  const empty     = t('security.coverageEmpty');
+  const draft     = withDraft != null ? t('security.coverageDraft', { pct: withDraft }) : null;
+
+  return (
+    <div className={`mf-coverage${pct >= 100 ? ' is-full' : ''}`} role="status" aria-live="polite">
+      <div className="mf-coverage__head">
+        <span className="mf-coverage__label">{title.en}<span className="mf-sw" lang="sw">{title.sw}</span></span>
+        <span className="mf-coverage__pct">{pct}%</span>
+      </div>
+      <div className="mf-coverage__track" role="meter" aria-label={title.en}
+        aria-valuenow={Math.min(pct, 100)} aria-valuemin={0} aria-valuemax={100}>
+        {withDraft != null && <span className="mf-coverage__draft" style={{ width: `${Math.min(withDraft, 100)}%` }} />}
+        <span className="mf-coverage__fill" style={{ width: `${Math.min(pct, 100)}%` }} />
+      </div>
+      <div className="mf-coverage__meta">
+        {assetValue > 0
+          ? `TZS ${money(assetValue)} pledged against TZS ${money(base)} principal · ${coverage.en}`
+          : empty.en}
+      </div>
+      <div className="mf-coverage__meta" lang="sw">{assetValue > 0 ? coverage.sw : empty.sw}</div>
+      {draft && <div className="mf-coverage__meta">{draft.en} · {draft.sw}</div>}
+    </div>
+  );
+}
+
 /**
  * Dual-mode guarantor / collateral capture for the loan application.
  * Items and unsaved drafts are held by the parent: drafts survive Back/Continue
@@ -91,6 +123,10 @@ export default function SecurityFields({ items, setItems, drafts, setDrafts, pri
   const current  = MODES.find(m => m.value === mode);
   const addLabel = t(mode === 'guarantor' ? 'security.addGuarantor' : 'security.addCollateral');
   const value    = parseFloat(draft.estimated_value);
+  const assetValue = items
+    .filter(i => i.type === 'collateral')
+    .reduce((s, i) => s + (parseFloat(i.estimated_value) || 0), 0);
+  const draftValue = parseFloat(drafts.collateral.estimated_value) || 0;
 
   return (
     <div className="mf-security">
@@ -112,6 +148,8 @@ export default function SecurityFields({ items, setItems, drafts, setDrafts, pri
           );
         })}
       </div>
+
+      <CoverageMeter principal={principal} assetValue={assetValue} draftValue={draftValue} />
 
       <div className="mf-security__form" key={mode}>
         <div className="mf-security__form-head">

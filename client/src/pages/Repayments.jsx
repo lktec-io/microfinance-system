@@ -267,7 +267,7 @@ export default function Repayments() {
                   <thead>
                     <tr>
                       <th>Client</th>
-                      <th>Date &amp; time</th>
+                      <th className="mf-col-stamp">Date &amp; time</th>
                       <th>Receipt</th>
                       <th>Loan</th>
                       <th className="is-num">Amount (TZS)</th>
@@ -287,7 +287,7 @@ export default function Repayments() {
                             <span className="mf-cell-title">{r.customer_name}</span>
                           </div>
                         </td>
-                        <td data-label="Date & time">
+                        <td data-label="Date & time" className="mf-col-stamp">
                           {r.paid_at ? (
                             <span className="mf-stamp">{fmtTimestamp(r.paid_at)}</span>
                           ) : (

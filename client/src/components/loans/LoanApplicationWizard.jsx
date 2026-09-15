@@ -21,7 +21,7 @@ import { t } from '../../i18n/bilingual';
 const STEPS = [
   { key: 'applicant', label: 'Applicant',  hint: 'Select & verify client'    },
   { key: 'terms',     label: 'Loan terms', hint: 'Amount, rate & frequency'  },
-  { key: 'security',  label: 'Security',   hint: 'Guarantors & collateral'   },
+  { key: 'security',  label: 'Security / Dhamana', hint: 'Guarantors & collateral' },
   { key: 'review',    label: 'Review',     hint: 'Confirm & submit'          },
 ];
 const STEP = { applicant: 0, terms: 1, security: 2, review: 3 };
@@ -71,7 +71,7 @@ function ApplicantProfile({ customer, standing }) {
 
       {detectIdType(customer) === 'none' && (
         <div className="mf-alert mf-alert--warning">
-          <FiAlertTriangle size={15} /> <span><Bi text={t('kyc.noneTitle')} block /></span>
+          <FiAlertTriangle size={15} /> <span><Bi text={t('kyc.noneExisting')} block /></span>
         </div>
       )}
       {standing.overdue > 0 && (

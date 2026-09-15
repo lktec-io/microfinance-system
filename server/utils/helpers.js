@@ -50,6 +50,9 @@ function generateReceiptNumber() {
 }
 
 // ── Finance ────────────────────────────────────────────────────
+/** Largest amount a DECIMAL(12,2) column can hold — larger values are rejected up front. */
+const MAX_MONEY = 9999999999.99;
+
 function calcTotalPayable(principal, ratePercent) {
   const p = parseFloat(principal);
   const r = parseFloat(ratePercent);
@@ -107,7 +110,7 @@ function serverError(res, err, label = 'Server error') {
 
 module.exports = {
   calcDueDate, today, isoDate, nowLocal, isValidTimestamp,
-  generateReceiptNumber, calcTotalPayable,
+  generateReceiptNumber, calcTotalPayable, MAX_MONEY,
   FREQUENCIES, countInstallments, calcInstallmentAmount,
   ok, fail, serverError,
 };

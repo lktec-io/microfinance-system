@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import {
   FiAlertCircle, FiAlertTriangle, FiCheckCircle, FiExternalLink, FiSearch, FiInfo, FiRotateCcw,
-  FiDollarSign, FiSmartphone, FiCreditCard,
+  FiDollarSign, FiSmartphone, FiCreditCard, FiClock,
 } from 'react-icons/fi';
 import api from '../../api';
 import { Modal, SearchField, Avatar, DueChip, Empty, Field, Bi } from '../ui';
@@ -37,19 +37,29 @@ function ErrorAlert({ error }) {
 /**
  * Post a repayment — POST /api/repayments. Supports cash, bank and mobile
  * money (amount sent − agent fee = amount credited) and records the exact
- * payment time. The server remains authoritative.
+ * payment time, which runs live until the agent edits it.
+ * The server remains authoritative.
  */
 export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRecorded, onViewLoan }) {
+  const timeId = useId();
   const openLoans = useMemo(() => loans
     .filter(l => l.status !== 'paid' && Number(l.balance) > 0)
     .sort((a, b) => (daysUntil(a.due_date) ?? 1e9) - (daysUntil(b.due_date) ?? 1e9)), [loans]);
 
-  const [loanId, setLoanId]   = useState(initialLoanId ? String(initialLoanId) : '');
-  const [query, setQuery]     = useState('');
-  const [form, setForm]       = useState(EMPTY_FORM);
-  const [saving, setSaving]   = useState(false);
-  const [error, setError]     = useState('');
-  const [receipt, setReceipt] = useState(null);
+  const [loanId, setLoanId]     = useState(initialLoanId ? String(initialLoanId) : '');
+  const [query, setQuery]       = useState('');
+  const [form, setForm]         = useState(EMPTY_FORM);
+  const [timeLive, setTimeLive] = useState(true);
+  const [saving, setSaving]     = useState(false);
+  const [error, setError]       = useState('');
+  const [receipt, setReceipt]   = useState(null);
+
+  // Keep the payment time on the current second until the agent edits it
+  useEffect(() => {
+    if (!timeLive || receipt) return undefined;
+    const timer = setInterval(() => setForm(f => ({ ...f, paid_at: nowEatInput() })), 1000);
+    return () => clearInterval(timer);
+  }, [timeLive, receipt]);
 
   const loan = openLoans.find(l => String(l.id) === String(loanId))
     || loans.find(l => String(l.id) === String(loanId))
@@ -95,6 +105,16 @@ export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRe
     setError('');
   }
 
+  function editTime(e) {
+    setTimeLive(false);
+    set('paid_at')(e);
+  }
+
+  function useCurrentTime() {
+    setForm(f => ({ ...f, paid_at: nowEatInput() }));
+    setTimeLive(true);
+  }
+
   function fillBalance(e) {
     e.preventDefault();
     if (isMobile) {
@@ -107,14 +127,14 @@ export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRe
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!loan)                  { setError('Select a loan to post the payment against'); return; }
-    if (isPaid)                 { setError('This loan is already fully repaid'); return; }
+    if (!loan)                   { setError('Select a loan to post the payment against'); return; }
+    if (isPaid)                  { setError('This loan is already fully repaid'); return; }
     if (isMobile && !(sent > 0)) { setError(t('pay.sentRequired')); return; }
-    if (feeError)               { setError(t('pay.feeTooHigh')); return; }
-    if (!hasAmount)             { setError('Amount must be greater than zero'); return; }
-    if (overBalance)            { setError(`Amount credited (TZS ${fmt(credit)}) cannot exceed the balance of TZS ${fmt(balance)}`); return; }
-    if (!stamp)                 { setError(t('pay.timeRequired')); return; }
-    if (futureStamp)            { setError(t('pay.futureTime')); return; }
+    if (feeError)                { setError(t('pay.feeTooHigh')); return; }
+    if (!hasAmount)              { setError('Amount must be greater than zero'); return; }
+    if (overBalance)             { setError(`Amount credited (TZS ${fmt(credit)}) cannot exceed the balance of TZS ${fmt(balance)}`); return; }
+    if (!stamp)                  { setError(t('pay.timeRequired')); return; }
+    if (futureStamp)             { setError(t('pay.futureTime')); return; }
 
     const payload = {
       loan_id:      Number(loan.id),
@@ -147,6 +167,7 @@ export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRe
     setReceipt(null);
     setLoanId(initialLoanId ? String(initialLoanId) : '');
     setForm(EMPTY_FORM());
+    setTimeLive(true);
     setError('');
   }
 
@@ -204,6 +225,8 @@ export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRe
   }
 
   const disabled = !loan || isPaid;
+  const liveHint = t('pay.liveHint');
+  const quickFee = t('pay.quickFee');
 
   return (
     <Modal
@@ -274,6 +297,30 @@ export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRe
 
           <ErrorAlert error={error} />
 
+          {/* Date & time — live until edited */}
+          <div className="mf-field">
+            <label className="mf-label" htmlFor={timeId}>
+              <Bi text={t('pay.timestamp')} /><span className="mf-req">*</span>
+            </label>
+            <div className="mf-time-row">
+              <input id={timeId} type="datetime-local" step="1" required className="mf-input mf-input--num"
+                disabled={disabled} max={maxStamp} value={form.paid_at} onChange={editTime}
+                aria-invalid={futureStamp || undefined} />
+              {timeLive ? (
+                <span className="mf-live" title={`${liveHint.en} · ${liveHint.sw}`}>
+                  <i aria-hidden="true" /> {t('pay.live').en}
+                </span>
+              ) : (
+                <button type="button" className="mf-btn mf-btn--ghost mf-btn--sm" disabled={disabled} onClick={useCurrentTime}>
+                  <FiClock size={13} /> {t('pay.useNow').en}
+                </button>
+              )}
+            </div>
+            {futureStamp
+              ? <span className="mf-error-text"><Bi text={t('pay.futureTime')} block /></span>
+              : <span className="mf-hint"><b className="mf-stamp">{stamp || 'YYYY-MM-DD HH:mm:ss'}</b> · {t('pay.timeHint').en}</span>}
+          </div>
+
           {/* Payment mode */}
           <div className="mf-field">
             <span className="mf-label"><Bi text={t('pay.mode')} /><span className="mf-req">*</span></span>
@@ -299,12 +346,25 @@ export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRe
 
           {isMobile ? (
             <div className="mf-mm">
+              <div className="mf-field">
+                <span className="mf-label"><Bi text={t('pay.provider')} /><span className="mf-req">*</span></span>
+                <div className="mf-badge-group mf-badge-group--providers" role="radiogroup" aria-label={t('pay.provider').en}>
+                  {MOBILE_PROVIDERS.map(p => {
+                    const active = form.mobile_provider === p.value;
+                    return (
+                      <label key={p.value} className={`mf-badge-opt${active ? ' is-active' : ''}${disabled ? ' is-disabled' : ''}`}>
+                        <input type="radio" className="mf-sr-only" name="mobile-provider" value={p.value}
+                          checked={active} disabled={disabled}
+                          onChange={() => setForm(f => ({ ...f, mobile_provider: p.value }))} />
+                        <span className="mf-badge-opt__dot" aria-hidden="true" />
+                        {p.label}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="mf-form-grid">
-                <Field label={<Bi text={t('pay.provider')} />} required span>
-                  <select className="mf-select" required disabled={disabled} value={form.mobile_provider} onChange={set('mobile_provider')}>
-                    {MOBILE_PROVIDERS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-                  </select>
-                </Field>
                 <Field label={<Bi text={t('pay.amountSent')} />} required span>
                   <span className="mf-pay__amount-row">
                     <input type="number" min="1" step="0.01" inputMode="decimal" required
@@ -318,20 +378,28 @@ export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRe
                 <Field label={<Bi text={t('pay.agentFee')} />} span
                   error={feeError ? <Bi text={t('pay.feeTooHigh')} block /> : undefined}
                   hint={`Typically TZS ${fmt0(AGENT_FEE_RANGE.min)}–${fmt0(AGENT_FEE_RANGE.max)} · kwa kawaida`}>
-                  <span className="mf-pay__amount-row">
-                    <input type="number" min="0" step="1" inputMode="numeric"
-                      className="mf-input mf-input--num" disabled={disabled} placeholder="0"
-                      value={form.agent_fee} onChange={set('agent_fee')} aria-invalid={feeError || undefined} />
-                    {FEE_CHIPS.map(v => (
-                      <button key={v} type="button" disabled={disabled}
-                        className={`mf-btn mf-btn--ghost mf-fee-chip${form.agent_fee !== '' && fee === v ? ' is-active' : ''}`}
-                        onClick={e => { e.preventDefault(); setForm(f => ({ ...f, agent_fee: String(v) })); }}>
-                        {fmt0(v)}
-                      </button>
-                    ))}
-                  </span>
+                  <input type="number" min="0" step="1" inputMode="numeric"
+                    className="mf-input mf-input--num" disabled={disabled} placeholder="0"
+                    value={form.agent_fee} onChange={set('agent_fee')} aria-invalid={feeError || undefined} />
                 </Field>
               </div>
+
+              <div className="mf-field">
+                <span className="mf-label">{quickFee.en}<span className="mf-sw mf-sw--inline" lang="sw">{quickFee.sw}</span></span>
+                <div className="mf-badge-group mf-badge-group--fees">
+                  {FEE_CHIPS.map(v => {
+                    const active = form.agent_fee !== '' && fee === v;
+                    return (
+                      <button key={v} type="button" disabled={disabled} aria-pressed={active}
+                        className={`mf-badge-opt mf-badge-opt--fee${active ? ' is-active' : ''}`}
+                        onClick={() => setForm(f => ({ ...f, agent_fee: String(v) }))}>
+                        TZS {fmt0(v)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {feeUnusual && (
                 <div className="mf-alert mf-alert--warning">
                   <FiAlertTriangle size={15} /> <span><Bi text={t('pay.feeRange')} block /></span>
@@ -359,17 +427,9 @@ export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRe
             </div>
           )}
 
-          <div className="mf-form-grid">
-            <Field label={<Bi text={t('pay.timestamp')} />} required
-              error={futureStamp ? <Bi text={t('pay.futureTime')} block /> : undefined}
-              hint={`${stamp || 'YYYY-MM-DD HH:mm:ss'} · ${t('pay.timeHint').en}`}>
-              <input type="datetime-local" step="1" required className="mf-input mf-input--num" disabled={disabled}
-                max={maxStamp} value={form.paid_at} onChange={set('paid_at')} aria-invalid={futureStamp || undefined} />
-            </Field>
-            <Field label="Notes" hint={isMobile ? 'e.g. transaction ID from the SMS' : 'e.g. bank slip or reference no.'}>
-              <input className="mf-input" disabled={disabled} value={form.notes} onChange={set('notes')} placeholder="Optional" />
-            </Field>
-          </div>
+          <Field label="Notes" hint={isMobile ? 'e.g. transaction ID from the SMS' : 'e.g. bank slip or reference no.'}>
+            <input className="mf-input" disabled={disabled} value={form.notes} onChange={set('notes')} placeholder="Optional" />
+          </Field>
 
           {loan && !isPaid && (
             <div className="mf-pay__preview mf-kv" aria-live="polite">

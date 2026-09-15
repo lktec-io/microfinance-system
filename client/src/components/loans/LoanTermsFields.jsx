@@ -1,5 +1,8 @@
+import { useId } from 'react';
+import { FiSun, FiCalendar, FiLayers, FiFlag } from 'react-icons/fi';
 import { Field, Bi } from '../ui';
-import { FREQUENCIES, FREQUENCY_ORDER } from '../../utils/finance';
+import { FREQUENCIES, FREQUENCY_ORDER, loanQuote } from '../../utils/finance';
+import { money, perInterval } from '../../utils/labels';
 import { t } from '../../i18n/bilingual';
 
 export const EMPTY_TERMS = {
@@ -12,6 +15,8 @@ export const UNITS = [
   { value: 'weeks',  label: 'Weeks'  },
   { value: 'months', label: 'Months' },
 ];
+
+const FREQ_ICONS = { daily: FiSun, weekly: FiCalendar, monthly: FiLayers, single: FiFlag };
 
 /**
  * Mirrors the API's required-field checks, with friendlier messages.
@@ -30,12 +35,60 @@ export function validateTerms(terms, { allowSingle = false } = {}) {
   return errors;
 }
 
+/**
+ * Live installment banner — sits directly under the principal / interest inputs
+ * so the agent sees the per-interval amount while typing,
+ * e.g. "TZS 12,000 per day · 30 installments of TZS 12,000 each".
+ */
+export function InstallmentBanner({ form, allowSingle = false }) {
+  const valid = Object.keys(validateTerms(form, { allowSingle })).length === 0;
+  const quote = valid ? loanQuote(form) : null;
+  const title = t('calc.title');
+
+  if (!quote) {
+    const empty = t('calc.empty');
+    return (
+      <div className="mf-calc-banner is-empty" role="status" aria-live="polite">
+        <span className="mf-calc-banner__eyebrow">{title.en} · {title.sw}</span>
+        <span className="mf-calc-banner__line">{empty.en}</span>
+        <span className="mf-calc-banner__line" lang="sw">{empty.sw}</span>
+      </div>
+    );
+  }
+
+  if (!quote.installment) {
+    const single = t('calc.single', { amount: money(quote.total) });
+    return (
+      <div className="mf-calc-banner" role="status" aria-live="polite">
+        <span className="mf-calc-banner__eyebrow">{title.en} · {title.sw}</span>
+        <span className="mf-calc-banner__value">TZS {money(quote.total)}</span>
+        <span className="mf-calc-banner__line">{single.en}</span>
+        <span className="mf-calc-banner__line" lang="sw">{single.sw}</span>
+      </div>
+    );
+  }
+
+  const per  = perInterval(quote.frequency);
+  const plan = t('freq.installments', { count: quote.installmentCount, amount: money(quote.installment) });
+  return (
+    <div className="mf-calc-banner" role="status" aria-live="polite">
+      <span className="mf-calc-banner__eyebrow">{title.en} · {title.sw}</span>
+      <span className="mf-calc-banner__value">TZS {money(quote.installment)}<small>{per.en}</small></span>
+      <span className="mf-calc-banner__line">TZS {money(quote.installment)} {per.en} · {plan.en}</span>
+      <span className="mf-calc-banner__line" lang="sw">TZS {money(quote.installment)} {per.sw} · {plan.sw}</span>
+    </div>
+  );
+}
+
 export default function LoanTermsFields({ form, setForm, errors = {}, showPurpose = true, allowSingle = false }) {
+  const groupId = useId();
   const set = key => e => {
     const value = e.target.value;
     setForm(f => ({ ...f, [key]: value }));
   };
-  const single = t('freq.single');
+
+  const frequencyOptions = [...(allowSingle ? [''] : []), ...FREQUENCY_ORDER];
+  const currentFrequency = form.repayment_frequency || '';
 
   return (
     <div className="mf-form-grid">
@@ -49,6 +102,9 @@ export default function LoanTermsFields({ form, setForm, errors = {}, showPurpos
           className="mf-input mf-input--num" placeholder="0.00"
           value={form.interest_rate} onChange={set('interest_rate')} aria-invalid={!!errors.interest_rate} />
       </Field>
+
+      <InstallmentBanner form={form} allowSingle={allowSingle} />
+
       <Field label="Tenor" required error={errors.duration_value}>
         <input type="number" min="1" step="1" inputMode="numeric" required
           className="mf-input mf-input--num" placeholder="e.g. 6"
@@ -59,17 +115,33 @@ export default function LoanTermsFields({ form, setForm, errors = {}, showPurpos
           {UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
         </select>
       </Field>
-      <Field label={<Bi text={t('freq.label')} />} required error={errors.repayment_frequency}>
-        <select className="mf-select" value={form.repayment_frequency ?? ''} onChange={set('repayment_frequency')}
-          aria-invalid={!!errors.repayment_frequency}>
-          {allowSingle && <option value="">{single.en} · {single.sw}</option>}
-          {!allowSingle && !FREQUENCIES[form.repayment_frequency] && <option value="" disabled>Choose…</option>}
-          {FREQUENCY_ORDER.map(f => {
-            const label = t(`freq.${f}`);
-            return <option key={f} value={f}>{label.en} · {label.sw}</option>;
+
+      <div className="mf-field mf-field--span">
+        <span className="mf-label" id={`${groupId}-label`}>
+          <Bi text={t('freq.label')} /><span className="mf-req">*</span>
+        </span>
+        <div className={`mf-choice ${frequencyOptions.length === 4 ? 'mf-choice--4' : 'mf-choice--3'}`}
+          role="radiogroup" aria-labelledby={`${groupId}-label`}>
+          {frequencyOptions.map(value => {
+            const label  = value ? t(`freq.${value}`) : t('freq.single');
+            const Icon   = FREQ_ICONS[value || 'single'];
+            const active = currentFrequency === value;
+            return (
+              <label key={value || 'single'} className={`mf-choice__opt${active ? ' is-active' : ''}`}>
+                <input type="radio" className="mf-sr-only" name={`${groupId}-freq`} value={value}
+                  checked={active} onChange={() => setForm(f => ({ ...f, repayment_frequency: value }))} />
+                <Icon size={18} aria-hidden="true" />
+                <span className="mf-choice__text">
+                  <span className="mf-choice__en">{label.en}</span>
+                  <span className="mf-choice__sw" lang="sw">{label.sw}</span>
+                </span>
+              </label>
+            );
           })}
-        </select>
-      </Field>
+        </div>
+        {errors.repayment_frequency && <span className="mf-error-text">{errors.repayment_frequency}</span>}
+      </div>
+
       <Field label="Start date" hint="Leave empty to start today">
         <input type="date" className="mf-input" value={form.start_date} onChange={set('start_date')} />
       </Field>
