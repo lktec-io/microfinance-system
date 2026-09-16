@@ -79,13 +79,104 @@ function CashFlowChart({ series }) {
   );
 }
 
+/* ── Mobile money commission ledger — ADMIN ONLY ───────────────────── */
+function CommissionLedgerCard({ commissions, loading, onNavigate }) {
+  const providerMax = Math.max(0, ...commissions.by_provider.map(p => Number(p.total_fees) || 0));
+  const title    = t('dash.commissionTitle');
+  const sub      = t('dash.commissionSub');
+  const total    = t('dash.commissionTotal');
+  const heading  = t('dash.providerHeading');
+
+  return (
+    <section className="mf-card mf-commission-card" aria-labelledby="mf-commission-title">
+      <div className="mf-card__head">
+        <div>
+          <div className="mf-commission-card__eyebrow">Mobile money · Pesa kwa simu</div>
+          <h2 className="mf-card__title" id="mf-commission-title"><FiSmartphone size={15} /> {title.en}</h2>
+          <div className="mf-card__sub">
+            {sub.en}
+            <span className="mf-sw" lang="sw">{title.sw} — {sub.sw}</span>
+          </div>
+        </div>
+        <button type="button" className="mf-link-btn" onClick={() => onNavigate('/repayments')}>
+          Ledger <FiArrowRight size={12} />
+        </button>
+      </div>
+
+      {loading ? <div className="skeleton" style={{ height: 180 }} /> : commissions.count === 0 ? (
+        <Empty Icon={FiSmartphone} title={t('dash.commissionEmpty').en} message={t('dash.commissionEmptyBody').en} />
+      ) : (
+        <div className="mf-commission">
+          <div className="mf-commission__total">
+            <span className="mf-commission__label">{total.en} · {total.sw}</span>
+            <span className="mf-commission__value"><small>TZS</small>{fmt0(commissions.total_fees)}</span>
+            <dl className="mf-commission__stats">
+              <div><dt>This month</dt><dd>TZS {fmt0(commissions.month_fees)}</dd></div>
+              <div><dt>Mobile money payments</dt><dd>{commissions.count}</dd></div>
+              <div><dt>Sent by clients</dt><dd>TZS {fmt0(commissions.total_sent)}</dd></div>
+              <div><dt>Credited to loans</dt><dd>TZS {fmt0(commissions.total_credited)}</dd></div>
+            </dl>
+          </div>
+
+          <div className="mf-commission__side">
+            {commissions.by_provider.length > 0 && (
+              <div>
+                <div className="mf-commission__heading">{heading.en} · {heading.sw}</div>
+                <ul className="mf-commission__providers" aria-label="Agent fees by provider">
+                  {commissions.by_provider.map(p => {
+                    const fees  = Number(p.total_fees) || 0;
+                    const share = commissions.total_fees > 0 ? Math.round((fees / commissions.total_fees) * 100) : 0;
+                    return (
+                      <li key={p.provider} className="mf-commission__provider">
+                        <div className="mf-commission__provider-row">
+                          <span className="mf-commission__provider-name">{providerLabel(p.provider)}</span>
+                          <b>TZS {fmt0(fees)}</b>
+                        </div>
+                        <span className="mf-commission__track" aria-hidden="true">
+                          <span style={{ width: `${providerMax > 0 ? (fees / providerMax) * 100 : 0}%` }} />
+                        </span>
+                        <span className="mf-commission__provider-meta">
+                          {t('dash.providerPayments', { count: p.count }).en} · {share}% of all agent fees
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {commissions.recent.length > 0 && (
+              <div>
+                <div className="mf-commission__heading">Latest agent fees · Makato ya karibuni</div>
+                <ul className="mf-commission__recent">
+                  {commissions.recent.map(r => (
+                    <li key={r.id}>
+                      <button type="button" className="mf-commission__row" onClick={() => onNavigate(`/loans/${r.loan_id}`)}>
+                        <span className="mf-commission__row-title">{r.customer_name}</span>
+                        <span className="mf-commission__row-fee">TZS {fmt0(r.agent_fee)}</span>
+                        <span className="mf-commission__row-meta">
+                          {providerLabel(r.mobile_provider)} · {fmtTimestamp(r.paid_at) || String(r.payment_date || '').slice(0, 10)} · {r.receipt_number}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /* ════════════════════════════════════════════════════════════════════
    DASHBOARD
    ════════════════════════════════════════════════════════════════════ */
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   // Set by ProtectedRoute when a non-admin tried to open an admin-only page
   const deniedPath = location.state?.accessDenied;
   const forbidden  = t('auth.forbidden');
@@ -95,7 +186,7 @@ export default function Dashboard() {
   const [monthly, setMonthly]   = useState({ loans: [], repayments: [] });
   const [pastDue, setPastDue]   = useState([]);
   const [expenses, setExpenses] = useState({ total: 0, count: 0 });
-  const [commissions, setCommissions] = useState(EMPTY_COMMISSIONS);
+  const [commissions, setCommissions] = useState(EMPTY_COMMISSIONS);   // admin sessions only
   const [loading, setLoading]       = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError]           = useState('');
@@ -108,7 +199,8 @@ export default function Dashboard() {
       api.get('/dashboard/monthly'),
       api.get('/dashboard/overdue'),
       api.get('/expenses/summary'),
-      api.get('/dashboard/commissions'),
+      // Agent-fee ledger is admin-only — staff sessions never request it
+      isAdmin ? api.get('/dashboard/commissions') : Promise.resolve(null),
     ]);
 
     if (sum.status === 'fulfilled') {
@@ -140,7 +232,7 @@ export default function Dashboard() {
       const raw = exp.value.data ?? {};
       setExpenses({ total: Number(raw.total || 0), count: Number(raw.count || 0) });
     }
-    if (com.status === 'fulfilled') {
+    if (isAdmin && com.status === 'fulfilled' && com.value) {
       const raw = com.value.data ?? {};
       setCommissions({
         ...EMPTY_COMMISSIONS,
@@ -148,9 +240,11 @@ export default function Dashboard() {
         by_provider: Array.isArray(raw.by_provider) ? raw.by_provider : [],
         recent:      Array.isArray(raw.recent) ? raw.recent : [],
       });
+    } else {
+      setCommissions(EMPTY_COMMISSIONS);
     }
     setUpdatedAt(new Date());
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => { load().finally(() => setLoading(false)); }, [load]);
 
@@ -201,9 +295,6 @@ export default function Dashboard() {
   }, [recent]);
 
   const firstName = user?.name?.split(' ')[0] || 'there';
-  const providerMax = Math.max(0, ...commissions.by_provider.map(p => Number(p.total_fees) || 0));
-  const commissionTitle = t('dash.commissionTitle');
-  const commissionSub   = t('dash.commissionSub');
 
   return (
     <div className="mf-page">
@@ -349,89 +440,8 @@ export default function Dashboard() {
         </section>
       </div>
 
-      {/* ── Mobile money commission ledger ── */}
-      <section className="mf-card mf-commission-card" aria-labelledby="mf-commission-title">
-        <div className="mf-card__head">
-          <div>
-            <div className="mf-commission-card__eyebrow">Mobile money · Pesa kwa simu</div>
-            <h2 className="mf-card__title" id="mf-commission-title"><FiSmartphone size={15} /> {commissionTitle.en}</h2>
-            <div className="mf-card__sub">
-              {commissionSub.en}
-              <span className="mf-sw" lang="sw">{commissionTitle.sw} — {commissionSub.sw}</span>
-            </div>
-          </div>
-          <button type="button" className="mf-link-btn" onClick={() => navigate('/repayments')}>
-            Ledger <FiArrowRight size={12} />
-          </button>
-        </div>
-        {loading ? <div className="skeleton" style={{ height: 180 }} /> : commissions.count === 0 ? (
-          <Empty Icon={FiSmartphone} title={t('dash.commissionEmpty').en} message={t('dash.commissionEmptyBody').en} />
-        ) : (
-          <div className="mf-commission">
-            <div className="mf-commission__total">
-              <span className="mf-commission__label">
-                {t('dash.commissionTotal').en} · {t('dash.commissionTotal').sw}
-              </span>
-              <span className="mf-commission__value"><small>TZS</small>{fmt0(commissions.total_fees)}</span>
-              <dl className="mf-commission__stats">
-                <div><dt>This month</dt><dd>TZS {fmt0(commissions.month_fees)}</dd></div>
-                <div><dt>Mobile money payments</dt><dd>{commissions.count}</dd></div>
-                <div><dt>Sent by clients</dt><dd>TZS {fmt0(commissions.total_sent)}</dd></div>
-                <div><dt>Credited to loans</dt><dd>TZS {fmt0(commissions.total_credited)}</dd></div>
-              </dl>
-            </div>
-
-            <div className="mf-commission__side">
-              {commissions.by_provider.length > 0 && (
-                <div>
-                  <div className="mf-commission__heading">
-                    {t('dash.providerHeading').en} · {t('dash.providerHeading').sw}
-                  </div>
-                  <ul className="mf-commission__providers" aria-label="Agent fees by provider">
-                    {commissions.by_provider.map(p => {
-                      const fees  = Number(p.total_fees) || 0;
-                      const share = commissions.total_fees > 0 ? Math.round((fees / commissions.total_fees) * 100) : 0;
-                      return (
-                        <li key={p.provider} className="mf-commission__provider">
-                          <div className="mf-commission__provider-row">
-                            <span className="mf-commission__provider-name">{providerLabel(p.provider)}</span>
-                            <b>TZS {fmt0(fees)}</b>
-                          </div>
-                          <span className="mf-commission__track" aria-hidden="true">
-                            <span style={{ width: `${providerMax > 0 ? (fees / providerMax) * 100 : 0}%` }} />
-                          </span>
-                          <span className="mf-commission__provider-meta">
-                            {t('dash.providerPayments', { count: p.count }).en} · {share}% of all agent fees
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-
-              {commissions.recent.length > 0 && (
-                <div>
-                  <div className="mf-commission__heading">Latest agent fees · Makato ya karibuni</div>
-                  <ul className="mf-commission__recent">
-                    {commissions.recent.map(r => (
-                      <li key={r.id}>
-                        <button type="button" className="mf-commission__row" onClick={() => navigate(`/loans/${r.loan_id}`)}>
-                          <span className="mf-commission__row-title">{r.customer_name}</span>
-                          <span className="mf-commission__row-fee">TZS {fmt0(r.agent_fee)}</span>
-                          <span className="mf-commission__row-meta">
-                            {providerLabel(r.mobile_provider)} · {fmtTimestamp(r.paid_at) || String(r.payment_date || '').slice(0, 10)} · {r.receipt_number}
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </section>
+      {/* ── Mobile money commission ledger — admins only; staff never see or fetch it ── */}
+      {isAdmin && <CommissionLedgerCard commissions={commissions} loading={loading} onNavigate={navigate} />}
 
       {/* ── Activity + latest loans ── */}
       <div className="mf-dash-row mf-dash-row--even">
