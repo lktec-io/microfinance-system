@@ -102,6 +102,10 @@ export const MESSAGES = {
 
   /* ── Sign-in ─────────────────────────────────────────────────────── */
   'auth.remember': { en: 'Remember me', sw: 'Nikumbuke' },
+  'auth.forbidden': {
+    en: 'You do not have permission to access this page.',
+    sw: 'Hauna ruhusa ya kuona ukurasa huu',
+  },
   'auth.rememberHint': {
     en: 'Keeps you signed in on this device for 7 days.',
     sw: 'Utabaki umeingia kwenye kifaa hiki kwa siku 7.',

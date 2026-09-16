@@ -383,3 +383,17 @@
 .mf-commission__row-title { font-size: var(--mf-fs-sm); font-weight: 800; color: #FFFFFF; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mf-commission__row-fee { font-size: var(--mf-fs-sm); font-weight: 800; font-variant-numeric: tabular-nums; color: var(--mf-orange-400); white-space: nowrap; text-align: right; }
 .mf-commission__row-meta { grid-column: 1 / -1; font-size: var(--mf-fs-xs); font-weight: 600; color: rgba(255, 255, 255, .55); overflow-wrap: anywhere; }
+
+/* ── Access denied (admin-only page blocked) ───────────────────────── */
+.mf-access-denied {
+  align-items: flex-start;
+  border: 1px solid var(--mf-crimson-600);
+  border-left-width: 4px;
+  border-radius: var(--mf-radius);
+  animation: mf-pop .18s var(--mf-ease) backwards;
+}
+.mf-access-denied > svg { flex-shrink: 0; margin-top: .1rem; color: var(--mf-crimson-600); }
+.mf-access-denied > span { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.mf-access-denied__title { font-size: var(--mf-fs-sm); font-weight: 800; line-height: 1.35; color: var(--mf-crimson-600); overflow-wrap: anywhere; }
+.mf-access-denied__path { font-size: var(--mf-fs-xs); font-weight: 600; color: var(--mf-ink-600); overflow-wrap: anywhere; }
+.mf-access-denied .mf-alert__action { margin-left: auto; flex-shrink: 0; }

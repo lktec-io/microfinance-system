@@ -23,7 +23,7 @@ export const NAV_SECTIONS = [
     label: 'Finance',
     items: [
       { to: '/expenses', label: 'Expenses', Icon: FiFileText,  desc: 'Operating costs' },
-      { to: '/reports',  label: 'Reports',  Icon: FiBarChart2, desc: 'Analytics & PDF exports' },
+      { to: '/reports',  label: 'Reports',  Icon: FiBarChart2, desc: 'Analytics & PDF exports', adminOnly: true },
     ],
   },
   {
@@ -36,8 +36,16 @@ export const NAV_SECTIONS = [
   },
 ];
 
+/**
+ * Sections and items the current user may see. Admin-only sections AND
+ * admin-only items (e.g. Reports) are omitted entirely for staff; a section
+ * left with no items is dropped too.
+ */
 export function visibleSections(isAdmin) {
-  return NAV_SECTIONS.filter(s => !s.adminOnly || isAdmin);
+  return NAV_SECTIONS
+    .filter(s => !s.adminOnly || isAdmin)
+    .map(s => ({ ...s, items: s.items.filter(i => !i.adminOnly || isAdmin) }))
+    .filter(s => s.items.length > 0);
 }
 
 export function flatNav(isAdmin) {

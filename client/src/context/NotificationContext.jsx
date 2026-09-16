@@ -30,8 +30,8 @@ export function NotificationProvider({ children }) {
     if (!hasToken) return;
     try {
       const [sumRes, recRes] = await Promise.allSettled([
-        api.get('/reports/summary'),
-        api.get('/reports/recent'),
+        api.get('/dashboard/summary'),
+        api.get('/dashboard/recent'),
       ]);
 
       const items = [];

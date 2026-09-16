@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  FiRefreshCw, FiPlus, FiAlertTriangle, FiArrowRight, FiTrendingUp,
+  FiRefreshCw, FiPlus, FiAlertTriangle, FiArrowRight, FiTrendingUp, FiLock, FiX,
   FiBriefcase, FiPieChart, FiPercent, FiActivity, FiLayers, FiBarChart2, FiSmartphone,
 } from 'react-icons/fi';
 import api from '../api';
@@ -84,7 +84,11 @@ function CashFlowChart({ series }) {
    ════════════════════════════════════════════════════════════════════ */
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+  // Set by ProtectedRoute when a non-admin tried to open an admin-only page
+  const deniedPath = location.state?.accessDenied;
+  const forbidden  = t('auth.forbidden');
 
   const [summary, setSummary]   = useState(EMPTY_SUMMARY);
   const [recent, setRecent]     = useState({ repayments: [], customers: [], loans: [] });
@@ -99,12 +103,12 @@ export default function Dashboard() {
 
   const load = useCallback(async () => {
     const [sum, rec, mon, due, exp, com] = await Promise.allSettled([
-      api.get('/reports/summary'),
-      api.get('/reports/recent'),
-      api.get('/reports/monthly'),
-      api.get('/reports/overdue'),
+      api.get('/dashboard/summary'),
+      api.get('/dashboard/recent'),
+      api.get('/dashboard/monthly'),
+      api.get('/dashboard/overdue'),
       api.get('/expenses/summary'),
-      api.get('/reports/commissions'),
+      api.get('/dashboard/commissions'),
     ]);
 
     if (sum.status === 'fulfilled') {
@@ -220,6 +224,20 @@ export default function Dashboard() {
           </>
         }
       />
+
+      {deniedPath && (
+        <div className="mf-alert mf-alert--error mf-access-denied" role="alert">
+          <FiLock size={18} aria-hidden="true" />
+          <span>
+            <strong className="mf-access-denied__title">{forbidden.sw} / {forbidden.en}</strong>
+            <span className="mf-access-denied__path">Blocked: <code>{deniedPath}</code></span>
+          </span>
+          <button type="button" className="mf-icon-btn mf-alert__action" aria-label="Dismiss"
+            onClick={() => navigate('/', { replace: true, state: null })}>
+            <FiX size={15} />
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="mf-alert mf-alert--error" role="alert">

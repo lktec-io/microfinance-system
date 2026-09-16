@@ -29,7 +29,8 @@ app.use('/api/auth',       require('./routes/auth'));
 app.use('/api/customers',  require('./routes/customers'));
 app.use('/api/loans',      require('./routes/loans'));
 app.use('/api/repayments', require('./routes/repayments'));
-app.use('/api/reports',    require('./routes/reports'));
+app.use('/api/reports',    require('./routes/reports'));     // admin only
+app.use('/api/dashboard',  require('./routes/dashboard'));   // all signed-in users
 app.use('/api/expenses',   require('./routes/expenses'));
 
 // ── Health check ─────────────────────────────────────────────

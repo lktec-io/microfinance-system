@@ -55,7 +55,13 @@ export default function App() {
                     <Route path="/loans/:id"  element={<LoanDetail />} />
                     <Route path="/repayments" element={<Repayments />} />
                     <Route path="/expenses"   element={<Expenses />} />
-                    <Route path="/reports"    element={<Reports />} />
+                    {/* Report Module — admin only (API also returns 403 for staff) */}
+                    <Route path="/reports"    element={
+                      <ProtectedRoute adminOnly><Reports /></ProtectedRoute>
+                    } />
+                    <Route path="/admin/reports" element={
+                      <ProtectedRoute adminOnly><Navigate to="/reports" replace /></ProtectedRoute>
+                    } />
                     <Route path="/users"      element={
                       <ProtectedRoute adminOnly><Users /></ProtectedRoute>
                     } />
