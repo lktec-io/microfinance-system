@@ -1,4 +1,5 @@
 import { fmt, fmtDay } from '../../utils/format';
+import { GROUP_REFUND_RATE, PROCESSING_FEE_RATE } from '../../utils/finance';
 import { frequencyLabel, money, perInterval } from '../../utils/labels';
 import { t } from '../../i18n/bilingual';
 
@@ -9,6 +10,10 @@ export default function QuotePanel({ quote, title = 'Live quote', children }) {
   const plan = quote?.installment
     ? t('freq.installments', { count: quote.installmentCount, amount: money(quote.installment) })
     : null;
+  const fee        = t('fee.processing', { rate: PROCESSING_FEE_RATE });
+  const feeNote    = t('fee.processingNote');
+  const refund     = t('fee.refundTitle', { rate: GROUP_REFUND_RATE });
+  const refundNote = quote?.refundIncentive != null ? t('fee.refundNote', { amount: money(quote.refundIncentive) }) : null;
 
   return (
     <aside className="mf-quote" aria-live="polite">
@@ -57,6 +62,28 @@ export default function QuotePanel({ quote, title = 'Live quote', children }) {
           <dd>{freq ? `${freq.en} · ${freq.sw}` : '—'}</dd>
         </div>
       </dl>
+
+      {/* Mandatory 10% processing fee — every client, individuals and groups */}
+      <div className="mf-quote__fee">
+        <div className="mf-quote__fee-row">
+          <span>{fee.en}<span className="mf-quote__fee-sw" lang="sw">{fee.sw}</span></span>
+          <b>TZS {quote?.processingFee != null ? fmt(quote.processingFee) : '0.00'}</b>
+        </div>
+        <span className="mf-quote__fee-note">{feeNote.en}</span>
+        <span className="mf-quote__fee-note" lang="sw">{feeNote.sw}</span>
+      </div>
+
+      {/* Group loans only: 5% refundable incentive on timely full completion */}
+      {refundNote && (
+        <div className="mf-quote__refund" role="note">
+          <div className="mf-quote__fee-row">
+            <span>{refund.en}<span className="mf-quote__fee-sw" lang="sw">{refund.sw}</span></span>
+            <b>TZS {fmt(quote.refundIncentive)}</b>
+          </div>
+          <span className="mf-quote__fee-note">{refundNote.en}</span>
+          <span className="mf-quote__fee-note" lang="sw">{refundNote.sw}</span>
+        </div>
+      )}
 
       {children}
     </aside>

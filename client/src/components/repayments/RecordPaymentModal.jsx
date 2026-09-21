@@ -217,6 +217,12 @@ export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRe
             )}
             {receipt.notes && <div className="mf-kv__row"><span>Notes</span><span>{receipt.notes}</span></div>}
             <div className="mf-kv__row"><span>Loan status</span><span><StatusBadge status={receipt.loan_status} /></span></div>
+            {receipt.refund_status === 'eligible' && (
+              <div className="mf-kv__row"><span>Group refund</span><span className="mf-tone--emerald">Earned — repaid in full on time</span></div>
+            )}
+            {receipt.refund_status === 'forfeited' && (
+              <div className="mf-kv__row"><span>Group refund</span><span className="mf-tone--crimson">Forfeited — repaid after the due date</span></div>
+            )}
             <div className="mf-kv__row mf-kv__row--total"><span>Remaining balance</span><span>TZS {fmt(receipt.new_balance)}</span></div>
           </div>
         </div>

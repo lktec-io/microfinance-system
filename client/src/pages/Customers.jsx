@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FiUserPlus, FiUsers, FiList, FiGrid, FiEye, FiEdit2, FiTrash2, FiFilePlus,
-  FiAlertCircle, FiAlertTriangle, FiUserCheck, FiCalendar, FiSearch, FiRefreshCw,
+  FiAlertCircle, FiAlertTriangle, FiUserCheck, FiCalendar, FiSearch, FiRefreshCw, FiUser,
 } from 'react-icons/fi';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
@@ -11,13 +11,17 @@ import { clientStanding } from '../utils/finance';
 import { normalizeNin } from '../utils/nida';
 import { displayId } from '../utils/kyc';
 import {
-  PageHeader, MetricCard, Segmented, SearchField, Avatar, Empty, TableSkeleton, Modal,
+  PageHeader, MetricCard, Segmented, SearchField, Avatar, Empty, TableSkeleton, Modal, Tabs,
 } from '../components/ui';
 import { ScoreCell, StandingBadge } from '../components/clients/Standing';
 import ClientFormModal     from '../components/clients/ClientFormModal';
 import ClientProfileDrawer from '../components/clients/ClientProfileDrawer';
+import GroupRegistrationWizard from '../components/groups/GroupRegistrationWizard';
+import GroupProfileDrawer      from '../components/groups/GroupProfileDrawer';
+import { t } from '../i18n/bilingual';
 import '../styles/app/lending.css';
 import '../styles/app/directory.css';
+import '../styles/app/groups.css';
 
 const SEGMENTS = [
   { value: 'all',     label: 'All clients' },
@@ -58,12 +62,22 @@ export default function Customers() {
   const [profileId, setProfileId] = useState(null);
   const [deleting, setDeleting]   = useState(null);  // row
 
+  // Group lending
+  const [directory, setDirectory]           = useState(() => (params.get('tab') === 'groups' ? 'groups' : 'individuals'));
+  const [groups, setGroups]                 = useState([]);
+  const [groupsError, setGroupsError]       = useState(false);
+  const [groupQuery, setGroupQuery]         = useState('');
+  const [groupWizard, setGroupWizard]       = useState(false);
+  const [groupProfileId, setGroupProfileId] = useState(null);
+
   const load = useCallback(async () => {
-    const [c, l] = await Promise.allSettled([api.get('/customers'), api.get('/loans')]);
+    const [c, l, g] = await Promise.allSettled([api.get('/customers'), api.get('/loans'), api.get('/groups')]);
     if (c.status === 'fulfilled') { setCustomers(c.value.data); setLoadError(''); }
     else setLoadError(c.reason?.response?.data?.message || 'Clients could not be loaded.');
     if (l.status === 'fulfilled') { setLoans(l.value.data); setLoansError(false); }
     else setLoansError(true);
+    if (g.status === 'fulfilled') { setGroups(Array.isArray(g.value.data) ? g.value.data : []); setGroupsError(false); }
+    else setGroupsError(true);
     setLoading(false);
   }, []);
 
@@ -77,6 +91,14 @@ export default function Customers() {
       next.delete('new');
       setParams(next, { replace: true });
     }
+    /* ?newGroup=1 — group registration (e.g. from the loan application wizard) */
+    if (params.get('newGroup') === '1') {
+      setDirectory('groups');
+      setGroupWizard(true);
+      const next = new URLSearchParams(params);
+      next.delete('newGroup');
+      setParams(next, { replace: true });
+    }
   }, [params, setParams]);
 
   const loansByCustomer = useMemo(() => {
@@ -86,7 +108,10 @@ export default function Customers() {
   }, [loans]);
 
   const rows = useMemo(
-    () => customers.map(c => ({ c, loans: loansByCustomer[c.id] || [], standing: clientStanding(loansByCustomer[c.id] || []) })),
+    // Group borrower records are listed under the Groups tab, not as individual clients
+    () => customers
+      .filter(c => !c.group_id)
+      .map(c => ({ c, loans: loansByCustomer[c.id] || [], standing: clientStanding(loansByCustomer[c.id] || []) })),
     [customers, loansByCustomer],
   );
 
@@ -122,6 +147,15 @@ export default function Customers() {
 
   const profile = profileId != null ? rows.find(r => r.c.id === profileId) : null;
 
+  const visibleGroups = useMemo(() => {
+    const q = groupQuery.trim().toLowerCase();
+    return groups
+      .map(g => ({ g, standing: clientStanding(loansByCustomer[g.customer_id] || []) }))
+      .filter(({ g }) => !q || [g.group_name, g.market_name, g.business_location, g.leader_name, g.leader_phone, clientCode(g.customer_id)]
+        .some(v => String(v || '').toLowerCase().includes(q)));
+  }, [groups, groupQuery, loansByCustomer]);
+  const groupMemberTotal = groups.reduce((s, g) => s + (Number(g.member_count) || 0), 0);
+
   const newLoanFor = useCallback(id => navigate(`/loans?new=1&customer=${id}`), [navigate]);
 
   async function confirmDelete() {
@@ -155,9 +189,14 @@ export default function Customers() {
         title="Clients Directory"
         subtitle="Borrower profiles with repayment standing and full loan history."
         actions={
-          <button type="button" className="mf-btn mf-btn--primary" onClick={() => setEditor({ mode: 'add' })}>
-            <FiUserPlus size={17} /> Register Client
-          </button>
+          <>
+            <button type="button" className="mf-btn mf-btn--dark" onClick={() => setGroupWizard(true)}>
+              <FiUsers size={17} /> Register Group
+            </button>
+            <button type="button" className="mf-btn mf-btn--primary" onClick={() => setEditor({ mode: 'add' })}>
+              <FiUserPlus size={17} /> Register Client
+            </button>
+          </>
         }
       />
 
@@ -177,6 +216,17 @@ export default function Customers() {
           onClick={() => setSegment('none')} />
       </section>
 
+      <Tabs
+        value={directory}
+        onChange={setDirectory}
+        tabs={[
+          { value: 'individuals', label: `${t('grp.tabIndividuals').en} · ${t('grp.tabIndividuals').sw}`, Icon: FiUser, count: counts.all },
+          { value: 'groups',      label: `${t('grp.tabGroups').en} · ${t('grp.tabGroups').sw}`, Icon: FiUsers, count: groups.length },
+        ]}
+      />
+
+      {directory === 'individuals' ? (
+      <>
       <div className="mf-toolbar">
         <div className="mf-toolbar__group">
           <Segmented ariaLabel="Filter clients" value={segment} onChange={setSegment}
@@ -309,6 +359,120 @@ export default function Customers() {
             </table>
           </div>
         </section>
+      )}
+      </>
+      ) : (
+        <>
+          {/* ── Groups (Vikundi) ── */}
+          <div className="mf-toolbar">
+            <div className="mf-toolbar__group">
+              <span className="mf-toolbar__meta">
+                <strong>{groups.length}</strong> group{groups.length === 1 ? '' : 's'} · <strong>{groupMemberTotal}</strong> members
+              </span>
+            </div>
+            <div className="mf-toolbar__group">
+              <SearchField value={groupQuery} onChange={setGroupQuery} placeholder="Group, market, leader or CL-code" />
+            </div>
+          </div>
+
+          {groupsError && (
+            <div className="mf-alert mf-alert--error" role="alert">
+              <FiAlertCircle size={17} /> <span>Groups could not be loaded.</span>
+              <button type="button" className="mf-btn mf-btn--sm mf-alert__action" onClick={() => { setLoading(true); load(); }}>
+                <FiRefreshCw size={14} /> Retry
+              </button>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="mf-card mf-card--flush"><TableSkeleton rows={5} cols={5} /></div>
+          ) : visibleGroups.length === 0 ? (
+            <div className="mf-card">
+              <Empty
+                Icon={groupQuery ? FiSearch : FiUsers}
+                title={groupQuery ? 'No groups match the search' : 'No groups registered yet'}
+                message={groupQuery ? 'Try another group name, market or leader.' : 'Register a lending group with its members and their businesses.'}
+                action={groupQuery
+                  ? <button type="button" className="mf-btn mf-btn--sm" onClick={() => setGroupQuery('')}>Clear search</button>
+                  : <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setGroupWizard(true)}><FiUsers size={15} /> Register group</button>}
+              />
+            </div>
+          ) : (
+            <section className="mf-card mf-card--flush">
+              <div className="mf-table-wrap">
+                <table className="mf-table mf-table--stack">
+                  <thead>
+                    <tr>
+                      <th>Group</th>
+                      <th>Market</th>
+                      <th>Members</th>
+                      <th>Leader</th>
+                      <th className="is-num">Weekly sales (TZS)</th>
+                      <th>Standing</th>
+                      <th className="is-actions">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleGroups.map(({ g, standing }) => (
+                      <tr key={g.id} className="is-link" onClick={() => setGroupProfileId(g.id)}>
+                        <td>
+                          <div className="mf-cell-main">
+                            <span className="mf-grp-avatar mf-grp-avatar--sm" aria-hidden="true"><FiUsers size={16} /></span>
+                            <div className="mf-cell-stack">
+                              <span className="mf-cell-title">{g.group_name}</span>
+                              <span className="mf-cell-sub">{clientCode(g.customer_id)} · {g.business_type}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td data-label="Market">
+                          <div className="mf-cell-stack">
+                            <span>{g.market_name}</span>
+                            <span className="mf-cell-sub">{g.business_location}</span>
+                          </div>
+                        </td>
+                        <td data-label="Members" className="mf-num">{g.member_count}</td>
+                        <td data-label="Leader">
+                          <div className="mf-cell-stack">
+                            <span>{g.leader_name || '—'}</span>
+                            <span className="mf-cell-sub mf-mono">{g.leader_phone || ''}</span>
+                          </div>
+                        </td>
+                        <td className="is-num" data-label="Weekly sales (TZS)">{fmt0(g.weekly_sales)}</td>
+                        <td data-label="Standing"><StandingBadge status={standing.status} /></td>
+                        <td className="is-actions" onClick={e => e.stopPropagation()}>
+                          <div className="mf-actions">
+                            <button type="button" className="mf-icon-btn" onClick={() => setGroupProfileId(g.id)} title="View group" aria-label="View group"><FiEye size={16} /></button>
+                            <button type="button" className="mf-icon-btn" onClick={() => newLoanFor(g.customer_id)} title="New group loan" aria-label="New group loan"><FiFilePlus size={16} /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+        </>
+      )}
+
+      {groupWizard && (
+        <GroupRegistrationWizard
+          onClose={() => setGroupWizard(false)}
+          onRegistered={g => {
+            showToast(`Group ${g.group_name} registered`, 'success');
+            setDirectory('groups');
+            load();
+          }}
+          onNewLoan={g => { setGroupWizard(false); newLoanFor(g.customer_id); }}
+        />
+      )}
+
+      {groupProfileId != null && (
+        <GroupProfileDrawer
+          groupId={groupProfileId}
+          onClose={() => setGroupProfileId(null)}
+          onNewLoan={g => newLoanFor(g.customer_id)}
+        />
       )}
 
       {editor && (

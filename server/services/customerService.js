@@ -15,20 +15,28 @@ function identity(id_type, id_number) {
 }
 
 async function findAll(search) {
-  let sql = `
-    SELECT c.*,
-      (SELECT COUNT(*) FROM loans l WHERE l.customer_id = c.id) AS loan_count
-    FROM customers c
-  `;
+  const loanCount = '(SELECT COUNT(*) FROM loans l WHERE l.customer_id = c.id) AS loan_count';
+  let where = '';
   const params = [];
   if (search) {
-    sql += ' WHERE c.full_name LIKE ? OR c.phone LIKE ? OR c.id_number LIKE ?';
+    where = ' WHERE c.full_name LIKE ? OR c.phone LIKE ? OR c.id_number LIKE ?';
     const like = `%${search}%`;
     params.push(like, like, like);
   }
-  sql += ' ORDER BY c.created_at DESC';
-  const [rows] = await pool.query(sql, params);
-  return rows;
+  const order = ' ORDER BY c.created_at DESC';
+  try {
+    // group_id / group_name mark the borrower records that belong to a lending group
+    const [rows] = await pool.query(
+      `SELECT c.*, ${loanCount}, g.id AS group_id, g.group_name
+       FROM customers c LEFT JOIN client_groups g ON g.customer_id = c.id${where}${order}`,
+      params
+    );
+    return rows;
+  } catch (err) {
+    if (err.code !== 'ER_NO_SUCH_TABLE') throw err;   // group tables not migrated yet
+    const [rows] = await pool.query(`SELECT c.*, ${loanCount} FROM customers c${where}${order}`, params);
+    return rows;
+  }
 }
 
 async function findById(id) {

@@ -1,5 +1,5 @@
 const { pool } = require('../config/database');
-const { generateReceiptNumber, nowLocal } = require('../utils/helpers');
+const { generateReceiptNumber, nowLocal, isoDate } = require('../utils/helpers');
 
 const PAYMENT_MODES   = ['cash', 'mobile_money', 'bank'];
 const MOBILE_PROVIDERS = ['mpesa', 'tigopesa', 'airtelmoney', 'halopesa'];
@@ -106,10 +106,18 @@ async function create({
       'UPDATE loans SET amount_paid=?, balance=?, status=? WHERE id=?',
       [newAmountPaid, newBalance, newStatus, loan_id]
     );
+
+    // Group refundable incentive: earned only when the loan is fully repaid by its due date
+    let refundStatus = loan.refund_status ?? null;
+    if (newStatus === 'paid' && loan.loan_type === 'group' && loan.refund_status === 'pending') {
+      const due = isoDate(loan.due_date);
+      refundStatus = due && pDate <= due ? 'eligible' : 'forfeited';
+      await conn.query('UPDATE loans SET refund_status = ? WHERE id = ?', [refundStatus, loan_id]);
+    }
     await conn.commit();
 
     const [[repayment]] = await conn.query('SELECT * FROM repayments WHERE id = ?', [repResult.insertId]);
-    return { ...repayment, new_balance: newBalance, loan_status: newStatus };
+    return { ...repayment, new_balance: newBalance, loan_status: newStatus, refund_status: refundStatus };
   } catch (err) {
     await conn.rollback();
     throw err;

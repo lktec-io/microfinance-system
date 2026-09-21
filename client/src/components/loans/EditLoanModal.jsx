@@ -99,7 +99,8 @@ export default function EditLoanModal({ loan, onClose, onSaved }) {
           </div>
         )}
 
-        <LoanTermsFields form={form} setForm={setForm} showPurpose={false} allowSingle />
+        {/* The processing fee was paid upfront at booking — not recalculated on edit */}
+        <LoanTermsFields form={form} setForm={setForm} showPurpose={false} allowSingle showFees={false} />
 
         {quote && (
           <div className="mf-alert mf-alert--info">

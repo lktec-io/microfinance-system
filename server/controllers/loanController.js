@@ -74,8 +74,24 @@ const getByCustomer = asyncHandler(async (req, res) => {
   res.json(await svc.findByCustomer(req.params.customerId));
 });
 
+const LOAN_TYPES = ['individual', 'group'];
+
 const create = asyncHandler(async (req, res) => {
-  const { customer_id, loan_amount, interest_rate, duration_value, duration_unit } = req.body;
+  const loanType = req.body.loan_type == null || req.body.loan_type === '' ? 'individual' : req.body.loan_type;
+  if (!LOAN_TYPES.includes(loanType)) return fail(res, 'Loan type must be individual or group');
+  if (loanType === 'group' && !isPositiveId(req.body.group_id)) return fail(res, 'Select the group for a group loan');
+
+  // Group loans are booked to the group's borrower record; a group's borrower is always a group loan.
+  let group = null;
+  if (loanType === 'group') {
+    group = await svc.findGroupForLoan({ group_id: Number(req.body.group_id) });
+    if (!group) return fail(res, 'Group not found', 404);
+  } else if (req.body.customer_id) {
+    group = await svc.findGroupForLoan({ customer_id: req.body.customer_id });
+  }
+  const customer_id = group ? group.customer_id : req.body.customer_id;
+
+  const { loan_amount, interest_rate, duration_value, duration_unit } = req.body;
   if (!customer_id || !loan_amount || interest_rate == null || !duration_value || !duration_unit) {
     return fail(res, 'Missing required fields');
   }
@@ -84,7 +100,24 @@ const create = asyncHandler(async (req, res) => {
   if (!(await svc.customerExists(customer_id))) {
     return fail(res, 'Customer not found', 404);
   }
-  res.status(201).json(await svc.create(req.body));
+  res.status(201).json(await svc.create({
+    ...req.body,
+    customer_id,
+    loan_type: group ? 'group' : 'individual',
+    group_id:  group ? group.id : null,
+  }));
+});
+
+const markRefundPaid = asyncHandler(async (req, res) => {
+  const loan = await svc.findById(req.params.id);
+  if (!loan) return fail(res, 'Loan not found', 404);
+  if (loan.loan_type !== 'group') return fail(res, 'Only group loans carry a refundable incentive');
+  if (loan.refund_status !== 'eligible') {
+    return fail(res, `The refund is not due (status: ${loan.refund_status || 'none'})`);
+  }
+  const updated = await svc.markRefundPaid(req.params.id);
+  if (!updated) return fail(res, 'The refund was already processed', 409);
+  res.json(updated);
 });
 
 const update = asyncHandler(async (req, res) => {
@@ -107,4 +140,4 @@ const remove = asyncHandler(async (req, res) => {
   res.json({ message: 'Loan deleted' });
 });
 
-module.exports = { getAll, getOne, getByCustomer, create, update, remove };
+module.exports = { getAll, getOne, getByCustomer, create, update, remove, markRefundPaid };

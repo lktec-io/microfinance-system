@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import { FiSun, FiCalendar, FiLayers, FiFlag } from 'react-icons/fi';
 import { Field, Bi } from '../ui';
-import { FREQUENCIES, FREQUENCY_ORDER, loanQuote } from '../../utils/finance';
+import { FREQUENCIES, FREQUENCY_ORDER, GROUP_REFUND_RATE, PROCESSING_FEE_RATE, loanQuote } from '../../utils/finance';
 import { money, perInterval } from '../../utils/labels';
 import { t } from '../../i18n/bilingual';
 
@@ -35,14 +35,34 @@ export function validateTerms(terms, { allowSingle = false } = {}) {
   return errors;
 }
 
+/** 10% processing fee for every client, plus the group refundable incentive for group loans. */
+function FeeLines({ quote, show }) {
+  if (!show || quote?.processingFee == null) return null;
+  const fee    = t('fee.processing', { rate: PROCESSING_FEE_RATE });
+  const upfront = t('fee.upfront');
+  const refund = quote.refundIncentive != null ? t('fee.refundTitle', { rate: GROUP_REFUND_RATE }) : null;
+  return (
+    <span className="mf-calc-banner__fees">
+      <span className="mf-calc-banner__fee">
+        <b>{fee.en}: TZS {money(quote.processingFee)}</b> — {upfront.en} · <span lang="sw">{fee.sw}, {upfront.sw}</span>
+      </span>
+      {refund && (
+        <span className="mf-calc-banner__fee">
+          <b>{refund.en}: TZS {money(quote.refundIncentive)}</b> — on timely full repayment · <span lang="sw">{refund.sw}</span>
+        </span>
+      )}
+    </span>
+  );
+}
+
 /**
  * Live installment banner — sits directly under the principal / interest inputs
  * so the agent sees the per-interval amount while typing,
  * e.g. "TZS 12,000 per day · 30 installments of TZS 12,000 each".
  */
-export function InstallmentBanner({ form, allowSingle = false }) {
+export function InstallmentBanner({ form, allowSingle = false, loanType = 'individual', showFees = true }) {
   const valid = Object.keys(validateTerms(form, { allowSingle })).length === 0;
-  const quote = valid ? loanQuote(form) : null;
+  const quote = valid ? loanQuote({ ...form, loan_type: loanType }) : null;
   const title = t('calc.title');
 
   if (!quote) {
@@ -64,6 +84,7 @@ export function InstallmentBanner({ form, allowSingle = false }) {
         <span className="mf-calc-banner__value">TZS {money(quote.total)}</span>
         <span className="mf-calc-banner__line">{single.en}</span>
         <span className="mf-calc-banner__line" lang="sw">{single.sw}</span>
+        <FeeLines quote={quote} show={showFees} />
       </div>
     );
   }
@@ -76,11 +97,14 @@ export function InstallmentBanner({ form, allowSingle = false }) {
       <span className="mf-calc-banner__value">TZS {money(quote.installment)}<small>{per.en}</small></span>
       <span className="mf-calc-banner__line">TZS {money(quote.installment)} {per.en} · {plan.en}</span>
       <span className="mf-calc-banner__line" lang="sw">TZS {money(quote.installment)} {per.sw} · {plan.sw}</span>
+      <FeeLines quote={quote} show={showFees} />
     </div>
   );
 }
 
-export default function LoanTermsFields({ form, setForm, errors = {}, showPurpose = true, allowSingle = false }) {
+export default function LoanTermsFields({
+  form, setForm, errors = {}, showPurpose = true, allowSingle = false, loanType = 'individual', showFees = true,
+}) {
   const groupId = useId();
   const set = key => e => {
     const value = e.target.value;
@@ -103,7 +127,7 @@ export default function LoanTermsFields({ form, setForm, errors = {}, showPurpos
           value={form.interest_rate} onChange={set('interest_rate')} aria-invalid={!!errors.interest_rate} />
       </Field>
 
-      <InstallmentBanner form={form} allowSingle={allowSingle} />
+      <InstallmentBanner form={form} allowSingle={allowSingle} loanType={loanType} showFees={showFees} />
 
       <Field label="Tenor" required error={errors.duration_value}>
         <input type="number" min="1" step="1" inputMode="numeric" required

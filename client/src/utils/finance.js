@@ -54,6 +54,18 @@ export function isoDate(value) {
   return String(value).slice(0, 10);
 }
 
+/** Processing fee (ada ya fomu): % of principal paid upfront on every new loan. Mirrors the server. */
+export const PROCESSING_FEE_RATE = 10;
+/** Group incentive: % of principal refunded after on-time full repayment. Mirrors the server. */
+export const GROUP_REFUND_RATE = 5;
+
+const percentOf = (amount, rate) => {
+  const a = parseFloat(amount);
+  return a > 0 ? parseFloat((a * rate / 100).toFixed(2)) : null;
+};
+export const processingFee = principal => percentOf(principal, PROCESSING_FEE_RATE);
+export const groupRefund   = principal => percentOf(principal, GROUP_REFUND_RATE);
+
 export function calcTotalPayable(principal, ratePercent) {
   const p = parseFloat(principal);
   const r = parseFloat(ratePercent);
@@ -102,7 +114,7 @@ export function calcInstallmentAmount(total, count) {
 }
 
 /** Full quote for a set of loan terms, or null when terms are incomplete. */
-export function loanQuote({ loan_amount, interest_rate, duration_value, duration_unit, start_date, repayment_frequency }) {
+export function loanQuote({ loan_amount, interest_rate, duration_value, duration_unit, start_date, repayment_frequency, loan_type }) {
   const total = calcTotalPayable(loan_amount, interest_rate);
   if (total == null) return null;
   const principal = parseFloat(loan_amount);
@@ -123,6 +135,9 @@ export function loanQuote({ loan_amount, interest_rate, duration_value, duration
     frequency,
     installmentCount,
     installment: calcInstallmentAmount(total, installmentCount),
+    loanType:        loan_type === 'group' ? 'group' : 'individual',
+    processingFee:   processingFee(principal),                              // paid upfront, not repaid
+    refundIncentive: loan_type === 'group' ? groupRefund(principal) : null, // group only
   };
 }
 

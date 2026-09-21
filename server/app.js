@@ -28,6 +28,7 @@ app.use(sanitizeBody);
 app.use('/api/auth',       require('./routes/auth'));
 app.use('/api/customers',  require('./routes/customers'));
 app.use('/api/loans',      require('./routes/loans'));
+app.use('/api/groups',     require('./routes/groups'));      // group lending
 app.use('/api/repayments', require('./routes/repayments'));
 app.use('/api/reports',    require('./routes/reports'));     // admin only
 app.use('/api/dashboard',  require('./routes/dashboard'));   // all signed-in users

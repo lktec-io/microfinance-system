@@ -1,8 +1,33 @@
 const { pool } = require('../config/database');
 const {
-  calcDueDate, today, calcTotalPayable,
+  calcDueDate, today, calcTotalPayable, nowLocal,
   FREQUENCIES, countInstallments, calcInstallmentAmount,
+  PROCESSING_FEE_RATE, GROUP_REFUND_RATE, calcProcessingFee, calcGroupRefund,
 } = require('../utils/helpers');
+
+/** Missing table/column → run the fallback query (DB not migrated yet), never a broken page. */
+const SCHEMA_LAG = new Set(['ER_NO_SUCH_TABLE', 'ER_BAD_FIELD_ERROR']);
+async function queryWithFallback(sql, fallbackSql, params) {
+  try {
+    return await pool.query(sql, params);
+  } catch (err) {
+    if (!SCHEMA_LAG.has(err.code)) throw err;
+    return pool.query(fallbackSql, params);
+  }
+}
+
+/** The group a loan belongs to — by group id, or by the group's borrower (customer) id. */
+async function findGroupForLoan({ group_id, customer_id }) {
+  try {
+    const [rows] = group_id
+      ? await pool.query('SELECT id, customer_id, group_name FROM client_groups WHERE id = ?', [group_id])
+      : await pool.query('SELECT id, customer_id, group_name FROM client_groups WHERE customer_id = ?', [customer_id]);
+    return Array.isArray(rows) && rows[0] ? rows[0] : null;
+  } catch (err) {
+    if (err.code === 'ER_NO_SUCH_TABLE') return null;
+    throw err;
+  }
+}
 
 /** Strip tags and trim free text coming from nested payloads (not covered by sanitizeBody). */
 function clean(value, max = 255) {
@@ -40,15 +65,23 @@ async function findSecurities(loanId) {
 }
 
 async function findById(id) {
-  const [rows] = await pool.query(`
+  const base = `
     SELECT l.*,
            c.full_name AS customer_name,
            c.phone     AS customer_phone,
-           c.address   AS customer_address
-    FROM loans l
-    JOIN customers c ON c.id = l.customer_id
-    WHERE l.id = ?
-  `, [id]);
+           c.address   AS customer_address`;
+  const [rows] = await queryWithFallback(
+    `${base}, g.group_name
+     FROM loans l
+     JOIN customers c ON c.id = l.customer_id
+     LEFT JOIN client_groups g ON g.id = l.group_id
+     WHERE l.id = ?`,
+    `${base}
+     FROM loans l
+     JOIN customers c ON c.id = l.customer_id
+     WHERE l.id = ?`,
+    [id]
+  );
   if (!rows.length) return null;
 
   const [repayments] = await pool.query(
@@ -83,7 +116,7 @@ async function hasRepayments(loanId) {
  */
 async function create({
   customer_id, loan_amount, interest_rate, duration_value, duration_unit,
-  start_date, purpose, repayment_frequency, securities = [],
+  start_date, purpose, repayment_frequency, securities = [], loan_type = 'individual', group_id = null,
 }) {
   const amount   = parseFloat(loan_amount);
   const rate     = parseFloat(interest_rate);
@@ -91,6 +124,12 @@ async function create({
   const sDate    = start_date || today();
   const dueDate  = calcDueDate(sDate, duration_value, duration_unit);
   const plan     = installmentPlan({ total, startDate: sDate, dueDate, frequency: repayment_frequency });
+
+  // 10% processing fee — paid upfront by every client, recorded as income at booking.
+  // It is NOT added to total_payable/balance. Group loans also carry the refundable incentive.
+  const isGroup = loan_type === 'group';
+  const fee     = calcProcessingFee(amount);
+  const refund  = isGroup ? calcGroupRefund(amount) : null;
 
   const conn = await pool.getConnection();
   try {
@@ -100,11 +139,15 @@ async function create({
       `INSERT INTO loans
          (customer_id, loan_amount, interest_rate, duration_value, duration_unit,
           total_payable, balance, status, start_date, due_date, purpose,
-          repayment_frequency, installment_count, installment_amount)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?)`,
+          repayment_frequency, installment_count, installment_amount,
+          loan_type, group_id, processing_fee, processing_fee_rate,
+          refund_incentive_rate, refund_incentive_amount, refund_status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [customer_id, amount, rate, parseInt(duration_value), duration_unit,
        total, total, sDate, dueDate, purpose || null,
-       plan.frequency, plan.count, plan.amount]
+       plan.frequency, plan.count, plan.amount,
+       isGroup ? 'group' : 'individual', isGroup ? group_id : null, fee, PROCESSING_FEE_RATE,
+       isGroup ? GROUP_REFUND_RATE : null, refund, isGroup ? 'pending' : null]
     );
     const loanId = result.insertId;
 
@@ -253,8 +296,31 @@ async function writeLoanUpdate(db, id, {
       id,
     ]
   );
+  // A group's refundable incentive follows the principal while it is still pending.
+  // (The processing fee was paid upfront at booking and is never recalculated.)
+  if (loan_amount != null) {
+    try {
+      await db.query(
+        "UPDATE loans SET refund_incentive_amount = ? WHERE id = ? AND loan_type = 'group' AND refund_status = 'pending'",
+        [calcGroupRefund(newAmount), id]
+      );
+    } catch (err) {
+      if (err.code !== 'ER_BAD_FIELD_ERROR') throw err;
+    }
+  }
+
   const [updated] = await db.query('SELECT * FROM loans WHERE id = ?', [id]);
   return updated[0];
+}
+
+/** Admin marks an earned group refund as paid out. Only 'eligible' refunds can move to 'paid'. */
+async function markRefundPaid(id) {
+  const [result] = await pool.query(
+    "UPDATE loans SET refund_status = 'paid', refund_paid_at = ? WHERE id = ? AND refund_status = 'eligible'",
+    [nowLocal(), id]
+  );
+  if (!result.affectedRows) return null;
+  return findById(id);
 }
 
 async function remove(id) {
@@ -262,4 +328,7 @@ async function remove(id) {
   return result.affectedRows > 0;
 }
 
-module.exports = { findAll, findById, findByCustomer, customerExists, hasRepayments, create, update, remove };
+module.exports = {
+  findAll, findById, findByCustomer, customerExists, hasRepayments, create, update, remove,
+  findGroupForLoan, markRefundPaid,
+};

@@ -145,6 +145,49 @@
 }
 .mf-calc-banner.is-empty .mf-calc-banner__eyebrow { color: var(--mf-orange-600); }
 .mf-calc-banner.is-empty .mf-calc-banner__line[lang="sw"] { color: var(--mf-ink-500); }
+.mf-calc-banner__fees {
+  display: flex; flex-direction: column; gap: .2rem;
+  margin-top: .35rem; padding-top: .5rem;
+  border-top: 1px solid rgba(30, 30, 36, .28);
+}
+.mf-calc-banner__fee { font-size: var(--mf-fs-xs); font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.mf-calc-banner__fee b { font-weight: 800; }
+
+/* ── Quote panel: processing fee + group refund (dark panel) ───────── */
+.mf-quote__fee,
+.mf-quote__refund {
+  display: flex; flex-direction: column; gap: .25rem;
+  padding: .7rem .8rem;
+  border: 1px dashed rgba(255, 255, 255, .28);
+  border-radius: var(--mf-radius);
+}
+.mf-quote__refund { border: 1px solid rgba(61, 214, 140, .45); border-left: 3px solid #3DD68C; background: rgba(61, 214, 140, .08); }
+.mf-quote__fee-row { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; font-size: var(--mf-fs-sm); font-weight: 800; color: #FFFFFF; }
+.mf-quote__fee-row b { font-variant-numeric: tabular-nums; color: var(--mf-orange-400); white-space: nowrap; }
+.mf-quote__refund .mf-quote__fee-row b { color: #3DD68C; }
+.mf-quote__fee-sw { display: block; font-size: var(--mf-fs-xs); font-weight: 600; color: rgba(255, 255, 255, .55); }
+.mf-quote__fee-note { font-size: var(--mf-fs-xs); font-weight: 600; line-height: 1.4; color: rgba(255, 255, 255, .7); }
+
+/* ── Loan detail: group refund tracker ─────────────────────────────── */
+.mf-refund {
+  display: flex; flex-direction: column; gap: .5rem;
+  padding: .85rem .9rem;
+  border: 1px solid var(--mf-border);
+  border-left: 4px solid var(--mf-ink-400);
+  border-radius: var(--mf-radius);
+  background: var(--mf-surface-2);
+}
+.mf-refund--eligible  { border-left-color: var(--mf-emerald-600); background: var(--mf-emerald-50); }
+.mf-refund--forfeited { border-left-color: var(--mf-crimson-600); background: var(--mf-crimson-50); }
+.mf-refund--paid      { border-left-color: var(--mf-charcoal-900); }
+.mf-refund__head { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
+.mf-refund__head > svg { flex-shrink: 0; color: var(--mf-orange-500); }
+.mf-refund__title { flex: 1; min-width: 0; font-size: var(--mf-fs-sm); font-weight: 800; color: var(--mf-ink-900); }
+.mf-refund__amount { font-size: var(--mf-fs-base); font-weight: 800; font-variant-numeric: tabular-nums; color: var(--mf-ink-900); white-space: nowrap; }
+.mf-refund__status { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.mf-refund__sw { font-size: var(--mf-fs-xs); font-weight: 600; color: var(--mf-ink-500); }
+.mf-refund__note { margin: 0; font-size: var(--mf-fs-xs); font-weight: 600; line-height: 1.4; color: var(--mf-ink-600); }
+.mf-refund .mf-btn { align-self: flex-start; }
 
 /* ── Installment highlight (dark quote panel) ──────────────────────── */
 .mf-installment {

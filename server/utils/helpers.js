@@ -53,6 +53,18 @@ function generateReceiptNumber() {
 /** Largest amount a DECIMAL(12,2) column can hold — larger values are rejected up front. */
 const MAX_MONEY = 9999999999.99;
 
+/** Processing fee (ada ya fomu): % of principal, paid upfront on every new loan. */
+const PROCESSING_FEE_RATE = 10;
+/** Group incentive: % of principal refunded to a group after on-time full repayment. */
+const GROUP_REFUND_RATE = 5;
+
+const percentOf = (amount, rate) => {
+  const a = parseFloat(amount);
+  return a > 0 ? parseFloat((a * rate / 100).toFixed(2)) : 0;
+};
+const calcProcessingFee = principal => percentOf(principal, PROCESSING_FEE_RATE);
+const calcGroupRefund   = principal => percentOf(principal, GROUP_REFUND_RATE);
+
 function calcTotalPayable(principal, ratePercent) {
   const p = parseFloat(principal);
   const r = parseFloat(ratePercent);
@@ -111,6 +123,7 @@ function serverError(res, err, label = 'Server error') {
 module.exports = {
   calcDueDate, today, isoDate, nowLocal, isValidTimestamp,
   generateReceiptNumber, calcTotalPayable, MAX_MONEY,
+  PROCESSING_FEE_RATE, GROUP_REFUND_RATE, calcProcessingFee, calcGroupRefund,
   FREQUENCIES, countInstallments, calcInstallmentAmount,
   ok, fail, serverError,
 };

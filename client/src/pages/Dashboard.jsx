@@ -19,7 +19,7 @@ import '../styles/app/dashboard.css';
 const EMPTY_SUMMARY = {
   customers: 0, total_loans: 0, loans_amount: 0,
   repayments: 0, collected: 0, outstanding: 0,
-  active_loans: 0, overdue_loans: 0,
+  active_loans: 0, overdue_loans: 0, processing_fees: 0,
   loan_status: { active: 0, pending: 0, paid: 0, overdue: 0 },
 };
 
@@ -435,6 +435,9 @@ export default function Dashboard() {
             <dl className="mf-compo__aside">
               <div><dt>Clients</dt><dd>{summary.customers}</dd></div>
               <div><dt>Op. expenses</dt><dd title={`${expenses.count} records`}>TZS {fmtShort(expenses.total)}</dd></div>
+              {isAdmin && (
+                <div><dt>Form fees</dt><dd title="10% processing fees collected upfront">TZS {fmtShort(summary.processing_fees)}</dd></div>
+              )}
             </dl>
           </div>
         </section>

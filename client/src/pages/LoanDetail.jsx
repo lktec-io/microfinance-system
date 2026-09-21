@@ -4,12 +4,13 @@ import {
   FiArrowLeft, FiCreditCard,
   FiUser, FiPhone, FiMapPin,
   FiCalendar, FiDollarSign, FiPercent, FiClock,
-  FiTrash2, FiX, FiEdit2, FiRepeat,
+  FiTrash2, FiX, FiEdit2, FiRepeat, FiUsers, FiGift, FiCheckCircle,
 } from 'react-icons/fi';
 import api          from '../api';
 import { useToast }  from '../context/ToastContext';
+import { useAuth }   from '../context/AuthContext';
 import { fmt, fmtTimestamp } from '../utils/format';
-import { isoDate }   from '../utils/finance';
+import { isoDate, GROUP_REFUND_RATE } from '../utils/finance';
 import { frequencyLabel, money, paymentModeLabel, perInterval } from '../utils/labels';
 import { t }         from '../i18n/bilingual';
 import StatusBadge   from '../components/common/StatusBadge';
@@ -34,6 +35,7 @@ export default function LoanDetail() {
   const { id }      = useParams();
   const navigate    = useNavigate();
   const { showToast } = useToast();
+  const { isAdmin } = useAuth();
 
   const [loan,      setLoan]      = useState(null);
   const [loading,   setLoading]   = useState(true);
@@ -43,6 +45,7 @@ export default function LoanDetail() {
   const [editForm,   setEditForm]  = useState({ status: '', due_date: '', purpose: '' });
   const [editSaving, setEditSaving]= useState(false);
   const [editErr,    setEditErr]   = useState('');
+  const [refundSaving, setRefundSaving] = useState(false);
 
   async function fetchLoan() {
     if (!id || id === 'undefined') {
@@ -101,6 +104,20 @@ export default function LoanDetail() {
     } finally { setEditSaving(false); }
   }
 
+  /** Admin pays out an earned group refund (PATCH /api/loans/:id/refund). */
+  async function markRefundPaid() {
+    setRefundSaving(true);
+    try {
+      await api.patch(`/loans/${id}/refund`);
+      showToast('Group refund marked as paid', 'success');
+      fetchLoan();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Could not mark the refund as paid', 'error');
+    } finally {
+      setRefundSaving(false);
+    }
+  }
+
   if (loading) return <Spinner text="Loading loan details…" />;
   if (!loan) return <div className="page"><p>Loan not found.</p></div>;
 
@@ -115,6 +132,13 @@ export default function LoanDetail() {
 
   const frequency  = frequencyLabel(loan.repayment_frequency);
   const securities = securitiesFromLoan(loan);
+
+  const isGroupLoan  = loan.loan_type === 'group';
+  const refundStatus = loan.refund_status || 'pending';
+  const refundTitle  = t('fee.refundTitle', { rate: Number(loan.refund_incentive_rate) || GROUP_REFUND_RATE });
+  const refundState  = t(`fee.refundStatus.${refundStatus}`);
+  const refundNote   = t('fee.refundNote', { amount: fmt(loan.refund_incentive_amount) });
+  const REFUND_BADGE = { pending: 'badge--gray', eligible: 'badge--green', forfeited: 'badge--red', paid: 'badge--blue' };
 
   return (
     <div className="page">
@@ -165,6 +189,10 @@ export default function LoanDetail() {
               <InfoRow Icon={FiUser}   label="Name"    value={loan.customer_name} />
               <InfoRow Icon={FiPhone}  label="Phone"   value={loan.customer_phone} />
               <InfoRow Icon={FiMapPin} label="Address" value={loan.customer_address} />
+              <InfoRow Icon={isGroupLoan ? FiUsers : FiUser} label="Loan Type"
+                value={isGroupLoan
+                  ? `Group · Kikundi${loan.group_name ? ` — ${loan.group_name}` : ''}`
+                  : 'Individual · Mtu binafsi'} />
             </div>
 
             {/* Loan Amounts */}
@@ -180,6 +208,11 @@ export default function LoanDetail() {
               <InfoRow Icon={FiDollarSign} label="Balance"
                 value={`TZS ${fmt(loan.balance)}`}
                 valueClass={loan.balance > 0 ? 'text-red' : 'text-green'}
+              />
+              <InfoRow Icon={FiDollarSign} label="Processing Fee"
+                value={loan.processing_fee != null
+                  ? `TZS ${fmt(loan.processing_fee)} · ${Number(loan.processing_fee_rate)}% paid upfront`
+                  : '— (booked before processing fees)'}
               />
             </div>
 
@@ -216,6 +249,33 @@ export default function LoanDetail() {
               <div className="info-section-title">Installment Status</div>
               <PlanStatus loan={loan} />
             </div>
+
+            {/* Group refundable incentive tracker */}
+            {isGroupLoan && (
+              <div className="info-section">
+                <div className="info-section-title">Group Refund Incentive</div>
+                <div className={`mf-refund mf-refund--${refundStatus}`}>
+                  <div className="mf-refund__head">
+                    <FiGift size={16} aria-hidden="true" />
+                    <span className="mf-refund__title">{refundTitle.en}<span className="mf-sw" lang="sw">{refundTitle.sw}</span></span>
+                    <b className="mf-refund__amount">TZS {fmt(loan.refund_incentive_amount)}</b>
+                  </div>
+                  <div className="mf-refund__status">
+                    <span className={`badge ${REFUND_BADGE[refundStatus] || 'badge--gray'}`}>{refundState.en}</span>
+                    <span className="mf-refund__sw" lang="sw">{refundState.sw}</span>
+                  </div>
+                  <p className="mf-refund__note">{refundNote.en}</p>
+                  {loan.refund_paid_at && (
+                    <p className="mf-refund__note">Refunded on <span className="mf-stamp">{fmtTimestamp(loan.refund_paid_at)}</span></p>
+                  )}
+                  {isAdmin && refundStatus === 'eligible' && (
+                    <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={markRefundPaid} disabled={refundSaving}>
+                      <FiCheckCircle size={14} /> {refundSaving ? 'Saving…' : 'Mark refund paid'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Progress */}
             <div className="progress-section">

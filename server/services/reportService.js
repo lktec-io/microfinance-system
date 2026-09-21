@@ -15,7 +15,24 @@ async function getSummary() {
       COALESCE(SUM(status='overdue'), 0) AS overdue
     FROM loans
   `);
+  // Processing-fee income (collected upfront at booking) and group refund liabilities
+  const income = { processing_fees: 0, refunds_due: 0, refunds_paid: 0 };
+  try {
+    const [[f]] = await pool.query(`
+      SELECT COALESCE(SUM(processing_fee), 0) AS processing_fees,
+             COALESCE(SUM(CASE WHEN refund_status = 'eligible' THEN refund_incentive_amount ELSE 0 END), 0) AS refunds_due,
+             COALESCE(SUM(CASE WHEN refund_status = 'paid'     THEN refund_incentive_amount ELSE 0 END), 0) AS refunds_paid
+      FROM loans
+    `);
+    income.processing_fees = Number(f?.processing_fees || 0);
+    income.refunds_due     = Number(f?.refunds_due || 0);
+    income.refunds_paid    = Number(f?.refunds_paid || 0);
+  } catch (err) {
+    if (err.code !== 'ER_BAD_FIELD_ERROR') throw err;   // columns not migrated yet
+  }
+
   return {
+    ...income,
     customers:     Number(customers.total    || 0),
     total_loans:   Number(loans.total        || 0),
     loans_amount:  Number(loans.total_amount || 0),

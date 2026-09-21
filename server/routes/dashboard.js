@@ -21,6 +21,7 @@ const FORBIDDEN_MESSAGE = 'Hauna ruhusa ya kuona ukurasa huu / You do not have p
 const FEE_FIELDS = new Set([
   'agent_fee', 'amount_sent', 'mobile_provider',
   'total_fees', 'month_fees', 'total_sent', 'total_credited', 'by_provider',
+  'processing_fees', 'refunds_due', 'refunds_paid',
 ]);
 
 const isAdmin = req => req.user?.role === 'admin';
