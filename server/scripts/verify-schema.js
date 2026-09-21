@@ -33,6 +33,7 @@ const EXPECTED = {
     phone:        'varchar',
     relationship: 'varchar',
     id_number:    'varchar',
+    assets_description: 'text',
     created_at:   'timestamp',
   },
   loan_collaterals: {

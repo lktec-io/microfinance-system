@@ -47,6 +47,9 @@ export default function SecurityList({ items = [], principal, onRemove }) {
                 {isGuarantor ? `${guarantorLabel.en} · ${guarantorLabel.sw}` : `TZS ${money(item.estimated_value)}`}
               </div>
               {meta.some(Boolean) && <div className="mf-security__meta">{meta.filter(Boolean).join(' · ')}</div>}
+              {isGuarantor && item.assets_description && (
+                <div className="mf-security__meta">Mali za mdhamini: {item.assets_description}</div>
+              )}
             </div>
             {onRemove ? (
               <button type="button" className="mf-icon-btn mf-icon-btn--danger" onClick={() => onRemove(item.key)}

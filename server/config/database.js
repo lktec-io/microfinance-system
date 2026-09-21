@@ -162,6 +162,11 @@ async function runMigrations() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `)
   );
+
+  // Guarantor assets / collateral details (Mali za Mdhamini) — edited from the Edit Loan form
+  await safe('loan_guarantors.assets_description', () =>
+    pool.query('ALTER TABLE loan_guarantors ADD COLUMN assets_description TEXT NULL DEFAULT NULL AFTER id_number')
+  );
 }
 
 module.exports = { pool, testConnection, runMigrations };

@@ -369,6 +369,55 @@ export const MESSAGES = {
     en: 'Including the asset being entered: {pct}%',
     sw: 'Pamoja na kitu unachojaza sasa: {pct}%',
   },
+
+  /* ── Edit Loan: guarantor & collateral section ───────────────────── */
+  'gedit.title':       { en: 'Guarantor & Collateral Information', sw: 'Taarifa za Mdhamini na Dhamana' },
+  'gedit.add':         { en: '+ Add New Guarantor', sw: 'Ongeza Mdhamini Mpya' },
+  'gedit.none':        { en: 'No guarantor is attached to this loan.', sw: 'Mkopo huu hauna mdhamini.' },
+  'gedit.existing':    { en: 'Current guarantor', sw: 'Mdhamini wa sasa' },
+  'gedit.new':         { en: 'New guarantor', sw: 'Mdhamini mpya' },
+  'gedit.replacement': { en: 'Replacement guarantor', sw: 'Mdhamini mbadala' },
+  'gedit.keep':        { en: 'Keep {name}', sw: 'Mbakize {name}' },
+  'gedit.unsaved':     { en: 'Unsaved changes', sw: 'Mabadiliko hayajahifadhiwa' },
+  'gedit.replacing': {
+    en: 'Replacing {name} — enter the new guarantor’s details. {name} is removed when you save.',
+    sw: 'Unambadilisha {name} — weka taarifa za mdhamini mpya. {name} ataondolewa ukihifadhi.',
+  },
+  'gedit.willRemove': {
+    en: '{name} will be removed as guarantor when you save.',
+    sw: '{name} ataondolewa kama mdhamini ukihifadhi.',
+  },
+  'gedit.nida':     { en: 'National ID (NIDA) number', sw: 'Namba ya NIDA' },
+  'gedit.nidaHint': { en: '20 digits · optional', sw: 'Tarakimu 20 · si lazima' },
+  'gedit.assets':   { en: 'Guarantor assets / collateral details', sw: 'Mali za Mdhamini' },
+  'gedit.assetsHint': {
+    en: 'e.g. motorcycle T 123 ABC, 2-acre farm in Kibaha',
+    sw: 'mf. pikipiki T 123 ABC, shamba ekari 2 Kibaha',
+  },
+  'gedit.errAssets': {
+    en: 'Keep the assets description under {max} characters.',
+    sw: 'Maelezo ya mali yasizidi herufi {max}.',
+  },
+  'gedit.fixBeforeSave': {
+    en: 'Fix the guarantor details before saving.',
+    sw: 'Rekebisha taarifa za mdhamini kabla ya kuhifadhi.',
+  },
+  'gedit.loadError': {
+    en: 'Guarantor details could not be loaded — the loan terms can still be saved.',
+    sw: 'Taarifa za mdhamini hazikupatikana — masharti ya mkopo bado yanaweza kuhifadhiwa.',
+  },
+  'gedit.others': {
+    en: '{count} more guarantor(s) on this loan stay unchanged.',
+    sw: 'Wadhamini wengine {count} kwenye mkopo huu hawabadilishwi.',
+  },
+  'gedit.collateral': {
+    en: '{count} pledged asset(s) · TZS {value} on this loan — unchanged.',
+    sw: 'Dhamana {count} · TZS {value} kwenye mkopo huu — hazibadilishwi.',
+  },
+  'gedit.paid': {
+    en: 'This loan is fully repaid — guarantor details are read-only.',
+    sw: 'Mkopo huu umelipwa wote — taarifa za mdhamini haziwezi kubadilishwa.',
+  },
 };
 
 /** Look up a message in both languages, filling {placeholders}. */

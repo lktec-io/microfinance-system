@@ -55,3 +55,6 @@ CREATE TABLE IF NOT EXISTS loan_collaterals (
     REFERENCES loans(id) ON DELETE CASCADE ON UPDATE CASCADE,
   INDEX idx_collateral_loan (loan_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Guarantor assets / collateral details (Mali za Mdhamini) — edited from the Edit Loan form
+ALTER TABLE loan_guarantors ADD COLUMN assets_description TEXT NULL DEFAULT NULL AFTER id_number;

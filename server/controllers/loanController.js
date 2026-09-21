@@ -32,6 +32,34 @@ function securitiesError(securities) {
   return null;
 }
 
+const GUARANTOR_ASSETS_MAX = 1000;
+const PHONE_RE = /^\+?[\d\s-]{9,16}$/;
+const isPositiveId = v => Number.isInteger(Number(v)) && Number(v) > 0;
+
+/** Validate the guarantor change sent by the Edit Loan form (undefined = no change). */
+function guarantorChangeError(g) {
+  if (g === undefined) return null;
+  if (!g || typeof g !== 'object' || Array.isArray(g)) return 'Guarantor details must be an object';
+  if (g.remove === true) return isPositiveId(g.id) ? null : 'Guarantor id is required to remove a guarantor';
+  if (g.id != null && !isPositiveId(g.id)) return 'Guarantor id is invalid';
+  if (g.replaces != null && !isPositiveId(g.replaces)) return 'Replaced guarantor id is invalid';
+  if (g.id != null && g.replaces != null) return 'Send either the guarantor id or the id it replaces, not both';
+
+  const name = String(g.name ?? '').trim();
+  if (name.length < 2 || name.length > 100) return 'Guarantor full name is required (2–100 characters)';
+  if (!PHONE_RE.test(String(g.phone ?? '').trim())) return 'Guarantor phone number is invalid';
+  const idNumber = String(g.nida ?? '').trim();
+  if (idNumber) {
+    const compact = idNumber.replace(/[\s-]/g, '');
+    const ok = /^\d+$/.test(compact) ? compact.length === 20 : /^[A-Za-z0-9/ -]{5,50}$/.test(idNumber);
+    if (!ok) return 'Guarantor NIDA number must be 20 digits';
+  }
+  if (String(g.assets_description ?? '').length > GUARANTOR_ASSETS_MAX) {
+    return `Guarantor assets description is too long (max ${GUARANTOR_ASSETS_MAX} characters)`;
+  }
+  return null;
+}
+
 const getAll = asyncHandler(async (_req, res) => {
   res.json(await svc.findAll());
 });
@@ -60,10 +88,13 @@ const create = asyncHandler(async (req, res) => {
 });
 
 const update = asyncHandler(async (req, res) => {
-  const invalid = frequencyError(req.body.repayment_frequency);
+  const invalid = frequencyError(req.body.repayment_frequency) || guarantorChangeError(req.body.guarantor);
   if (invalid) return fail(res, invalid);
   const existing = await svc.findById(req.params.id);
   if (!existing) return fail(res, 'Loan not found', 404);
+  if (req.body.guarantor !== undefined && existing.status === 'paid') {
+    return fail(res, 'Guarantor details cannot be changed on a fully repaid loan');
+  }
   res.json(await svc.update(req.params.id, req.body));
 });
 

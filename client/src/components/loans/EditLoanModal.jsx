@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { FiAlertCircle } from 'react-icons/fi';
 import api from '../../api';
-import { Modal, Field } from '../ui';
+import { Modal, Field, Bi } from '../ui';
 import LoanTermsFields from './LoanTermsFields';
+import GuarantorSection, { useGuarantorEditor } from './GuarantorEditor';
 import { calcInstallmentAmount, countInstallments, loanQuote, todayISO } from '../../utils/finance';
 import { fmt } from '../../utils/format';
 import { money, perInterval } from '../../utils/labels';
+import { t } from '../../i18n/bilingual';
 
 const STATUSES = ['pending', 'active', 'paid', 'overdue'];
 
@@ -23,7 +25,11 @@ export default function EditLoanModal({ loan, onClose, onSaved }) {
     purpose:             loan.purpose || '',
   }));
   const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState('');
+  const [error, setError]   = useState('');   // string, or { en, sw }
+
+  // Guarantor & collateral sub-section (loaded from GET /api/loans/:id)
+  const guarantor       = useGuarantorEditor(loan.id);
+  const guarantorLocked = loan.status === 'paid';
 
   const quote      = loanQuote(form);
   const paid       = Number(loan.amount_paid) || 0;
@@ -43,10 +49,18 @@ export default function EditLoanModal({ loan, onClose, onSaved }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setSaving(true);
     setError('');
+    if (!guarantorLocked && !guarantor.validate()) {
+      setError(t('gedit.fixBeforeSave'));
+      return;
+    }
+    // Only sent when the guarantor was added, edited, replaced or cleared
+    const guarantorChange = guarantorLocked ? undefined : guarantor.payload();
+    const body = guarantorChange === undefined ? form : { ...form, guarantor: guarantorChange };
+
+    setSaving(true);
     try {
-      await api.put(`/loans/${loan.id}`, form);
+      await api.put(`/loans/${loan.id}`, body);
       onSaved();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update loan');
@@ -79,7 +93,11 @@ export default function EditLoanModal({ loan, onClose, onSaved }) {
           <div><dt>Balance</dt><dd>{fmt(loan.balance)}</dd></div>
         </dl>
 
-        {error && <div className="mf-alert mf-alert--error" role="alert"><FiAlertCircle size={15} /> {error}</div>}
+        {error && (
+          <div className="mf-alert mf-alert--error" role="alert">
+            <FiAlertCircle size={15} /> <span>{typeof error === 'string' ? error : <Bi text={error} block />}</span>
+          </div>
+        )}
 
         <LoanTermsFields form={form} setForm={setForm} showPurpose={false} allowSingle />
 
@@ -111,6 +129,8 @@ export default function EditLoanModal({ loan, onClose, onSaved }) {
               placeholder="Optional notes about this loan…" />
           </Field>
         </div>
+
+        <GuarantorSection editor={guarantor} readOnly={guarantorLocked} />
       </form>
     </Modal>
   );
