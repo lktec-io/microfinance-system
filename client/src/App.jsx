@@ -13,6 +13,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword  from './pages/ResetPassword';
 
 const Dashboard      = lazy(() => import('./pages/Dashboard'));
+const DailySummary   = lazy(() => import('./pages/DailySummary'));
 const Customers      = lazy(() => import('./pages/Customers'));
 const Loans          = lazy(() => import('./pages/Loans'));
 const LoanDetail     = lazy(() => import('./pages/LoanDetail'));
@@ -50,6 +51,8 @@ export default function App() {
                   {/* All protected pages share ONE Layout */}
                   <Route element={<ProtectedLayout />}>
                     <Route path="/"           element={<Dashboard />} />
+                    {/* Daily sheet — every role; money inside it follows the RBAC mask */}
+                    <Route path="/daily-summary" element={<DailySummary />} />
                     <Route path="/customers"  element={<Customers />} />
                     <Route path="/loans"      element={<Loans />} />
                     <Route path="/loans/:id"  element={<LoanDetail />} />

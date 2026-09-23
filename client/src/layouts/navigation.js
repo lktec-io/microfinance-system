@@ -1,6 +1,6 @@
 import {
   FiGrid, FiLayers, FiUsers, FiCreditCard,
-  FiFileText, FiBarChart2, FiShield, FiSettings,
+  FiFileText, FiBarChart2, FiShield, FiSettings, FiClipboard,
 } from 'react-icons/fi';
 
 /* Single source of truth for sidebar, breadcrumbs and command palette. */
@@ -9,6 +9,7 @@ export const NAV_SECTIONS = [
     label: 'Overview',
     items: [
       { to: '/', label: 'Dashboard', Icon: FiGrid, desc: 'Portfolio metrics & activity', end: true },
+      { to: '/daily-summary', label: 'Daily Summary', Icon: FiClipboard, desc: 'Cashflow, attendance & new clients' },
     ],
   },
   {
