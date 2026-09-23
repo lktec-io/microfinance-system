@@ -11,6 +11,8 @@ import { useCanSeeTotals, Mask } from '../components/common/MoneyGuard';
 import { MASK } from '../utils/rbac';
 import { fmt, fmtDay } from '../utils/format';
 import { BRANCH, dayISO, dayMetrics, change } from '../utils/dailySummary';
+import { savePdf } from '../utils/download';
+import { runPrint } from '../utils/print';
 
 import '../styles/app/daily.css';
 
@@ -135,8 +137,9 @@ export default function DailySummary() {
       styles: { fontSize: 9.5, cellPadding: 2.6 },
     });
 
-    doc.save(`daily-summary-${today.date}.pdf`);
-    showToast('Daily summary exported', 'success');
+    // Blob + download anchor — never a preview tab (see utils/download.js)
+    const saved = savePdf(doc, 'Daily_Summary_Report.pdf');
+    showToast(saved ? 'Daily_Summary_Report.pdf saved to your device' : 'The browser blocked the download', saved ? 'success' : 'error');
   }
 
   return (
@@ -148,7 +151,7 @@ export default function DailySummary() {
         actions={
           <div className="mf-ds-actions no-print">
             <span className="mf-ds-branch" title={BRANCH.unit}><FiMapPin size={14} /> {BRANCH.name}</span>
-            <button type="button" className="mf-btn mf-btn--ghost" onClick={() => window.print()}>
+            <button type="button" className="mf-btn mf-btn--ghost" onClick={() => runPrint()}>
               <FiPrinter size={15} /> Print
             </button>
             <button type="button" className="mf-btn mf-btn--primary" onClick={downloadPDF}>

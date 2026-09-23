@@ -4,6 +4,7 @@ import { AuthProvider }         from './context/AuthContext';
 import { ProfileProvider }      from './context/ProfileContext';
 import { ToastProvider }        from './context/ToastContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ReceiptProvider }      from './context/ReceiptContext';
 import ProtectedRoute           from './components/ProtectedRoute';
 import ErrorBoundary            from './components/common/ErrorBoundary';
 import Layout                   from './layouts/Layout';
@@ -40,6 +41,7 @@ export default function App() {
       <ProfileProvider>
         <ToastProvider>
           <NotificationProvider>
+           <ReceiptProvider>
             <BrowserRouter>
               <ErrorBoundary fullScreen>
                 <Routes>
@@ -76,6 +78,7 @@ export default function App() {
                 </Routes>
               </ErrorBoundary>
             </BrowserRouter>
+           </ReceiptProvider>
           </NotificationProvider>
         </ToastProvider>
       </ProfileProvider>

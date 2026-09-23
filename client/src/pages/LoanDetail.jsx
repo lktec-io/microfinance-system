@@ -4,11 +4,12 @@ import {
   FiArrowLeft, FiCreditCard,
   FiUser, FiPhone, FiMapPin,
   FiCalendar, FiDollarSign, FiPercent, FiClock,
-  FiTrash2, FiX, FiEdit2, FiRepeat, FiUsers, FiGift, FiCheckCircle,
+  FiTrash2, FiX, FiEdit2, FiRepeat, FiUsers, FiGift, FiCheckCircle, FiPrinter,
 } from 'react-icons/fi';
 import api          from '../api';
 import { useToast }  from '../context/ToastContext';
 import { useAuth }   from '../context/AuthContext';
+import { usePrintReceipt } from '../context/ReceiptContext';
 import { fmt, fmtTimestamp } from '../utils/format';
 import { isoDate, GROUP_REFUND_RATE } from '../utils/finance';
 import { frequencyLabel, money, paymentModeLabel, perInterval } from '../utils/labels';
@@ -36,6 +37,7 @@ export default function LoanDetail() {
   const navigate    = useNavigate();
   const { showToast } = useToast();
   const { isAdmin } = useAuth();
+  const { printReceipt } = usePrintReceipt();
 
   const [loan,      setLoan]      = useState(null);
   const [loading,   setLoading]   = useState(true);
@@ -149,6 +151,9 @@ export default function LoanDetail() {
           <FiArrowLeft size={18} /> Back
         </button>
         <div style={{ display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
+          <button className="btn btn--ghost" onClick={() => printReceipt(loan)}>
+            <FiPrinter size={15} /> Print Receipt
+          </button>
           <button className="btn btn--ghost" onClick={openEdit}>
             <FiEdit2 size={15} /> Edit
           </button>

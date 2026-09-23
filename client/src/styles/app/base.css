@@ -118,8 +118,14 @@ html.mf-scroll-locked body { padding-right: var(--mf-scrollbar-gap, 0px); }
 /* ══════════════════════════════════════════════════════════════════════
    SECURITY — print prevention & tab blur
    ══════════════════════════════════════════════════════════════════════ */
+/*
+ * Printing stays blocked by default — a stray Ctrl+P must never put client
+ * data on paper. App-initiated prints (a loan receipt, the daily summary)
+ * add `mf-print-on` to <body>; see styles/app/receipt.css for what is then
+ * allowed through.
+ */
 @media print {
-  body { display: none !important; }
+  body:not(.mf-print-on) { display: none !important; }
 }
 
 .tab-blurred {

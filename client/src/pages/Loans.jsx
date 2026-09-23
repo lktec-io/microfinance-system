@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FiPlus, FiList, FiGrid, FiLayers, FiSliders, FiArrowUpRight, FiEdit2,
-  FiAlertCircle, FiSearch, FiRefreshCw,
+  FiAlertCircle, FiSearch, FiRefreshCw, FiPrinter,
 } from 'react-icons/fi';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
@@ -12,6 +12,7 @@ import {
 } from '../components/ui';
 import StatusBadge           from '../components/common/StatusBadge';
 import { useCanSeeTotals, Mask } from '../components/common/MoneyGuard';
+import { usePrintReceipt } from '../context/ReceiptContext';
 import LoanApplicationWizard from '../components/loans/LoanApplicationWizard';
 import EditLoanModal         from '../components/loans/EditLoanModal';
 import LoanCalculator        from '../components/loans/LoanCalculator';
@@ -30,7 +31,7 @@ function toneFor(status) {
 }
 
 /* ── Card view item ────────────────────────────────────────────────── */
-function LoanCard({ loan, onOpen, onEdit }) {
+function LoanCard({ loan, onOpen, onEdit, onPrint }) {
   const pct = repaidPct(loan);
   return (
     <article className={`mf-loan-card${loan.status === 'overdue' ? ' mf-loan-card--overdue' : ''}`}>
@@ -62,6 +63,7 @@ function LoanCard({ loan, onOpen, onEdit }) {
         <div className="mf-actions">
           <button type="button" className="mf-icon-btn" onClick={onOpen} title="Open loan" aria-label="Open loan"><FiArrowUpRight size={16} /></button>
           <button type="button" className="mf-icon-btn" onClick={onEdit} title="Edit loan" aria-label="Edit loan"><FiEdit2 size={16} /></button>
+          <button type="button" className="mf-icon-btn" onClick={onPrint} title="Print Receipt" aria-label="Print Receipt"><FiPrinter size={16} /></button>
         </div>
       </div>
     </article>
@@ -77,6 +79,7 @@ export default function Loans() {
   const [params, setParams] = useSearchParams();
   // Portfolio-wide money totals are super-admin only (per-loan amounts stay visible)
   const showTotals = useCanSeeTotals();
+  const { printReceipt } = usePrintReceipt();
 
   const [loans, setLoans]         = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -248,7 +251,7 @@ export default function Loans() {
           ) : view === 'cards' ? (
             <div className="mf-card-grid">
               {filtered.map(l => (
-                <LoanCard key={l.id} loan={l} onOpen={() => openLoan(l)} onEdit={() => setEditing(l)} />
+                <LoanCard key={l.id} loan={l} onOpen={() => openLoan(l)} onEdit={() => setEditing(l)} onPrint={() => printReceipt(l)} />
               ))}
             </div>
           ) : (
@@ -309,6 +312,10 @@ export default function Loans() {
                               </button>
                               <button type="button" className="mf-icon-btn" onClick={() => setEditing(l)} title="Edit loan" aria-label="Edit loan">
                                 <FiEdit2 size={16} />
+                              </button>
+                              <button type="button" className="mf-icon-btn" onClick={() => printReceipt(l)}
+                                title="Print Receipt" aria-label="Print Receipt">
+                                <FiPrinter size={16} />
                               </button>
                             </div>
                           </td>
