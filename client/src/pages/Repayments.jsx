@@ -14,6 +14,8 @@ import {
   ProgressBar, DueChip, Avatar, Empty, TableSkeleton,
 } from '../components/ui';
 import StatusBadge        from '../components/common/StatusBadge';
+import { useCanSeeTotals, Mask, maskedFormat } from '../components/common/MoneyGuard';
+import { MASK } from '../utils/rbac';
 import RecordPaymentModal from '../components/repayments/RecordPaymentModal';
 import '../styles/app/lending.css';
 import '../styles/app/directory.css';
@@ -48,6 +50,8 @@ export default function Repayments() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [params, setParams] = useSearchParams();
+  // Collected / receivable totals are super-admin only (individual receipts stay visible)
+  const showTotals = useCanSeeTotals();
 
   const [repayments, setRepayments] = useState([]);
   const [loans, setLoans]           = useState([]);
@@ -182,22 +186,24 @@ export default function Repayments() {
       />
 
       <section className="mf-metric-grid" aria-label="Collection metrics">
+        {/* Collected / receivable / past-due are cumulative money — masked for restricted roles */}
         <MetricCard label="Total collected" unit="TZS" tone="emerald" Icon={FiDollarSign} loading={loading}
-          value={fmt0(metrics.total)} sub={<><strong>{metrics.count}</strong> payments posted</>} />
+          value={showTotals ? fmt0(metrics.total) : <Mask />} sub={<><strong>{metrics.count}</strong> payments posted</>} />
         <MetricCard label="Collected this month" unit="TZS" tone="orange" Icon={FiCalendar} loading={loading}
-          value={fmt0(metrics.mtd)}
+          value={showTotals ? fmt0(metrics.mtd) : <Mask />}
           sub={<>Last 6 months</>}
-          tracker={<MiniBars values={metrics.monthSeries} labels={metrics.monthKeys.map(k => monthLabel(k))} />} />
+          tracker={<MiniBars values={metrics.monthSeries} labels={metrics.monthKeys.map(k => monthLabel(k))}
+            format={showTotals ? undefined : maskedFormat} />} />
         <MetricCard label="Receivable" unit="TZS" tone="charcoal" Icon={FiPieChart} loading={loading}
-          value={fmt0(metrics.receivable)}
+          value={showTotals ? fmt0(metrics.receivable) : <Mask />}
           sub={<><strong>{metrics.openCount}</strong> open loans</>}
           tracker={<StackBar segments={[
-            { label: 'Current',  tone: 'charcoal', value: metrics.receivable - metrics.pastDueBal, display: `TZS ${fmt0(metrics.receivable - metrics.pastDueBal)}` },
-            { label: 'Past due', tone: 'crimson',  value: metrics.pastDueBal, display: `TZS ${fmt0(metrics.pastDueBal)}` },
+            { label: 'Current',  tone: 'charcoal', value: metrics.receivable - metrics.pastDueBal, display: showTotals ? `TZS ${fmt0(metrics.receivable - metrics.pastDueBal)}` : MASK },
+            { label: 'Past due', tone: 'crimson',  value: metrics.pastDueBal, display: showTotals ? `TZS ${fmt0(metrics.pastDueBal)}` : MASK },
           ]} />}
           onClick={() => { setTab('collections'); setBucket('all'); }} />
         <MetricCard label="Past due" unit="TZS" tone="crimson" Icon={FiAlertTriangle} loading={loading}
-          value={fmt0(metrics.pastDueBal)}
+          value={showTotals ? fmt0(metrics.pastDueBal) : <Mask />}
           sub={<><strong>{metrics.pastDueCount}</strong> loan{metrics.pastDueCount === 1 ? '' : 's'} need follow-up</>}
           onClick={() => { setTab('collections'); setBucket('overdue'); }} />
       </section>
@@ -242,8 +248,8 @@ export default function Repayments() {
             </div>
             <div className="mf-toolbar__group">
               <span className="mf-toolbar__meta">
-                <strong>{ledger.length}</strong> entries · <strong>TZS {fmtShort(ledgerTotal)}</strong>
-                {ledgerFees > 0 && <> · agent fees <strong>TZS {fmtShort(ledgerFees)}</strong></>}
+                <strong>{ledger.length}</strong> entries · <strong>TZS {showTotals ? fmtShort(ledgerTotal) : <Mask compact />}</strong>
+                {ledgerFees > 0 && showTotals && <> · agent fees <strong>TZS {fmtShort(ledgerFees)}</strong></>}
               </span>
               <SearchField value={query} onChange={setQuery} placeholder="Client, receipt or #loan" />
             </div>
@@ -323,7 +329,7 @@ export default function Repayments() {
                   <tfoot>
                     <tr>
                       <td colSpan={4}>{ledger.length} entr{ledger.length === 1 ? 'y' : 'ies'}{range.from || range.to ? ` · ${range.from || '…'} → ${range.to || '…'}` : ''}</td>
-                      <td className="is-num" data-label="Total (TZS)">{fmt(ledgerTotal)}</td>
+                      <td className="is-num" data-label="Total (TZS)">{showTotals ? fmt(ledgerTotal) : <Mask />}</td>
                       <td colSpan={5} />
                     </tr>
                   </tfoot>

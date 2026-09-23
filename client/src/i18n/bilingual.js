@@ -493,6 +493,14 @@ export const MESSAGES = {
   'grp.err.dupId':    { en: 'Another member already uses this ID number.', sw: 'Mwanachama mwingine tayari anatumia namba hii ya kitambulisho.' },
   'grp.err.members':  { en: 'A group needs {min}–{max} members.', sw: 'Kikundi kinahitaji wanachama {min}–{max}.' },
   'grp.err.leader':   { en: 'Choose the group leader.', sw: 'Chagua kiongozi wa kikundi.' },
+
+  /* Role-based visibility of cumulative money totals */
+  'rbac.hidden':     { en: 'Hidden for your role', sw: 'Imefichwa kwa cheo chako' },
+  'rbac.restricted': { en: 'Financial totals are restricted', sw: 'Jumla za fedha zimezuiliwa' },
+  'rbac.restrictedNote': {
+    en: 'Cumulative amounts are visible to administrators only.',
+    sw: 'Jumla ya fedha huonekana kwa wasimamizi pekee.',
+  },
 };
 
 /** Look up a message in both languages, filling {placeholders}. */

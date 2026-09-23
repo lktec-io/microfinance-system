@@ -11,6 +11,7 @@ import {
   PageHeader, Tabs, Segmented, SearchField, ProgressBar, DueChip, Avatar, Empty, TableSkeleton,
 } from '../components/ui';
 import StatusBadge           from '../components/common/StatusBadge';
+import { useCanSeeTotals, Mask } from '../components/common/MoneyGuard';
 import LoanApplicationWizard from '../components/loans/LoanApplicationWizard';
 import EditLoanModal         from '../components/loans/EditLoanModal';
 import LoanCalculator        from '../components/loans/LoanCalculator';
@@ -74,6 +75,8 @@ export default function Loans() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [params, setParams] = useSearchParams();
+  // Portfolio-wide money totals are super-admin only (per-loan amounts stay visible)
+  const showTotals = useCanSeeTotals();
 
   const [loans, setLoans]         = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -179,21 +182,22 @@ export default function Loans() {
               <div className="mf-summary-bar__label">Loans in view</div>
               <div className="mf-summary-bar__value">{filtered.length}</div>
             </div>
+            {/* Cumulative portfolio money — super admins only; per-loan figures in the table stay visible */}
             <div className="mf-summary-bar__cell">
               <div className="mf-summary-bar__label">Principal</div>
-              <div className="mf-summary-bar__value"><small>TZS</small>{fmt0(totals.principal)}</div>
+              <div className="mf-summary-bar__value"><small>TZS</small>{showTotals ? fmt0(totals.principal) : <Mask />}</div>
             </div>
             <div className="mf-summary-bar__cell">
               <div className="mf-summary-bar__label">Total payable</div>
-              <div className="mf-summary-bar__value"><small>TZS</small>{fmt0(totals.payable)}</div>
+              <div className="mf-summary-bar__value"><small>TZS</small>{showTotals ? fmt0(totals.payable) : <Mask />}</div>
             </div>
             <div className="mf-summary-bar__cell">
               <div className="mf-summary-bar__label">Repaid</div>
-              <div className="mf-summary-bar__value mf-tone--emerald"><small>TZS</small>{fmt0(totals.repaid)}</div>
+              <div className={`mf-summary-bar__value${showTotals ? ' mf-tone--emerald' : ''}`}><small>TZS</small>{showTotals ? fmt0(totals.repaid) : <Mask />}</div>
             </div>
             <div className="mf-summary-bar__cell">
               <div className="mf-summary-bar__label">Outstanding</div>
-              <div className="mf-summary-bar__value mf-tone--orange"><small>TZS</small>{fmt0(totals.balance)}</div>
+              <div className={`mf-summary-bar__value${showTotals ? ' mf-tone--orange' : ''}`}><small>TZS</small>{showTotals ? fmt0(totals.balance) : <Mask />}</div>
             </div>
           </div>
 

@@ -533,3 +533,35 @@
 .mf-gedit__notice > span { flex: 1 1 180px; min-width: 0; }
 .mf-gedit__meta { display: flex; align-items: center; gap: .4rem; margin: 0; font-size: var(--mf-fs-xs); font-weight: 600; color: var(--mf-ink-500); }
 .mf-gedit__meta > svg { flex-shrink: 0; }
+
+/* ── Role-masked money totals (staff never see cumulative amounts) ──── */
+.mf-mask {
+  display: inline-block;
+  letter-spacing: .12em;
+  font-weight: 800;
+  color: var(--mf-ink-400);
+  cursor: default;
+  user-select: none;
+  vertical-align: baseline;
+  /* keep the tile height stable where a number used to be */
+  transform: translateY(-.08em);
+}
+.mf-mask--sm { font-size: .9em; letter-spacing: .1em; }
+.mf-metric__value .mf-mask { color: currentColor; opacity: .45; }
+.mf-summary-bar__value .mf-mask { color: var(--mf-ink-400); }
+
+.mf-restricted {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  border: 1px dashed var(--mf-border);
+  border-radius: var(--mf-radius);
+  background: var(--mf-surface-2, transparent);
+}
+.mf-restricted__icon { display: inline-flex; color: var(--mf-ink-400); }
+.mf-restricted__title { font-size: var(--mf-fs-sm); font-weight: 800; color: var(--mf-ink-700); }
+.mf-restricted__note { font-size: var(--mf-fs-xs); font-weight: 600; line-height: 1.45; color: var(--mf-ink-500); max-width: 34ch; }

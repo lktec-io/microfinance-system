@@ -14,6 +14,8 @@ import {
   PageHeader, MetricCard, MiniBars, StackBar, Meter, DueChip, Empty, TableSkeleton,
 } from '../components/ui';
 import StatusBadge from '../components/common/StatusBadge';
+import { useCanSeeTotals, Mask, RestrictedPanel, maskedFormat } from '../components/common/MoneyGuard';
+import { MASK } from '../utils/rbac';
 import '../styles/app/dashboard.css';
 
 const EMPTY_SUMMARY = {
@@ -177,6 +179,8 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAdmin } = useAuth();
+  // Cumulative currency totals are super-admin only; counts stay visible to everyone
+  const showTotals = useCanSeeTotals();
   // Set by ProtectedRoute when a non-admin tried to open an admin-only page
   const deniedPath = location.state?.accessDenied;
   const forbidden  = t('auth.forbidden');
@@ -342,7 +346,7 @@ export default function Dashboard() {
           <FiAlertTriangle size={15} />
           <span>
             <strong>{summary.overdue_loans} loan{summary.overdue_loans === 1 ? '' : 's'} overdue</strong>
-            {pastDueBal > 0 && <> · TZS {fmt0(pastDueBal)} past due</>} — open the collections queue
+            {pastDueBal > 0 && <> · TZS {showTotals ? fmt0(pastDueBal) : <Mask compact />} past due</>} — open the collections queue
           </span>
           <FiArrowRight size={15} className="mf-alert__action" />
         </button>
@@ -352,9 +356,10 @@ export default function Dashboard() {
       <section className="mf-metric-grid" aria-label="Key portfolio metrics">
         <MetricCard
           label="Total Disbursed" unit="TZS" tone="charcoal" Icon={FiBriefcase} loading={loading}
-          value={fmt0(summary.loans_amount)}
-          sub={<><strong>{summary.total_loans}</strong> loans · <strong>TZS {fmtShort(thisMonth?.disbursed)}</strong> this month</>}
-          tracker={<MiniBars values={series.slice(-8).map(s => s.disbursed)} labels={series.slice(-8).map(s => monthLabel(s.key))} />}
+          value={showTotals ? fmt0(summary.loans_amount) : <Mask />}
+          sub={<><strong>{summary.total_loans}</strong> loans · <strong>TZS {showTotals ? fmtShort(thisMonth?.disbursed) : <Mask compact />}</strong> this month</>}
+          tracker={<MiniBars values={series.slice(-8).map(s => s.disbursed)} labels={series.slice(-8).map(s => monthLabel(s.key))}
+            format={showTotals ? undefined : maskedFormat} />}
           onClick={() => navigate('/loans')}
         />
         <MetricCard
@@ -367,20 +372,22 @@ export default function Dashboard() {
         />
         <MetricCard
           label="Outstanding Balance" unit="TZS" tone={pastDueBal > 0 ? 'crimson' : 'neutral'} Icon={FiPieChart} loading={loading}
-          value={fmt0(summary.outstanding)}
+          value={showTotals ? fmt0(summary.outstanding) : <Mask />}
           sub={pastDueBal > 0
-            ? <><strong className="mf-tone--crimson">TZS {fmtShort(pastDueBal)}</strong> past due · {pastDue.length} loan{pastDue.length === 1 ? '' : 's'}</>
+            ? <><strong className="mf-tone--crimson">TZS {showTotals ? fmtShort(pastDueBal) : <Mask compact />}</strong> past due · {pastDue.length} loan{pastDue.length === 1 ? '' : 's'}</>
             : <>No balances past due</>}
           tracker={<StackBar segments={[
-            { label: 'Current',  tone: 'charcoal', value: currentBal, display: `TZS ${fmt0(currentBal)}` },
-            { label: 'Past due', tone: 'crimson',  value: pastDueBal, display: `TZS ${fmt0(pastDueBal)}` },
+            { label: 'Current',  tone: 'charcoal', value: currentBal, display: showTotals ? `TZS ${fmt0(currentBal)}` : MASK },
+            { label: 'Past due', tone: 'crimson',  value: pastDueBal, display: showTotals ? `TZS ${fmt0(pastDueBal)}` : MASK },
           ]} />}
           onClick={() => navigate('/repayments?view=collections')}
         />
         <MetricCard
           label="Collection Rate" tone={rateTone === 'crimson' ? 'crimson' : 'emerald'} Icon={FiPercent} loading={loading}
           value={rate == null ? '—' : `${rate.toFixed(1)}%`}
-          sub={<><strong>TZS {fmtShort(summary.collected)}</strong> collected of TZS {fmtShort(summary.collected + summary.outstanding)}</>}
+          sub={showTotals
+            ? <><strong>TZS {fmtShort(summary.collected)}</strong> collected of TZS {fmtShort(summary.collected + summary.outstanding)}</>
+            : <><strong>{summary.repayments}</strong> payments posted</>}
           tracker={<Meter value={rate ?? 0} tone={rateTone} />}
           title="Collected ÷ (collected + outstanding balance)"
           onClick={() => navigate('/repayments')}
@@ -397,14 +404,16 @@ export default function Dashboard() {
             </div>
             <div className="mf-chart-legend">
               <span className="mf-chart-legend__item">
-                <span className="mf-chart-legend__swatch mf-tone-bg--charcoal" /> Disbursed <b>{fmtShort(totals12.disbursed)}</b>
+                <span className="mf-chart-legend__swatch mf-tone-bg--charcoal" /> Disbursed <b>{showTotals ? fmtShort(totals12.disbursed) : <Mask compact />}</b>
               </span>
               <span className="mf-chart-legend__item">
-                <span className="mf-chart-legend__swatch mf-tone-bg--orange" /> Collected <b>{fmtShort(totals12.collected)}</b>
+                <span className="mf-chart-legend__swatch mf-tone-bg--orange" /> Collected <b>{showTotals ? fmtShort(totals12.collected) : <Mask compact />}</b>
               </span>
             </div>
           </div>
-          {loading ? <div className="skeleton" style={{ height: 240 }} /> : <CashFlowChart series={series} />}
+          {/* The chart is nothing but cumulative amounts (bars, ticks, tooltips) — restricted roles get a notice */}
+          {loading ? <div className="skeleton" style={{ height: 240 }} />
+            : showTotals ? <CashFlowChart series={series} /> : <RestrictedPanel />}
         </section>
 
         <section className="mf-card">
