@@ -3,7 +3,6 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiLogOut, FiChevronsLeft, FiChevronsRight, FiX } from 'react-icons/fi';
 import { useAuth }         from '../context/AuthContext';
-import { useProfileImage } from '../context/ProfileContext';
 import { Avatar }          from '../components/ui';
 import { visibleSections } from './navigation';
 
@@ -22,7 +21,6 @@ export function BrandMark() {
 
 export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile, isDesktop }) {
   const { user, logout, isAdmin } = useAuth();
-  const { profileImg }            = useProfileImage();
   const navigate                  = useNavigate();
 
   const asideRef = useRef(null);
@@ -179,7 +177,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
 
         <div className="mf-sidebar__foot">
           <div className="mf-sidebar__user">
-            <Avatar name={user?.name} src={profileImg} size={36} dark />
+            <Avatar name={user?.name} size={36} dark />
             <div className="mf-sidebar__user-text">
               <span className="mf-sidebar__user-name">{user?.name}</span>
               <span className="mf-sidebar__user-role">{user?.role}</span>

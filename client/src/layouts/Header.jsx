@@ -2,12 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   FiMenu, FiSearch, FiBell, FiChevronDown, FiChevronRight, FiCheck, FiX,
-  FiTrash2, FiRefreshCw, FiCamera, FiLogOut, FiShield,
+  FiTrash2, FiRefreshCw, FiLogOut, FiShield,
   FiAlertTriangle, FiAlertCircle, FiDollarSign, FiCheckCircle, FiCreditCard, FiUserPlus,
 } from 'react-icons/fi';
 import { useAuth }          from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
-import { useProfileImage }  from '../context/ProfileContext';
 import { useDismiss }       from '../hooks/useDismiss';
 import { useSystemStatus }  from '../hooks/useSystemStatus';
 import { Avatar }           from '../components/ui';
@@ -138,74 +137,15 @@ function NotificationCenter() {
   );
 }
 
-/* ── Profile menu (photo upload logic preserved from previous header) ─ */
+/* ── Account menu ──────────────────────────────────────────────────── */
 function ProfileMenu({ system }) {
   const { user, logout, isAdmin }     = useAuth();
-  const { profileImg, setProfileImg } = useProfileImage();
   const navigate = useNavigate();
   const [open, setOpen]           = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadPct, setUploadPct] = useState(0);
-  const [uploadErr, setUploadErr] = useState(false);
-  const ref     = useRef(null);
-  const fileRef = useRef(null);
+  const ref = useRef(null);
 
   const close = useCallback(() => setOpen(false), []);
   useDismiss(ref, open, close);
-
-  async function handleFileSelect(e) {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be under 5 MB');
-      return;
-    }
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-    const preset    = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-
-    setUploading(true);
-    setUploadPct(0);
-    setUploadErr(false);
-
-    try {
-      if (cloudName && preset) {
-        await new Promise((resolve, reject) => {
-          const form = new FormData();
-          form.append('file', file);
-          form.append('upload_preset', preset);
-          const xhr = new XMLHttpRequest();
-          xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
-          xhr.upload.onprogress = (evt) => {
-            if (evt.lengthComputable) setUploadPct(Math.round((evt.loaded / evt.total) * 90));
-          };
-          xhr.onload = () => {
-            try {
-              const data = JSON.parse(xhr.responseText);
-              if (data.secure_url) { setProfileImg(data.secure_url); setUploadPct(100); resolve(); }
-              else reject(new Error('No URL returned'));
-            } catch { reject(new Error('Parse error')); }
-          };
-          xhr.onerror = () => reject(new Error('Network error'));
-          xhr.send(form);
-        });
-      } else {
-        await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onprogress = (evt) => {
-            if (evt.lengthComputable) setUploadPct(Math.round((evt.loaded / evt.total) * 100));
-          };
-          reader.onload = (ev) => { setProfileImg(ev.target.result); resolve(); };
-          reader.readAsDataURL(file);
-        });
-      }
-    } catch {
-      setUploadErr(true);
-    } finally {
-      setUploading(false);
-      setUploadPct(0);
-      e.target.value = '';
-    }
-  }
 
   function handleLogout() {
     logout();
@@ -218,9 +158,7 @@ function ProfileMenu({ system }) {
     <div className="mf-pop-anchor" ref={ref}>
       <button type="button" className={`mf-profile-btn${open ? ' is-open' : ''}`} onClick={() => setOpen(v => !v)}
         aria-label="Account menu" aria-expanded={open}>
-        {uploading
-          ? <span className="mf-avatar" style={{ width: 30, height: 30 }}><FiRefreshCw size={13} style={{ animation: 'spin .8s linear infinite' }} /></span>
-          : <Avatar name={user.name} src={profileImg} size={30} />}
+        <Avatar name={user.name} size={30} />
         <span className="mf-profile-btn__text">
           <span className="mf-profile-btn__name">{user.name}</span>
           <span className="mf-profile-btn__role">{user.role}</span>
@@ -228,12 +166,10 @@ function ProfileMenu({ system }) {
         <FiChevronDown size={14} className="mf-profile-btn__caret" />
       </button>
 
-      {uploading && <div className="mf-upload-bar"><span style={{ width: `${uploadPct}%` }} /></div>}
-
       {open && (
         <div className="mf-popover mf-popover--sm" role="menu">
           <div className="mf-menu__head">
-            <Avatar name={user.name} src={profileImg} size={38} />
+            <Avatar name={user.name} size={38} />
             <div style={{ minWidth: 0 }}>
               <div className="mf-strong" style={{ fontSize: 13 }}>{user.name}</div>
               <div className="mf-muted" style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</div>
@@ -246,22 +182,6 @@ function ProfileMenu({ system }) {
             {system.latency != null && <span className="mf-status__latency">{system.latency}ms</span>}
           </div>
           <div className="mf-menu">
-            <button type="button" className="mf-menu__item" role="menuitem"
-              onClick={() => { fileRef.current?.click(); setOpen(false); }}>
-              <FiCamera size={14} /> {profileImg ? 'Change photo' : 'Upload photo'}
-            </button>
-            {profileImg && (
-              <button type="button" className="mf-menu__item" role="menuitem"
-                onClick={() => { setProfileImg(null); setOpen(false); }}>
-                <FiX size={14} /> Remove photo
-              </button>
-            )}
-            {uploadErr && (
-              <button type="button" className="mf-menu__item" role="menuitem"
-                onClick={() => { setUploadErr(false); fileRef.current?.click(); setOpen(false); }}>
-                <FiRefreshCw size={14} /> Retry upload
-              </button>
-            )}
             {isAdmin && (
               <button type="button" className="mf-menu__item" role="menuitem"
                 onClick={() => { navigate('/users'); setOpen(false); }}>
@@ -276,8 +196,6 @@ function ProfileMenu({ system }) {
         </div>
       )}
 
-      <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp"
-        style={{ display: 'none' }} onChange={handleFileSelect} />
     </div>
   );
 }

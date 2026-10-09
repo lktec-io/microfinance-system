@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { lazy } from 'react';
 import { AuthProvider }         from './context/AuthContext';
-import { ProfileProvider }      from './context/ProfileContext';
 import { ToastProvider }        from './context/ToastContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ReceiptProvider }      from './context/ReceiptContext';
@@ -38,10 +37,9 @@ function ProtectedLayout() {
 export default function App() {
   return (
     <AuthProvider>
-      <ProfileProvider>
-        <ToastProvider>
-          <NotificationProvider>
-           <ReceiptProvider>
+      <ToastProvider>
+        <NotificationProvider>
+          <ReceiptProvider>
             <BrowserRouter>
               <ErrorBoundary fullScreen>
                 <Routes>
@@ -78,10 +76,9 @@ export default function App() {
                 </Routes>
               </ErrorBoundary>
             </BrowserRouter>
-           </ReceiptProvider>
-          </NotificationProvider>
-        </ToastProvider>
-      </ProfileProvider>
+          </ReceiptProvider>
+        </NotificationProvider>
+      </ToastProvider>
     </AuthProvider>
   );
 }

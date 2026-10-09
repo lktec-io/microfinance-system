@@ -1,13 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  FiRefreshCw, FiPlus, FiAlertTriangle, FiArrowRight, FiTrendingUp, FiLock, FiX,
+  FiPlus, FiAlertTriangle, FiArrowRight, FiTrendingUp, FiLock, FiX,
   FiBriefcase, FiPieChart, FiActivity, FiLayers, FiBarChart2, FiSmartphone,
   FiUsers, FiFileText,
 } from 'react-icons/fi';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
-import { useProfileImage } from '../context/ProfileContext';
 import { fmt0, fmtShort, fmtDay, fmtTimestamp } from '../utils/format';
 import { providerLabel } from '../utils/labels';
 import { t } from '../i18n/bilingual';
@@ -15,9 +14,10 @@ import { collectionRate, lastMonthKeys, monthLabel } from '../utils/finance';
 import { DueChip, Empty, TableSkeleton } from '../components/ui';
 import StatusBadge from '../components/common/StatusBadge';
 import { useCanSeeTotals, Mask, RestrictedPanel } from '../components/common/MoneyGuard';
-import WelcomeHero from '../components/dashboard/WelcomeHero';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import StatTile from '../components/dashboard/StatTile';
 import { TrendDots, BarTrend, Donut } from '../components/dashboard/charts';
+import LoanApplicationWizard from '../components/loans/LoanApplicationWizard';
 import '../styles/app/dashboard.css';
 
 const EMPTY_SUMMARY = {
@@ -136,7 +136,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAdmin } = useAuth();
-  const profileImg = useProfileImage();
   // Cumulative currency totals are super-admin only; counts stay visible to everyone
   const showTotals = useCanSeeTotals();
   // Set by ProtectedRoute when a non-admin tried to open an admin-only page
@@ -210,9 +209,44 @@ export default function Dashboard() {
 
   useEffect(() => { load().finally(() => setLoading(false)); }, [load]);
 
+  /*
+   * One refresh at a time. The guard is a ref, not the state flag: several
+   * clicks in the same tick would all read the stale `refreshing === false`
+   * and fire parallel requests.
+   */
+  const refreshingRef = useRef(false);
   async function refresh() {
+    if (refreshingRef.current) return;
+    refreshingRef.current = true;
     setRefreshing(true);
-    try { await load(); } finally { setRefreshing(false); }
+    try { await load(); } finally { refreshingRef.current = false; setRefreshing(false); }
+  }
+
+  /*
+   * Quick Add Loan opens the SAME wizard the Loans page uses. Its directory
+   * data is fetched only when the button is pressed, so the dashboard makes
+   * no extra requests on load.
+   */
+  const [wizard, setWizard] = useState(null);           // null | { customers, loans }
+  const [wizardLoading, setWizardLoading] = useState(false);
+
+  const openingRef = useRef(false);
+  async function openWizard() {
+    if (openingRef.current || wizard) return;
+    openingRef.current = true;
+    setWizardLoading(true);
+    try {
+      const [c, l] = await Promise.allSettled([api.get('/customers'), api.get('/loans')]);
+      const list = r => (r.status === 'fulfilled' && Array.isArray(r.value.data) ? r.value.data : []);
+      if (c.status === 'rejected' && l.status === 'rejected') {
+        setError('The client directory could not be loaded. Check your connection and retry.');
+        return;
+      }
+      setWizard({ customers: list(c), loans: list(l) });
+    } finally {
+      openingRef.current = false;
+      setWizardLoading(false);
+    }
   }
 
   /* ── Derived series & metrics ── */
@@ -267,20 +301,12 @@ export default function Dashboard() {
 
   return (
     <div className="mf-page">
-      <WelcomeHero user={user} avatar={profileImg}>
-        {updatedAt && (
-          <span className="mf-hero__updated">
-            Updated {updatedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-          </span>
-        )}
-        <button type="button" className="mf-btn mf-btn--ghost" onClick={refresh} disabled={refreshing}>
-          <FiRefreshCw size={14} style={refreshing ? { animation: 'spin .8s linear infinite' } : undefined} />
-          Refresh
-        </button>
-        <button type="button" className="mf-btn mf-btn--primary" onClick={() => navigate('/loans?new=1')}>
-          <FiPlus size={15} /> New Loan
-        </button>
-      </WelcomeHero>
+      <DashboardHeader
+        user={user}
+        onRefresh={refresh}
+        refreshing={refreshing || wizardLoading}
+        onAddLoan={openWizard}
+      />
 
       {deniedPath && (
         <div className="mf-alert mf-alert--error mf-access-denied" role="alert">
@@ -444,6 +470,17 @@ export default function Dashboard() {
 
       {/* ── Mobile money commission ledger — admins only; staff never see or fetch it ── */}
       {isAdmin && <CommissionLedgerCard commissions={commissions} loading={loading} onNavigate={navigate} />}
+
+      {wizard && (
+        <LoanApplicationWizard
+          customers={wizard.customers}
+          loans={wizard.loans}
+          onClose={() => setWizard(null)}
+          onCustomerCreated={c => setWizard(w => (w ? { ...w, customers: [...w.customers, c] } : w))}
+          onCreated={() => { refresh(); }}
+          onViewLoan={loan => { setWizard(null); navigate(`/loans/${loan.id}`); }}
+        />
+      )}
 
       {/* ── Activity + latest loans ── */}
       <div className="mf-dash-row mf-dash-row--even">

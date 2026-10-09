@@ -317,8 +317,6 @@
 .mf-profile-btn__caret { color: var(--mf-ink-400); transition: transform var(--mf-dur) var(--mf-ease); }
 .mf-profile-btn.is-open .mf-profile-btn__caret { transform: rotate(180deg); }
 
-.mf-upload-bar { position: absolute; left: 0; right: 0; bottom: -6px; height: 3px; background: var(--mf-surface-3); }
-.mf-upload-bar span { display: block; height: 100%; background: var(--mf-orange-500); transition: width .3s ease; }
 
 /* ── Popovers: full-width sheet under the header on phones ─────────── */
 .mf-pop-anchor { position: relative; }

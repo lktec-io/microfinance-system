@@ -173,11 +173,6 @@ export default function Reports() {
 
     try {
       const userData = JSON.parse(localStorage.getItem('mf_user') || 'null');
-      const imgData  = userData?.email ? localStorage.getItem(`mf_avatar_${userData.email}`) : null;
-      if (imgData?.startsWith('data:image')) {
-        const imgType = imgData.includes('image/png') ? 'PNG' : 'JPEG';
-        doc.addImage(imgData, imgType, pageW - 44, 4, 26, 26);
-      }
       if (userData?.name) {
         doc.setFontSize(7.5); doc.setTextColor(130, 180, 130);
         doc.text(`By: ${userData.name}`, pageW - 14, 33, { align: 'right' });
