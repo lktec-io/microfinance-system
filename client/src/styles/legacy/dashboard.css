@@ -97,7 +97,7 @@
   display: grid;
   place-items: center;
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #fff;
   flex-shrink: 0;
   box-shadow: 0 6px 20px rgba(22,163,74,.38), 0 0 0 3px rgba(22,163,74,.2);
@@ -112,7 +112,7 @@
 }
 .hero-greeting {
   font-size: 2rem;        /* 32px page title level */
-  font-weight: 700;
+  font-weight: 600;
   color: #fff;
   letter-spacing: -.04em;
   line-height: 1.2;
@@ -212,7 +212,7 @@
 }
 .hero-metric-val {
   font-size: 1.7rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #fff;
   letter-spacing: -.045em;
   line-height: 1;
@@ -248,9 +248,9 @@
   border-radius: var(--radius) !important;
 }
 .stat-value {
-  font-family: 'Nunito', system-ui, sans-serif;
+  font-family: var(--mf-font-sans);
   font-size: 1.7rem;      /* financial value — bold */
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gray-900);
   letter-spacing: -.04em;
   line-height: 1.15;
@@ -313,7 +313,7 @@
 }
 .pie-legend-label { flex: 1; }
 .pie-legend-val {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gray-800);
   font-variant-numeric: tabular-nums;
 }
@@ -352,8 +352,9 @@
   border-radius: var(--radius);
   cursor: auto;
   position: relative;
-  border-left: 3px solid transparent;
+  
   transition: background var(--transition), border-color var(--transition), padding var(--transition);
+  box-shadow: var(--mf-elev-1);
 }
 .activity-card:hover {
   background: var(--primary-lt);
@@ -368,7 +369,7 @@
   place-items: center;
   color: #fff;
   font-size: .78rem;
-  font-weight: 700;
+  font-weight: 600;
   flex-shrink: 0;
   box-shadow: 0 3px 10px rgba(15,23,42,.18);
 }
@@ -385,7 +386,7 @@
 }
 .activity-customer {
   font-size: .88rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--gray-800);
   white-space: nowrap;
   overflow: hidden;
@@ -393,7 +394,7 @@
 }
 .activity-amount {
   font-size: .875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--green);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -406,7 +407,7 @@
   flex-wrap: wrap;
 }
 .activity-receipt {
-  font-family: 'Nunito', system-ui, sans-serif; font-variant-numeric: tabular-nums;
+  font-family: var(--mf-font-sans); font-variant-numeric: tabular-nums;
   font-size: .72rem;
   color: var(--gray-400);
   background: var(--gray-100);
@@ -454,14 +455,16 @@
    ══════════════════════════════════════════════════════════════════ */
 .alert-banner--warning {
   background: linear-gradient(135deg, rgba(245,158,11,.1), rgba(239,68,68,.07));
-  border: 1px solid rgba(245,158,11,.28);
+  
   color: var(--yellow-dk);
   cursor: auto;
+  box-shadow: var(--mf-elev-1);
 }
 .alert-banner--danger {
   background: var(--red-lt);
-  border: 1px solid rgba(220,38,38,.25);
+  
   color: var(--red-dk);
+  box-shadow: var(--mf-elev-1);
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -508,7 +511,7 @@
 }
 .chart-tooltip-value {
   font-size: .95rem;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .chart-tooltip-pct {
@@ -535,7 +538,7 @@
   flex-shrink: 0;
 }
 .pie-sel-info { display: flex; flex-direction: column; gap: .05rem; }
-.pie-sel-label { font-size: .8rem; font-weight: 600; color: var(--gray-800); }
+.pie-sel-label { font-size: .8rem; font-weight: 500; color: var(--gray-800); }
 .pie-sel-value { font-size: .75rem; color: var(--gray-600); }
 .pie-sel-pct   { font-size: .7rem;  color: var(--gray-400); }
 

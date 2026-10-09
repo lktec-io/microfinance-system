@@ -20,7 +20,7 @@
   color: var(--mf-ink-800);
   font-family: var(--mf-font-sans);
   font-size: var(--mf-fs-sm);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.1;
   letter-spacing: .005em;
   white-space: nowrap;
@@ -118,7 +118,7 @@
   color: var(--mf-orange-600);
   font-family: var(--mf-font-sans);
   font-size: var(--mf-fs-sm);
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 @media (hover: hover) {
@@ -183,7 +183,7 @@
   color: var(--mf-ink-900);
   font-family: var(--mf-font-sans);
   font-size: var(--mf-fs-base);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.4;
   box-shadow: none;
   transition: border-color var(--mf-dur) var(--mf-ease), box-shadow var(--mf-dur) var(--mf-ease), background-color var(--mf-dur) var(--mf-ease);
@@ -247,13 +247,13 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 .mf-label, .form-group > label, .form-label {
   font-family: var(--mf-font-sans);
   font-size: var(--mf-fs-sm);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.25;
   color: var(--mf-ink-700);
 }
 .mf-req, .form-req { color: var(--mf-orange-600); margin-left: 3px; }
 .mf-hint { font-size: var(--mf-fs-xs); color: var(--mf-ink-500); line-height: 1.4; }
-.mf-error-text { font-size: var(--mf-fs-xs); font-weight: 700; color: var(--mf-crimson-600); line-height: 1.4; }
+.mf-error-text { font-size: var(--mf-fs-xs); font-weight: 600; color: var(--mf-crimson-600); line-height: 1.4; }
 .form-static {
   min-height: var(--mf-control-h); display: flex; align-items: center;
   padding: 0 .85rem; border: 1px dashed var(--mf-border-strong);
@@ -280,7 +280,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 .mf-check {
   display: inline-flex; align-items: center; gap: .6rem;
   min-height: var(--mf-touch);
-  font-size: var(--mf-fs-sm); font-weight: 600; color: var(--mf-ink-700);
+  font-size: var(--mf-fs-sm); font-weight: 500; color: var(--mf-ink-700);
   cursor: pointer; user-select: none;
 }
 .mf-check input[type='checkbox'] {
@@ -343,9 +343,9 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 .mf-checkbox__input:disabled + .mf-checkbox__box { opacity: .45; }
 .mf-checkbox:active .mf-checkbox__box { transform: scale(.92); }
 .mf-checkbox__text { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
-.mf-checkbox__label { font-size: var(--mf-fs-sm); font-weight: 700; line-height: 1.35; color: var(--mf-ink-800); }
-.mf-checkbox__sw { font-weight: 600; color: var(--mf-ink-500); }
-.mf-checkbox__hint { font-size: var(--mf-fs-xs); font-weight: 600; line-height: 1.35; color: var(--mf-ink-500); }
+.mf-checkbox__label { font-size: var(--mf-fs-sm); font-weight: 600; line-height: 1.35; color: var(--mf-ink-800); }
+.mf-checkbox__sw { font-weight: 500; color: var(--mf-ink-500); }
+.mf-checkbox__hint { font-size: var(--mf-fs-xs); font-weight: 500; line-height: 1.35; color: var(--mf-ink-500); }
 @media (hover: hover) {
   .mf-checkbox:hover .mf-checkbox__box { border-color: var(--mf-orange-400); }
   .mf-check input[type='checkbox']:hover { border-color: var(--mf-orange-400); }
@@ -371,7 +371,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
   position: relative;
   min-width: 0;
   background: var(--mf-surface);
-  border: 1px solid var(--mf-border);
+  
   border-radius: var(--mf-radius-lg);
   box-shadow: var(--mf-shadow-1);
   padding: 1rem;
@@ -403,7 +403,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
   gap: .5rem;
   font-family: var(--mf-font-sans);
   font-size: var(--mf-fs-md);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.3;
   color: var(--mf-ink-900);
 }
@@ -412,7 +412,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 
 .mf-eyebrow {
   font-size: var(--mf-fs-2xs);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.2;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -430,7 +430,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
   border-radius: var(--mf-radius-xs);
   font-family: var(--mf-font-sans);
   font-size: var(--mf-fs-2xs);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.1;
   letter-spacing: .05em;
   text-transform: uppercase;
@@ -477,7 +477,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
   border-bottom: 1px solid var(--mf-border);
   text-align: left;
   font-size: var(--mf-fs-xs);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.2;
   color: var(--mf-ink-600);
   white-space: nowrap;
@@ -493,16 +493,16 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 .mf-table .is-num, .table .is-num {
   text-align: right;
   font-variant-numeric: tabular-nums lining-nums;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
-.mf-table th.is-num { font-weight: 800; }
+.mf-table th.is-num { font-weight: 700; }
 .mf-table .is-actions { text-align: right; white-space: nowrap; width: 1%; }
 .mf-table tfoot td {
   background: var(--mf-surface-2);
   border-top: 1px solid var(--mf-border-strong);
   border-bottom: 0;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--mf-ink-900);
 }
 .mf-table tr.is-link, .tr-link { cursor: pointer; }
@@ -555,7 +555,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
   content: attr(data-label);
   flex-shrink: 0;
   font-size: var(--mf-fs-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--mf-ink-500);
   text-align: left;
 }
@@ -611,24 +611,24 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
   color: var(--mf-ink-700);
   font-family: var(--mf-font-sans);
   font-size: var(--mf-fs-xs);
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.amount-cell { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--mf-emerald-700); white-space: nowrap; }
+.amount-cell { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--mf-emerald-700); white-space: nowrap; }
 .table-avatar {
   width: 34px; height: 34px;
   border-radius: var(--mf-radius);
   background: var(--mf-orange-50); color: var(--mf-orange-700);
   display: inline-flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: var(--mf-fs-xs);
+  font-weight: 700; font-size: var(--mf-fs-xs);
 }
 .table-empty, .text-center { text-align: center; }
 
 /* Cell compositions */
 .mf-cell-main { display: flex; align-items: center; gap: .7rem; min-width: 0; text-align: left; }
-.mf-cell-title { font-weight: 800; color: var(--mf-ink-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mf-cell-sub { max-width: 100%; font-size: var(--mf-fs-xs); font-weight: 600; color: var(--mf-ink-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mf-cell-title { font-weight: 700; color: var(--mf-ink-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mf-cell-sub { max-width: 100%; font-size: var(--mf-fs-xs); font-weight: 500; color: var(--mf-ink-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mf-cell-stack { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
 
 /* ── Text utilities ────────────────────────────────────────────────── */
@@ -636,7 +636,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 .text-green  { color: var(--mf-emerald-700) !important; }
 .text-orange { color: var(--mf-orange-600) !important; }
 .mf-muted    { color: var(--mf-ink-500); }
-.mf-strong   { color: var(--mf-ink-900); font-weight: 800; }
+.mf-strong   { color: var(--mf-ink-900); font-weight: 700; }
 .mf-tone--emerald { color: var(--mf-emerald-700); }
 .mf-tone--crimson { color: var(--mf-crimson-600); }
 .mf-tone--amber   { color: var(--mf-amber-700); }

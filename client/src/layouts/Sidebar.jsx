@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { FiLogOut, FiChevronsLeft, FiChevronsRight, FiX } from 'react-icons/fi';
 import { useAuth }         from '../context/AuthContext';
 import { useProfileImage } from '../context/ProfileContext';
@@ -155,8 +156,20 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
                     onClick={onCloseMobile}
                     className={({ isActive }) => `mf-nav-link${isActive ? ' is-active' : ''}`}
                   >
-                    <Icon className="mf-nav-link__icon" />
-                    <span className="mf-nav-link__label">{label}</span>
+                    {({ isActive }) => (
+                      <>
+                        {isActive && (
+                          <motion.span
+                            layoutId="mf-nav-active"
+                            className="mf-nav-link__active"
+                            aria-hidden="true"
+                            transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+                          />
+                        )}
+                        <Icon className="mf-nav-link__icon" />
+                        <span className="mf-nav-link__label">{label}</span>
+                      </>
+                    )}
                   </NavLink>
                 );
               })}

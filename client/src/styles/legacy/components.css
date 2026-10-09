@@ -3,7 +3,7 @@
    ══════════════════════════════════════════════════════════════════ */
 .card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  
   border-radius: var(--radius-lg);
   padding: 1.4rem;
   box-shadow: var(--shadow-sm);
@@ -34,7 +34,7 @@
 }
 .card-title {
   font-size: 1.125rem;    /* 18px card title */
-  font-weight: 600;
+  font-weight: 500;
   color: var(--gray-800);
   display: flex;
   align-items: center;
@@ -52,7 +52,7 @@
   padding: .18rem .6rem;
   border-radius: var(--radius);
   font-size: .72rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: .02em;
 }
 .badge--green   { background: var(--green-light); color: var(--green-dk);  border: 1px solid var(--green-border); }
@@ -77,7 +77,7 @@
   padding: .22rem .65rem;
   border-radius: var(--radius);
   font-size: .72rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: .015em;
   white-space: nowrap;
 }
@@ -111,7 +111,7 @@
 
 .modal {
   background: var(--surface);
-  border: 1px solid var(--border);
+  
   border-radius: var(--radius-xl);
   width: 100%;
   max-width: 520px;
@@ -143,7 +143,7 @@
 }
 .modal-header h2 {
   font-size: 1.125rem;    /* 18px card/modal title */
-  font-weight: 600;
+  font-weight: 500;
   color: var(--gray-800);
   letter-spacing: -.02em;
   margin: 0;
@@ -200,33 +200,33 @@
 /* Legacy: if .modal doesn't have .modal-body, use padding */
 .modal:not(:has(.modal-body)) { padding: 1.5rem; }
 
-/* ── Nunito on modal & card headings ── */
+/* ── Headings use the global family token ── */
 .modal-title,
 .modal-header h2,
-.card-title { font-family: 'Nunito', system-ui, sans-serif; }
+.card-title { font-family: var(--mf-font-sans); }
 
 .modal-title {
   display: flex;
   align-items: center;
   gap: .45rem;
   font-size: 1.125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gray-800);
   letter-spacing: -.02em;
   margin: 0;
 }
 
-/* ── Nunito on KPI / stat numbers across the app ── */
+/* ── KPI / stat numbers use the global family token ── */
 .users-page-title,
 .users-stat-num,
-.exp-stat-value { font-family: 'Nunito', system-ui, sans-serif; }
+.exp-stat-value { font-family: var(--mf-font-sans); }
 
 /* ══════════════════════════════════════════════════════════════════
    STAT CARDS
    ══════════════════════════════════════════════════════════════════ */
 .stat-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  
   border-radius: var(--radius-lg);
   padding: 1.35rem 1.4rem;
   position: relative;
@@ -294,7 +294,7 @@
 }
 .loan-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  
   border-radius: var(--radius-lg);
   padding: 1.2rem;
   box-shadow: var(--shadow-sm);
@@ -312,11 +312,11 @@
   place-items: center;
   color: #fff;
   font-size: .82rem;
-  font-weight: 700;
+  font-weight: 600;
   flex-shrink: 0;
 }
 .loan-card-info { flex: 1; min-width: 0; }
-.loan-card-name  { font-size: .88rem; font-weight: 600; color: var(--gray-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.loan-card-name  { font-size: .88rem; font-weight: 500; color: var(--gray-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .loan-card-phone { font-size: .76rem; color: var(--gray-500); margin-top: .12rem; }
 .loan-card-body  { display: flex; flex-direction: column; gap: .38rem; margin-bottom: .9rem; }
 .loan-card-row {
@@ -330,7 +330,7 @@
 }
 .loan-card-row:last-child { border-bottom: none; }
 .loan-card-row span { display: flex; align-items: center; gap: .28rem; }
-.loan-card-row strong { color: var(--gray-800); font-weight: 600; }
+.loan-card-row strong { color: var(--gray-800); font-weight: 500; }
 .loan-card-progress {
   height: 4px;
   background: var(--gray-200);
@@ -365,7 +365,7 @@
 
 .customer-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  
   border-radius: var(--radius-lg);
   padding: 1.5rem 1.25rem 1.25rem;
   display: flex;
@@ -396,7 +396,7 @@
   place-items: center;
   color: #fff;
   font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: .85rem;
   flex-shrink: 0;
   box-shadow: 0 4px 16px rgba(15,23,42,.22);
@@ -404,7 +404,7 @@
 
 .customer-card-name {
   font-size: 1rem;        /* 16px */
-  font-weight: 600;
+  font-weight: 500;
   color: var(--gray-800);
   width: 100%;
   white-space: nowrap;
@@ -469,7 +469,7 @@
   place-items: center;
   color: #fff;
   font-size: .72rem;
-  font-weight: 700;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
@@ -478,7 +478,7 @@
    ══════════════════════════════════════════════════════════════════ */
 .user-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  
   border-radius: var(--radius-lg);
   padding: 1.25rem;
   display: flex;
@@ -498,11 +498,11 @@
   place-items: center;
   color: #fff;
   font-size: .9rem;
-  font-weight: 700;
+  font-weight: 600;
   flex-shrink: 0;
 }
 .user-card-body { flex: 1; min-width: 0; }
-.user-card-name  { font-size: .92rem; font-weight: 600; color: var(--gray-800); }
+.user-card-name  { font-size: .92rem; font-weight: 500; color: var(--gray-800); }
 .user-card-email { font-size: .8rem; color: var(--gray-500); margin: .15rem 0 .45rem; }
 .user-card-actions { display: flex; gap: .45rem; margin-top: .55rem; }
 
@@ -570,8 +570,9 @@
 .alert-banner-arrow { margin-left: auto; }
 .alert-banner--warning {
   background: linear-gradient(135deg, rgba(245,158,11,.1), rgba(239,68,68,.08));
-  border: 1px solid rgba(245,158,11,.28);
+  
   color: var(--yellow-dk);
+  box-shadow: var(--mf-elev-1);
 }
 
 /* ── Toast ── */
@@ -621,7 +622,7 @@
 }
 .users-page-title {
   font-size: 2rem;        /* 32px page title */
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gray-900);
   letter-spacing: -.04em;
   line-height: 1.2;
@@ -660,7 +661,7 @@
 .users-stat-tile:hover { box-shadow: var(--shadow-md); border-color: var(--border-strong); }
 .users-stat-num {
   font-size: 1.65rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gray-900);
   letter-spacing: -.04em;
   line-height: 1;
@@ -741,7 +742,7 @@
 
 .user-card-premium {
   background: var(--surface);
-  border: 1px solid var(--border);
+  
   border-radius: var(--radius-lg);
   padding: 1.6rem 1.35rem 1.2rem;
   display: flex;
@@ -777,7 +778,7 @@
   display: grid;
   place-items: center;
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #fff;
   margin-bottom: .45rem;
   flex-shrink: 0;
@@ -788,7 +789,7 @@
 
 .user-name-premium {
   font-size: .975rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--gray-800);
   display: flex;
   align-items: center;
@@ -802,7 +803,7 @@
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
   padding: .06rem .42rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: .03em;
 }
 .user-email-premium {
@@ -903,7 +904,7 @@
 }
 .rpt-title {
   font-size: 1.55rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gray-900);
   letter-spacing: -.04em;
   line-height: 1.2;

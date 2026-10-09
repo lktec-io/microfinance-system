@@ -9,6 +9,15 @@ html {
   text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   scroll-behavior: smooth;
+  /*
+   * Reserve the scrollbar track at all times. Without this, moving from a short
+   * page to a tall one adds the scrollbar and shifts the whole shell sideways —
+   * which read as the sidebar flickering/jumping on every route change.
+   */
+  scrollbar-gutter: stable;
+}
+@supports not (scrollbar-gutter: stable) {
+  html { overflow-y: scroll; }
 }
 
 body {
@@ -16,7 +25,7 @@ body {
   min-height: 100dvh;
   font-family: var(--mf-font-sans);
   font-size: var(--mf-fs-base);
-  font-weight: 500;
+  font-weight: var(--mf-fw-body);
   line-height: 1.55;
   color: var(--mf-ink-800);
   background: var(--mf-bg);
@@ -26,7 +35,7 @@ body {
   font-kerning: normal;
 }
 
-/* Every text element — headings, controls, tables — uses Nunito */
+/* Every text element — headings, controls, tables — uses the one family (Inter) */
 h1, h2, h3, h4, h5, h6,
 p, span, a, li, dt, dd, label, small, strong, b, em,
 button, input, select, textarea, optgroup, option,
@@ -35,9 +44,9 @@ table, th, td, caption, code, kbd, samp, pre {
 }
 
 h1, h2, h3, h4, h5, h6 { color: var(--mf-ink-900); line-height: 1.25; letter-spacing: -.01em; }
-h1 { font-weight: 800; }
-h2, h3 { font-weight: 700; }
-h4, h5, h6 { font-weight: 700; }
+h1 { font-weight: 700; }
+h2, h3 { font-weight: 600; }
+h4, h5, h6 { font-weight: 600; }
 
 a { color: var(--mf-orange-600); text-decoration: none; }
 a:hover { color: var(--mf-orange-700); text-decoration: underline; text-underline-offset: 2px; }
@@ -59,7 +68,7 @@ input[type='checkbox'], input[type='radio'] { accent-color: var(--mf-orange-500)
 .mf-num, .mf-mono {
   font-family: var(--mf-font-sans);
   font-variant-numeric: tabular-nums lining-nums;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0;
 }
 

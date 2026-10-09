@@ -63,9 +63,16 @@
   --mf-radius:    3px;
   --mf-radius-lg: 4px;
 
-  /* ── Typography — Nunito everywhere ────────────────────────────────── */
-  --mf-font-sans: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --mf-font-mono: var(--mf-font-sans);   /* figures use tabular-nums, same family */
+  /* ── Typography — ONE family, app-wide ────────────────────────────── */
+  --mf-font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mf-font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  /* Weight scale — body text stays light, only headings and figures lean in */
+  --mf-fw-light:  300;
+  --mf-fw-body:   400;
+  --mf-fw-medium: 500;
+  --mf-fw-strong: 600;
+  --mf-fw-head:   700;
 
   /* Phone type scale — generous for field use */
   --mf-fs-2xs:  12px;
@@ -84,10 +91,17 @@
   --mf-icon-btn:     42px;   /* square icon buttons */
   --mf-touch:        44px;   /* minimum hit area */
 
-  /* ── Elevation (restrained) ────────────────────────────────────────── */
-  --mf-shadow-1:   0 1px 0 rgba(30, 30, 36, .03);
-  --mf-shadow-2:   0 1px 2px rgba(30, 30, 36, .05), 0 1px 0 rgba(30, 30, 36, .02);
-  --mf-shadow-pop: 0 16px 40px rgba(22, 22, 26, .16), 0 2px 8px rgba(22, 22, 26, .06);
+  /* ── Elevation ─────────────────────────────────────────────────────────
+     Surfaces are separated by light, shadow and spacing — not by outlines.
+     Containers carry elev-1; raised/interactive ones elev-2; overlays elev-3. */
+  --mf-elev-1: 0 1px 2px rgba(16, 20, 32, .04), 0 1px 3px rgba(16, 20, 32, .05);
+  --mf-elev-2: 0 2px 4px rgba(16, 20, 32, .04), 0 6px 16px rgba(16, 20, 32, .06);
+  --mf-elev-3: 0 4px 10px rgba(16, 20, 32, .06), 0 18px 44px rgba(16, 20, 32, .14);
+  --mf-elev-inset: inset 0 1px 0 rgba(255, 255, 255, .6);
+
+  --mf-shadow-1:   var(--mf-elev-1);
+  --mf-shadow-2:   var(--mf-elev-2);
+  --mf-shadow-pop: var(--mf-elev-3);
   --mf-focus-ring: 0 0 0 3px rgba(255, 107, 0, .25);
 
   /* ── Motion ────────────────────────────────────────────────────────── */

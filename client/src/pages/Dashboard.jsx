@@ -2,20 +2,22 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   FiRefreshCw, FiPlus, FiAlertTriangle, FiArrowRight, FiTrendingUp, FiLock, FiX,
-  FiBriefcase, FiPieChart, FiPercent, FiActivity, FiLayers, FiBarChart2, FiSmartphone,
+  FiBriefcase, FiPieChart, FiActivity, FiLayers, FiBarChart2, FiSmartphone,
+  FiUsers, FiFileText,
 } from 'react-icons/fi';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useProfileImage } from '../context/ProfileContext';
 import { fmt0, fmtShort, fmtDay, fmtTimestamp } from '../utils/format';
 import { providerLabel } from '../utils/labels';
 import { t } from '../i18n/bilingual';
 import { collectionRate, lastMonthKeys, monthLabel } from '../utils/finance';
-import {
-  PageHeader, MetricCard, MiniBars, StackBar, Meter, DueChip, Empty, TableSkeleton,
-} from '../components/ui';
+import { DueChip, Empty, TableSkeleton } from '../components/ui';
 import StatusBadge from '../components/common/StatusBadge';
-import { useCanSeeTotals, Mask, RestrictedPanel, maskedFormat } from '../components/common/MoneyGuard';
-import { MASK } from '../utils/rbac';
+import { useCanSeeTotals, Mask, RestrictedPanel } from '../components/common/MoneyGuard';
+import WelcomeHero from '../components/dashboard/WelcomeHero';
+import StatTile from '../components/dashboard/StatTile';
+import { TrendDots, BarTrend, Donut } from '../components/dashboard/charts';
 import '../styles/app/dashboard.css';
 
 const EMPTY_SUMMARY = {
@@ -35,51 +37,6 @@ const STATUS_TONES = [
   { key: 'overdue', label: 'Overdue', tone: 'crimson' },
   { key: 'paid',    label: 'Paid',    tone: 'emerald' },
 ];
-
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  return 'Good evening';
-}
-
-/* ── Cash-flow chart ───────────────────────────────────────────────── */
-function CashFlowChart({ series }) {
-  const max = Math.max(1, ...series.flatMap(s => [s.disbursed, s.collected]));
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => fmtShort(f * max));
-  const lastIdx = series.length - 1;
-
-  return (
-    <div className="mf-cashflow">
-      <div className="mf-cashflow__axis" aria-hidden="true">
-        {ticks.map((t, i) => <span key={i}>{t}</span>)}
-      </div>
-      <div className="mf-cashflow__plot" role="img"
-        aria-label="Monthly disbursements versus collections over the last 12 months">
-        {series.map((s, i) => (
-          <div key={s.key} className={`mf-cashflow__group${i === lastIdx ? ' is-current' : ''}`}
-            tabIndex={0} aria-label={`${monthLabel(s.key, 'long')}: disbursed TZS ${fmt0(s.disbursed)}, collected TZS ${fmt0(s.collected)}`}>
-            <span className="mf-cashflow__bar mf-cashflow__bar--out"
-              style={{ '--h': `${(s.disbursed / max) * 100}%`, animationDelay: `${i * 35}ms` }} />
-            <span className="mf-cashflow__bar mf-cashflow__bar--in"
-              style={{ '--h': `${(s.collected / max) * 100}%`, animationDelay: `${i * 35 + 60}ms` }} />
-            <div className="mf-cashflow__tip">
-              <div className="mf-cashflow__tip-title">{monthLabel(s.key, 'long')} {s.key.slice(0, 4)}</div>
-              <div className="mf-cashflow__tip-row"><span>Disbursed</span><span>TZS {fmt0(s.disbursed)}</span></div>
-              <div className="mf-cashflow__tip-row"><span>Collected</span><span>TZS {fmt0(s.collected)}</span></div>
-              <div className="mf-cashflow__tip-row"><span>Net flow</span><span>{s.collected - s.disbursed >= 0 ? '+' : '−'}{fmt0(Math.abs(s.collected - s.disbursed))}</span></div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="mf-cashflow__labels" aria-hidden="true">
-        {series.map((s, i) => (
-          <span key={s.key} className={i === lastIdx ? 'is-current' : ''}>{monthLabel(s.key)}</span>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /* ── Mobile money commission ledger — ADMIN ONLY ───────────────────── */
 function CommissionLedgerCard({ commissions, loading, onNavigate }) {
@@ -179,6 +136,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAdmin } = useAuth();
+  const profileImg = useProfileImage();
   // Cumulative currency totals are super-admin only; counts stay visible to everyone
   const showTotals = useCanSeeTotals();
   // Set by ProtectedRoute when a non-admin tried to open an admin-only page
@@ -272,10 +230,19 @@ export default function Dashboard() {
   const ls         = summary.loan_status;
   const rate       = collectionRate(summary.collected, summary.outstanding);
   const pastDueBal = pastDue.reduce((s, l) => s + (Number(l.balance) || 0), 0);
-  const currentBal = Math.max(0, summary.outstanding - pastDueBal);
+  const prevMonth  = series[series.length - 2];
   const thisMonth  = series[series.length - 1];
   const activeShare = summary.total_loans ? Math.round((summary.active_loans / summary.total_loans) * 100) : 0;
-  const rateTone   = rate == null ? 'slate' : rate >= 80 ? 'emerald' : rate >= 60 ? 'orange' : 'crimson';
+  /* Month-on-month movement shown as a small chip on the money tiles */
+  const movement = (now, before) => {
+    const a = Number(now) || 0;
+    const b = Number(before) || 0;
+    if (!b) return null;
+    const pct = Math.round(((a - b) / b) * 100);
+    return { pct, dir: pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat' };
+  };
+  const collectedDelta = movement(thisMonth?.collected, prevMonth?.collected);
+  const disbursedDelta = movement(thisMonth?.disbursed, prevMonth?.disbursed);
 
   const timeline = useMemo(() => {
     const events = [
@@ -298,27 +265,22 @@ export default function Dashboard() {
       .slice(0, 9);
   }, [recent]);
 
-  const firstName = user?.name?.split(' ')[0] || 'there';
-
   return (
     <div className="mf-page">
-      <PageHeader
-        eyebrow={new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-        title="Portfolio Overview"
-        subtitle={`${greeting()}, ${firstName}. Here is where the loan book stands today.`}
-        actions={
-          <>
-            {updatedAt && <span className="mf-page-head__meta">Updated {updatedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>}
-            <button type="button" className="mf-btn mf-btn--ghost" onClick={refresh} disabled={refreshing}>
-              <FiRefreshCw size={14} style={refreshing ? { animation: 'spin .8s linear infinite' } : undefined} />
-              Refresh
-            </button>
-            <button type="button" className="mf-btn mf-btn--primary" onClick={() => navigate('/loans?new=1')}>
-              <FiPlus size={15} /> New Loan
-            </button>
-          </>
-        }
-      />
+      <WelcomeHero user={user} avatar={profileImg}>
+        {updatedAt && (
+          <span className="mf-hero__updated">
+            Updated {updatedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        )}
+        <button type="button" className="mf-btn mf-btn--ghost" onClick={refresh} disabled={refreshing}>
+          <FiRefreshCw size={14} style={refreshing ? { animation: 'spin .8s linear infinite' } : undefined} />
+          Refresh
+        </button>
+        <button type="button" className="mf-btn mf-btn--primary" onClick={() => navigate('/loans?new=1')}>
+          <FiPlus size={15} /> New Loan
+        </button>
+      </WelcomeHero>
 
       {deniedPath && (
         <div className="mf-alert mf-alert--error mf-access-denied" role="alert">
@@ -352,105 +314,133 @@ export default function Dashboard() {
         </button>
       )}
 
-      {/* ── KPIs ── */}
-      <section className="mf-metric-grid" aria-label="Key portfolio metrics">
-        <MetricCard
-          label="Total Disbursed" unit="TZS" tone="charcoal" Icon={FiBriefcase} loading={loading}
-          value={showTotals ? fmt0(summary.loans_amount) : <Mask />}
-          sub={<><strong>{summary.total_loans}</strong> loans · <strong>TZS {showTotals ? fmtShort(thisMonth?.disbursed) : <Mask compact />}</strong> this month</>}
-          tracker={<MiniBars values={series.slice(-8).map(s => s.disbursed)} labels={series.slice(-8).map(s => monthLabel(s.key))}
-            format={showTotals ? undefined : maskedFormat} />}
+      {/* ── Statistics ─────────────────────────────────────────────────
+           Flat tiles: elevation, typography and spacing instead of borders.
+           Figures count up once; money follows the RBAC mask.           */}
+      <section className="mf-tile-grid" aria-label="Key portfolio metrics">
+        <StatTile
+          label="Total Collected" unit="TZS" tone="emerald" Icon={FiTrendingUp}
+          value={summary.collected} masked={!showTotals} format={fmt0}
+          delta={collectedDelta} meter={rate ?? 0}
+          sub={rate == null ? `${summary.repayments} payments posted` : `${rate.toFixed(1)}% collection rate`}
+          onClick={() => navigate('/repayments')}
+        />
+        <StatTile
+          label="Total Disbursed" unit="TZS" tone="charcoal" Icon={FiBriefcase}
+          value={summary.loans_amount} masked={!showTotals} format={fmt0}
+          delta={disbursedDelta}
+          sub={`${summary.total_loans} loans on book`}
           onClick={() => navigate('/loans')}
         />
-        <MetricCard
-          label="Active Portfolio" tone="orange" Icon={FiLayers} loading={loading}
-          value={summary.active_loans}
-          unit="LOANS"
-          sub={<><strong>{activeShare}%</strong> of book · <strong>{ls.pending}</strong> pending</>}
-          tracker={<StackBar segments={STATUS_TONES.map(s => ({ label: s.label, tone: s.tone, value: ls[s.key] }))} />}
-          onClick={() => navigate('/loans?status=active')}
-        />
-        <MetricCard
-          label="Outstanding Balance" unit="TZS" tone={pastDueBal > 0 ? 'crimson' : 'neutral'} Icon={FiPieChart} loading={loading}
-          value={showTotals ? fmt0(summary.outstanding) : <Mask />}
+        <StatTile
+          label="Outstanding" unit="TZS" tone={pastDueBal > 0 ? 'crimson' : 'slate'} Icon={FiPieChart}
+          value={summary.outstanding} masked={!showTotals} format={fmt0}
           sub={pastDueBal > 0
-            ? <><strong className="mf-tone--crimson">TZS {showTotals ? fmtShort(pastDueBal) : <Mask compact />}</strong> past due · {pastDue.length} loan{pastDue.length === 1 ? '' : 's'}</>
-            : <>No balances past due</>}
-          tracker={<StackBar segments={[
-            { label: 'Current',  tone: 'charcoal', value: currentBal, display: showTotals ? `TZS ${fmt0(currentBal)}` : MASK },
-            { label: 'Past due', tone: 'crimson',  value: pastDueBal, display: showTotals ? `TZS ${fmt0(pastDueBal)}` : MASK },
-          ]} />}
+            ? `${pastDue.length} loan${pastDue.length === 1 ? '' : 's'} past due`
+            : 'No balances past due'}
           onClick={() => navigate('/repayments?view=collections')}
         />
-        <MetricCard
-          label="Collection Rate" tone={rateTone === 'crimson' ? 'crimson' : 'emerald'} Icon={FiPercent} loading={loading}
-          value={rate == null ? '—' : `${rate.toFixed(1)}%`}
-          sub={showTotals
-            ? <><strong>TZS {fmtShort(summary.collected)}</strong> collected of TZS {fmtShort(summary.collected + summary.outstanding)}</>
-            : <><strong>{summary.repayments}</strong> payments posted</>}
-          tracker={<Meter value={rate ?? 0} tone={rateTone} />}
-          title="Collected ÷ (collected + outstanding balance)"
-          onClick={() => navigate('/repayments')}
+        <StatTile
+          label="Active Loans" unit="LOANS" tone="orange" Icon={FiLayers}
+          value={summary.active_loans} count
+          sub={`${activeShare}% of book · ${ls.pending} pending`}
+          onClick={() => navigate('/loans?status=active')}
+        />
+        <StatTile
+          label="Total Customers" unit="CLIENTS" tone="slate" Icon={FiUsers}
+          value={summary.customers} count
+          sub={`${recent.customers.length} onboarded recently`}
+          onClick={() => navigate('/customers')}
+        />
+        {/* Expenses stay readable for every role — the agreed exception */}
+        <StatTile
+          label="Operating Expenses" unit="TZS" tone="amber" Icon={FiFileText}
+          value={expenses.total} format={fmt0}
+          sub={`${expenses.count} record${expenses.count === 1 ? '' : 's'}`}
+          onClick={() => navigate('/expenses')}
         />
       </section>
 
-      {/* ── Cash flow + composition ── */}
+      {/* ── Charts ── */}
       <div className="mf-dash-row">
-        <section className="mf-card">
+        <section className="mf-card mf-card--chart">
           <div className="mf-card__head">
             <div>
               <h2 className="mf-card__title"><FiBarChart2 size={15} /> Cash Flow</h2>
-              <div className="mf-card__sub">Disbursements vs. collections · trailing 12 months</div>
+              <div className="mf-card__sub">Disbursed vs. collected · trailing 12 months</div>
             </div>
-            <div className="mf-chart-legend">
-              <span className="mf-chart-legend__item">
-                <span className="mf-chart-legend__swatch mf-tone-bg--charcoal" /> Disbursed <b>{showTotals ? fmtShort(totals12.disbursed) : <Mask compact />}</b>
-              </span>
-              <span className="mf-chart-legend__item">
-                <span className="mf-chart-legend__swatch mf-tone-bg--orange" /> Collected <b>{showTotals ? fmtShort(totals12.collected) : <Mask compact />}</b>
-              </span>
-            </div>
+            {showTotals && (
+              <div className="mf-chart-legend">
+                <span className="mf-chart-legend__item">
+                  <i className="mf-chart__swatch is-charcoal" /> Disbursed <b>{fmtShort(totals12.disbursed)}</b>
+                </span>
+                <span className="mf-chart-legend__item">
+                  <i className="mf-chart__swatch is-orange" /> Collected <b>{fmtShort(totals12.collected)}</b>
+                </span>
+              </div>
+            )}
           </div>
-          {/* The chart is nothing but cumulative amounts (bars, ticks, tooltips) — restricted roles get a notice */}
           {loading ? <div className="skeleton" style={{ height: 240 }} />
-            : showTotals ? <CashFlowChart series={series} /> : <RestrictedPanel />}
+            : showTotals ? (
+              <BarTrend
+                label="Cash flow"
+                points={series.map(s => ({ key: s.key, label: monthLabel(s.key), disbursed: s.disbursed, collected: s.collected }))}
+                series={[
+                  { key: 'disbursed', label: 'Disbursed', tone: 'charcoal' },
+                  { key: 'collected', label: 'Collected', tone: 'orange' },
+                ]}
+                format={v => `TZS ${fmt0(v)}`}
+              />
+            ) : <RestrictedPanel />}
         </section>
 
-        <section className="mf-card">
+        <section className="mf-card mf-card--chart">
           <div className="mf-card__head">
             <div>
               <h2 className="mf-card__title"><FiPieChart size={15} /> Portfolio Composition</h2>
               <div className="mf-card__sub">Loans by lifecycle status</div>
             </div>
           </div>
-          <div className="mf-compo">
-            <div className="mf-compo__total">
-              <span className="mf-compo__total-num">{loading ? '—' : summary.total_loans}</span>
-              <span className="mf-compo__total-label">loans on book</span>
-            </div>
-            <StackBar tall segments={STATUS_TONES.map(s => ({ label: s.label, tone: s.tone, value: ls[s.key] }))} />
-            <div className="mf-compo__list">
-              {STATUS_TONES.map(s => (
-                <button key={s.key} type="button" className="mf-compo__row" onClick={() => navigate(`/loans?status=${s.key}`)}>
-                  <span className={`mf-compo__swatch mf-tone-bg--${s.tone}`} />
-                  <span className="mf-compo__label">{s.label}</span>
-                  <span className="mf-compo__count">{ls[s.key]}</span>
-                  <span className="mf-compo__pct">
-                    {summary.total_loans ? `${Math.round((ls[s.key] / summary.total_loans) * 100)}%` : '0%'}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <dl className="mf-compo__aside">
-              <div><dt>Clients</dt><dd>{summary.customers}</dd></div>
-              <div><dt>Op. expenses</dt><dd title={`${expenses.count} records`}>TZS {fmtShort(expenses.total)}</dd></div>
-              {isAdmin && (
-                <div><dt>Form fees</dt><dd title="10% processing fees collected upfront">TZS {fmtShort(summary.processing_fees)}</dd></div>
-              )}
-            </dl>
-          </div>
+          {loading ? <div className="skeleton" style={{ height: 240 }} /> : (
+            <Donut
+              centerLabel="loans on book"
+              total={summary.total_loans}
+              segments={STATUS_TONES.map(s => ({
+                key: s.key, label: s.label, tone: s.tone, value: ls[s.key],
+                onSelect: () => navigate(`/loans?status=${s.key}`),
+              }))}
+            />
+          )}
+          <dl className="mf-compo__aside">
+            <div><dt>Clients</dt><dd>{summary.customers}</dd></div>
+            <div><dt>Op. expenses</dt><dd title={`${expenses.count} records`}>TZS {fmtShort(expenses.total)}</dd></div>
+            {isAdmin && (
+              <div><dt>Form fees</dt><dd title="10% processing fees collected upfront">TZS {fmtShort(summary.processing_fees)}</dd></div>
+            )}
+          </dl>
         </section>
       </div>
+
+      {/* ── Collections trend ── */}
+      <section className="mf-card mf-card--chart">
+        <div className="mf-card__head">
+          <div>
+            <h2 className="mf-card__title"><FiActivity size={15} /> Collections Trend</h2>
+            <div className="mf-card__sub">Repayments banked each month · hover a point for the figure</div>
+          </div>
+          {showTotals && thisMonth && (
+            <span className="mf-card__chip">This month <b>TZS {fmtShort(thisMonth.collected)}</b></span>
+          )}
+        </div>
+        {loading ? <div className="skeleton" style={{ height: 240 }} />
+          : showTotals ? (
+            <TrendDots
+              label="Collections trend"
+              points={series.map(s => ({ key: s.key, label: monthLabel(s.key), value: s.collected }))}
+              format={v => `TZS ${fmt0(v)}`}
+            />
+          ) : <RestrictedPanel />}
+      </section>
 
       {/* ── Mobile money commission ledger — admins only; staff never see or fetch it ── */}
       {isAdmin && <CommissionLedgerCard commissions={commissions} loading={loading} onNavigate={navigate} />}
