@@ -1,145 +1,123 @@
 import { ISSUER, DISCLAIMER, docKey } from '../../utils/voucher';
 import { fmt } from '../../utils/format';
 
-/** Minimal scissors marker drawn inline, so it needs no icon font. */
+/** Minimal scissors, drawn inline so it needs no icon font or emoji glyph. */
 function Scissors() {
   return (
-    <svg width="14" height="12" viewBox="0 0 14 12" fill="none" aria-hidden="true">
-      <circle cx="2.4" cy="2.4" r="1.7" stroke="currentColor" strokeWidth="1" />
-      <circle cx="2.4" cy="9.6" r="1.7" stroke="currentColor" strokeWidth="1" />
-      <path d="M3.9 3.4L12.5 9M3.9 8.6L12.5 3" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+    <svg width="13" height="11" viewBox="0 0 13 11" fill="none" aria-hidden="true">
+      <circle cx="2.2" cy="2.2" r="1.5" stroke="currentColor" strokeWidth=".9" />
+      <circle cx="2.2" cy="8.8" r="1.5" stroke="currentColor" strokeWidth=".9" />
+      <path d="M3.6 3.1L11.6 8.2M3.6 7.9L11.6 2.8" stroke="currentColor" strokeWidth=".9" strokeLinecap="round" />
     </svg>
   );
 }
 
-function Row({ label, value, total }) {
+function Rows({ rows }) {
   return (
-    <tr className={total ? 'is-total' : undefined}>
-      <th>{label}</th>
-      <td>{value}</td>
-    </tr>
+    <table className="mf-ticket__rows">
+      <tbody>
+        {rows.map(([label, value, total]) => (
+          <tr key={label} className={total ? 'is-total' : undefined}>
+            <th>{label}</th>
+            <td>{value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
 /**
- * The printable perforated bank ticket.
+ * The printable 80mm thermal ticket.
  *
- * Rendered off-screen and only made visible inside the print surface, so the
- * browser Print path produces the same dual stub as the PDF download:
- * office copy on top, perforation, customer ticket beneath.
+ * Rendered off-screen and revealed only inside the print surface, so the
+ * browser Print path produces the same two-part ticket as the PDF download:
+ * office voucher, perforation, official customer receipt.
  */
 export default function TicketSheet({ kind = 'statement', statement, entry, operator, showTotals }) {
   const generated = new Date().toLocaleString('en-GB');
-  const money = v => (showTotals ? `TZS ${fmt(v)}` : '•••••');
-
+  const money = v => (showTotals ? fmt(v) : '•••••');
   const isTransaction = kind === 'transaction' && entry;
+
   const key = isTransaction
     ? docKey('VCH', `${entry.reference}|${entry.date}`)
     : docKey('STMT', statement?.generated_at || generated);
 
+  const cash = statement?.cash || {};
+
   const officeRows = isTransaction ? [
-    ['Transaction date', String(entry.date).slice(0, 10)],
-    ['Entity / client', entry.entity],
-    ['Reference token', entry.reference],
-    ['Account type', entry.account_type === 'group' ? 'Group account' : 'Individual account'],
+    ['Date', String(entry.date).slice(0, 10)],
+    ['Entity', entry.entity],
+    ['Account', entry.account_type === 'group' ? 'GROUP' : 'INDIVIDUAL'],
     ['Inflow (+)', entry.inflow ? money(entry.inflow) : '—'],
     ['Outflow (−)', entry.outflow ? money(entry.outflow) : '—'],
-  ] : statement ? [
-    ['Total portfolio outbound', money(statement.portfolio.principal_disbursed)],
-    ['Gross portfolio outstanding', money(statement.portfolio.outstanding)],
-    ['Total liabilities — 5% incentives accrued', money(statement.liabilities?.refundable_accrued ?? 0)],
-    ['Portfolio at risk (PAR)', showTotals ? `${statement.portfolio.par_pct}%` : '•••••'],
-    ['10% processing form fees', money(statement.income.processing_fees)],
-    ['Interest income earned', money(statement.income.interest_recognised)],
-  ] : [];
+    ['Running balance', money(entry.balance), true],
+  ] : [
+    ['Gross outbound', money(cash.gross_outbound)],
+    ['Gross recovered', money(cash.gross_recovered)],
+    ['Revenue (10% fees)', money(cash.immediate_revenue)],
+    ['Operating expenses', money(cash.operating_expenses)],
+    ['BAKI', money(cash.net_system_balance), true],
+  ];
 
   const customerRows = isTransaction ? [
     ['Reference', entry.reference],
-    [entry.inflow ? 'Amount received' : 'Amount disbursed', money(entry.inflow || entry.outflow)],
-    ['10% processing fee', 'Collected upfront at booking'],
-    ['Outstanding balance', money(entry.loan_balance ?? entry.balance)],
-  ] : statement ? [
-    ['Principal disbursed', money(statement.portfolio.principal_disbursed)],
-    ['Total repaid', money(statement.portfolio.total_repaid)],
-    ['Outstanding balance', money(statement.portfolio.outstanding)],
-    ['Net revenue', money(statement.income.net)],
-  ] : [];
+    [entry.inflow ? 'Received' : 'Disbursed', money(entry.inflow || entry.outflow)],
+    ['10% fee', 'Paid upfront at booking'],
+    ['Balance', money(entry.loan_balance ?? entry.balance), true],
+  ] : [
+    ['Disbursed to date', money(cash.gross_outbound)],
+    ['Recovered to date', money(cash.gross_recovered)],
+    ['Processing fees', money(cash.immediate_revenue)],
+    ['BAKI', money(cash.net_system_balance), true],
+  ];
 
-  const title = isTransaction
-    ? (entry.inflow ? 'Receipt voucher' : 'Disbursement voucher')
-    : 'Full financial statement';
+  const kindLabel = isTransaction
+    ? `Office voucher · ${entry.inflow ? 'receipt' : 'disbursement'}`
+    : 'Office voucher';
 
   return (
-    <article className="mf-ticket" aria-label={`${title} voucher`}>
-      {/* ── Office copy ── */}
+    <article className="mf-ticket" aria-label="Thermal ticket">
+      {/* ── Office voucher ── */}
       <section className="mf-ticket__stub">
-        <header className="mf-ticket__masthead">
-          <div>
-            <h1 className="mf-ticket__brand">{ISSUER.name}</h1>
-            <span className="mf-ticket__kind">Office copy · {title}</span>
-          </div>
-          <div className="mf-ticket__refs">
-            <div>REF <b>{key}</b></div>
-            {isTransaction && <div>DOC {entry.reference}</div>}
-            <div>{generated}</div>
-            <div>{ISSUER.unit}</div>
-          </div>
-        </header>
-        <div className="mf-ticket__body">
-          <table className="mf-ticket__grid">
-            <tbody>
-              {officeRows.map(([l, v], i) => (
-                <Row key={l} label={l} value={v} total={i === officeRows.length - 1 && !isTransaction} />
-              ))}
-            </tbody>
-          </table>
-
-          <div className="mf-ticket__stamp">
-            <span>Operator audit: <b>{operator || '—'}</b></span>
-            <span>Generated {generated}</span>
-          </div>
-
-          <div className="mf-ticket__auth">
-            <div>
-              <span className="mf-ticket__auth-line" />
-              <span className="mf-ticket__auth-label">Prepared by</span>
-            </div>
-            <div>
-              <span className="mf-ticket__auth-line" />
-              <span className="mf-ticket__auth-label">Authorised by</span>
-            </div>
-          </div>
+        <div className="mf-ticket__head">
+          <h1 className="mf-ticket__brand">{ISSUER.name}</h1>
+          <span className="mf-ticket__sub">{ISSUER.unit}</span>
+        </div>
+        <span className="mf-ticket__kind">{kindLabel}</span>
+        <div className="mf-ticket__meta">
+          <div><span>REF</span><span>{key}</span></div>
+          {isTransaction && <div><span>DOC</span><span>{entry.reference}</span></div>}
+          <div><span>DATE</span><span>{generated}</span></div>
+        </div>
+        <Rows rows={officeRows} />
+        <div className="mf-ticket__meta">
+          <div><span>OPERATOR</span><span>{operator || '—'}</span></div>
+        </div>
+        <div className="mf-ticket__auth">
+          <span className="mf-ticket__auth-line" />
+          <span className="mf-ticket__auth-label">Prepared by</span>
+          <span className="mf-ticket__auth-line" />
+          <span className="mf-ticket__auth-label">Authorised by</span>
         </div>
       </section>
 
       {/* ── Perforation ── */}
       <div className="mf-ticket__perf">
-        <span className="mf-ticket__scissors"><Scissors /> cut here · kata hapa</span>
+        <div className="mf-ticket__perf-line" />
+        <span className="mf-ticket__scissors"><Scissors /> cut here / kata hapa</span>
       </div>
 
-      {/* ── Customer ticket ── */}
+      {/* ── Official customer receipt ── */}
       <section className="mf-ticket__stub">
-        <header className="mf-ticket__masthead">
-          <div>
-            <h1 className="mf-ticket__brand">{ISSUER.name}</h1>
-            <span className="mf-ticket__kind">Customer ticket · teller voucher</span>
-          </div>
-          <div className="mf-ticket__refs">
-            <div>REF <b>{key}</b></div>
-            <div>{generated}</div>
-          </div>
-        </header>
-        <div className="mf-ticket__body">
-          <table className="mf-ticket__grid">
-            <tbody>
-              {customerRows.map(([l, v], i) => (
-                <Row key={l} label={l} value={v} total={i === customerRows.length - 1} />
-              ))}
-            </tbody>
-          </table>
-          <p className="mf-ticket__disclaimer">{DISCLAIMER}</p>
-          <p className="mf-ticket__foot">{key} · {generated} · {ISSUER.licence}</p>
+        <div className="mf-ticket__head">
+          <h1 className="mf-ticket__brand">{ISSUER.name}</h1>
+          <span className="mf-ticket__sub">{ISSUER.licence}</span>
         </div>
+        <span className="mf-ticket__kind">Official customer receipt</span>
+        <Rows rows={customerRows} />
+        <p className="mf-ticket__disclaimer">{DISCLAIMER}</p>
+        <p className="mf-ticket__foot">{key} · {generated}</p>
       </section>
     </article>
   );

@@ -30,6 +30,42 @@ async function safeQuery(sql, params = [], fallback = []) {
 const INTEREST_SHARE = `CASE WHEN l.total_payable > 0
   THEN (l.total_payable - l.loan_amount) / l.total_payable ELSE 0 END`;
 
+const money = v => Math.round(num(v) * 100) / 100;
+const pct = (part, whole) => (whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0);
+const STEP_DAYS = { daily: 1, weekly: 7 };
+
+/**
+ * How much the installment schedules expect to be collected in the current
+ * calendar month. Walks each open loan's schedule from its start date, which
+ * is exact for daily/weekly/monthly plans; loans with no plan are skipped.
+ */
+function scheduledThisMonth(loans, now = new Date()) {
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const monthStart = new Date(y, m, 1);
+  const monthEnd = new Date(y, m + 1, 0);
+  let expected = 0;
+
+  for (const l of loans) {
+    const amount = num(l.installment_amount);
+    const count = parseInt(l.installment_count, 10);
+    if (!(amount > 0) || !(count > 0) || !l.start_date) continue;
+    const start = new Date(l.start_date);
+    if (Number.isNaN(start.getTime())) continue;
+
+    let due = 0;
+    for (let i = 1; i <= count; i += 1) {
+      const d = new Date(start);
+      if (l.repayment_frequency === 'monthly') d.setMonth(d.getMonth() + i);
+      else d.setDate(d.getDate() + i * (STEP_DAYS[l.repayment_frequency] || 0));
+      if (!STEP_DAYS[l.repayment_frequency] && l.repayment_frequency !== 'monthly') break;
+      if (d >= monthStart && d <= monthEnd) due += 1;
+    }
+    expected += due * amount;
+  }
+  return money(expected);
+}
+
 /* ── Directory 1: individual clients ──────────────────────────────────── */
 async function getIndividuals() {
   const rows = await safeQuery(`
@@ -50,7 +86,7 @@ async function getIndividuals() {
      GROUP BY c.id
      ORDER BY outstanding DESC, c.full_name
   `);
-  return rows.map(r => ({
+  const clients = rows.map(r => ({
     id: r.id,
     full_name: r.full_name,
     phone: r.phone,
@@ -67,6 +103,59 @@ async function getIndividuals() {
     active_loans: num(r.active_loans),
     last_loan_at: r.last_loan_at,
   }));
+
+  /* Sector metrics — individual (non-group) lending only */
+  const [[totals = {}]] = await pool.query(`
+    SELECT COALESCE(SUM(l.loan_amount), 0) AS capital,
+           COALESCE(SUM(CASE WHEN l.status <> 'paid' THEN l.balance ELSE 0 END), 0) AS outstanding,
+           COALESCE(SUM(l.total_payable), 0) AS payable,
+           COALESCE(SUM(l.amount_paid), 0)   AS repaid,
+           COALESCE(SUM(CASE WHEN l.status <> 'paid' AND l.due_date < DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                             THEN l.balance ELSE 0 END), 0) AS par30,
+           COUNT(DISTINCT CASE WHEN l.status <> 'paid' THEN l.customer_id END) AS active_borrowers,
+           COUNT(*) AS loans
+      FROM loans l
+      LEFT JOIN client_groups g ON g.id = l.group_id
+     WHERE g.id IS NULL AND (l.loan_type <> 'group' OR l.loan_type IS NULL)
+  `);
+
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  const since = monthStart.toISOString().slice(0, 10);
+  const [[collectedRow = {}]] = await pool.query(`
+    SELECT COALESCE(SUM(r.amount), 0) AS collected
+      FROM repayments r
+      JOIN loans l ON l.id = r.loan_id
+      LEFT JOIN client_groups g ON g.id = l.group_id
+     WHERE g.id IS NULL AND (l.loan_type <> 'group' OR l.loan_type IS NULL)
+       AND r.payment_date >= ?
+  `, [since]);
+
+  const openLoans = await safeQuery(`
+    SELECT l.start_date, l.repayment_frequency, l.installment_count, l.installment_amount
+      FROM loans l
+      LEFT JOIN client_groups g ON g.id = l.group_id
+     WHERE g.id IS NULL AND (l.loan_type <> 'group' OR l.loan_type IS NULL) AND l.status <> 'paid'
+  `);
+  const expected = scheduledThisMonth(openLoans);
+  const collected = money(collectedRow.collected);
+
+  return {
+    metrics: {
+      capital_disbursed: money(totals.capital),
+      outstanding: money(totals.outstanding),
+      total_repaid: money(totals.repaid),
+      active_borrowers: num(totals.active_borrowers),
+      loans: num(totals.loans),
+      collected_this_month: collected,
+      expected_this_month: expected,
+      /* collection performance against what the schedules asked for this month */
+      repayment_rate: pct(collected, expected),
+      par30_balance: money(totals.par30),
+      par30_pct: pct(money(totals.par30), money(totals.outstanding)),
+    },
+    clients,
+  };
 }
 
 /* ── Directory 2: groups, with a per-member drill-down ────────────────── */
@@ -89,7 +178,7 @@ async function getGroups() {
      GROUP BY g.id
      ORDER BY outstanding DESC, g.group_name
   `);
-  return groups.map(r => ({
+  const list = groups.map(r => ({
     id: r.id,
     group_name: r.group_name,
     market_name: r.market_name,
@@ -106,6 +195,43 @@ async function getGroups() {
     outstanding: num(r.outstanding),
     overdue_loans: num(r.overdue_loans),
   }));
+
+  const [[reg = {}]] = await pool.query('SELECT COUNT(*) AS groups_registered FROM client_groups')
+    .catch(() => [[{ groups_registered: 0 }]]);
+  const [[portfolio = {}]] = await pool.query(`
+    SELECT COALESCE(SUM(loan_amount), 0) AS capital,
+           COALESCE(SUM(CASE WHEN status <> 'paid' THEN balance ELSE 0 END), 0) AS outstanding,
+           COALESCE(SUM(amount_paid), 0) AS repaid,
+           COALESCE(SUM(processing_fee), 0) AS fees,
+           COUNT(*) AS loans,
+           COALESCE(SUM(status <> 'paid'), 0) AS active_loans
+      FROM loans WHERE loan_type = 'group'
+  `);
+  const liabilityRows = await safeQuery(`
+    SELECT COALESCE(SUM(CASE WHEN refund_status IN ('pending', 'eligible') THEN refund_amount ELSE 0 END), 0) AS accrued,
+           COALESCE(SUM(CASE WHEN refund_status = 'eligible' THEN refund_amount ELSE 0 END), 0) AS earned,
+           COALESCE(SUM(CASE WHEN refund_status = 'paid' THEN refund_amount ELSE 0 END), 0) AS paid,
+           COUNT(*) AS allocations
+      FROM group_loan_members
+  `, [], [{}]);
+
+  return {
+    metrics: {
+      groups_registered: num(reg.groups_registered),
+      members: list.reduce((t, g) => t + g.members, 0),
+      capital_disbursed: money(portfolio.capital),
+      active_portfolio: money(portfolio.outstanding),
+      total_repaid: money(portfolio.repaid),
+      fees: money(portfolio.fees),
+      loans: num(portfolio.loans),
+      active_loans: num(portfolio.active_loans),
+      liability_accrued: money(liabilityRows[0]?.accrued),
+      liability_earned: money(liabilityRows[0]?.earned),
+      liability_paid: money(liabilityRows[0]?.paid),
+      allocations: num(liabilityRows[0]?.allocations),
+    },
+    groups: list,
+  };
 }
 
 /**
@@ -119,6 +245,9 @@ async function getGroupMembers(groupId) {
            COUNT(DISTINCT glm.loan_id)                        AS loans,
            COALESCE(SUM(glm.agreed_share), 0)                  AS target,
            COALESCE(SUM(glm.refund_amount), 0)                 AS refund_total,
+           COALESCE(SUM(CASE WHEN l.total_payable > 0
+                             THEN (glm.agreed_share / l.total_payable) * l.processing_fee ELSE 0 END), 0) AS fee_share,
+           MAX(glm.refund_status)                              AS bonus_status,
            COALESCE(SUM(CASE WHEN glm.refund_status = 'eligible' THEN glm.refund_amount ELSE 0 END), 0) AS refund_due,
            COALESCE(SUM(CASE WHEN glm.refund_status = 'paid'     THEN glm.refund_amount ELSE 0 END), 0) AS refund_paid,
            COALESCE(SUM(glm.refund_status = 'forfeited'), 0)    AS forfeited,
@@ -128,6 +257,7 @@ async function getGroupMembers(groupId) {
       FROM group_members m
       LEFT JOIN member_businesses b   ON b.member_id = m.id
       LEFT JOIN group_loan_members glm ON glm.group_member_id = m.id
+      LEFT JOIN loans l ON l.id = glm.loan_id
      WHERE m.group_id = ?
      GROUP BY m.id
      ORDER BY m.full_name
@@ -155,6 +285,11 @@ async function getGroupMembers(groupId) {
       refund_due: num(r.refund_due),
       refund_paid: num(r.refund_paid),
       forfeited: num(r.forfeited),
+      /* the member's share of the 10% fee the loan paid upfront */
+      fee_share: money(r.fee_share),
+      /* 5% bonus qualification, in plain words for the grid */
+      bonus_status: r.bonus_status || (target > 0 ? 'pending' : null),
+      qualified: r.bonus_status === 'eligible' || r.bonus_status === 'paid',
     };
   });
 }
@@ -341,6 +476,14 @@ async function getStatement() {
       refundable_forfeited: num(liabilityRows[0]?.forfeited),
       allocations: num(liabilityRows[0]?.allocations),
     },
+    cash: {
+      /* money in (collections + upfront fees) less money out (disbursed + expenses) */
+      gross_outbound: num(portfolio.principal),
+      gross_recovered: num(portfolio.repaid),
+      immediate_revenue: fees,
+      operating_expenses: expenses,
+      net_system_balance: Math.round((num(portfolio.repaid) + fees - num(portfolio.principal) - expenses) * 100) / 100,
+    },
     income: {
       processing_fees: fees,
       interest_recognised: Math.round(interestEarned * 100) / 100,
@@ -440,4 +583,4 @@ async function getLedger({ from, to, limit = 200 } = {}) {
   };
 }
 
-module.exports = { getIndividuals, getGroups, getGroupMembers, getStatement, getLedger };
+module.exports = { getIndividuals, getGroups, getGroupMembers, getStatement, getLedger, scheduledThisMonth };
