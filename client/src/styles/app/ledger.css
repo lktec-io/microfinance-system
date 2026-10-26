@@ -4,6 +4,11 @@
    Every figure is tabular monospace so columns stack like a paper ledger.
    ═══════════════════════════════════════════════════════════════════════ */
 .mf-reports {
+  /* the module never contributes horizontal page scroll, whatever it holds */
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+
   --rep-chrome:  var(--mf-charcoal-900);
   --rep-accent:  var(--mf-orange-500);
   --rep-line:    var(--mf-border);
@@ -22,7 +27,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 215px), 1fr));
   gap: 1px;
+  width: 100%;
+  min-width: 0;
   margin-bottom: 1rem;
+  box-sizing: border-box;
   border-radius: var(--rep-radius);
   background: var(--rep-line);
   box-shadow: var(--mf-elev-1);
@@ -32,8 +40,10 @@
   display: flex;
   flex-direction: column;
   gap: .4rem;
+  min-width: 0;
   padding: 1.05rem 1.1rem;
   background: var(--rep-panel);
+  box-sizing: border-box;
 }
 .mf-kpi__label {
   display: flex;
@@ -76,6 +86,9 @@
 
 /* ── Dense data ledger ─────────────────────────────────────────────── */
 .mf-dl-card {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   border-radius: var(--rep-radius);
   background: var(--rep-panel);
   box-shadow: var(--mf-elev-1);
@@ -242,12 +255,40 @@
   .mf-master__fig { align-items: flex-start; }
 }
 
-/* ── View 3 · the executive scorecard ──────────────────────────────── */
-.mf-score { display: flex; flex-direction: column; gap: 1rem; }
+/* ── View 3 · the executive scorecard ──────────────────────────────────
+ *
+ * Containment contract for this view. Every box here is width-bounded and
+ * shrinkable, because the figures are long: a shilling balance runs to 16
+ * glyphs of tabular mono plus a sign, and one unshrinkable row is all it
+ * takes to push the whole page sideways on a laptop.
+ *
+ *  · no fixed pixel width or min-width on any row — tracks are fractional
+ *  · `min-width: 0` everywhere a flex/grid child holds a long figure, since
+ *    the default `min-width: auto` refuses to shrink below its content
+ *  · `minmax(min(100%, 300px), 1fr)` — the `min()` matters: a bare
+ *    `minmax(300px, 1fr)` is itself an overflow source once the column box
+ *    is narrower than 300px, which is the very fault being fixed here
+ *  · long figures wrap rather than spill
+ *  · the ledger scrolls inside its own card and never widens the page
+ */
+.mf-score {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.mf-score > * { min-width: 0; }
 .mf-score__row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  /* 1px is the hairline divider: the row background shows between cells,
+     which is what keeps the tier panel borderless. It is not a layout gap. */
   gap: 1px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   border-radius: var(--rep-radius);
   background: var(--rep-line);
   box-shadow: var(--mf-elev-1);
@@ -257,8 +298,10 @@
   display: flex;
   flex-direction: column;
   gap: .5rem;
+  min-width: 0;
   padding: 1.4rem 1.25rem;
   background: var(--rep-panel);
+  box-sizing: border-box;
 }
 .mf-score__tier {
   font-family: var(--rep-mono);
@@ -302,12 +345,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  width: 100%;
+  min-width: 0;
   padding: 1.6rem 1.4rem;
   border-radius: var(--rep-radius);
   background: var(--rep-chrome);
   color: #FFFFFF;
   box-shadow: var(--mf-elev-2);
+  box-sizing: border-box;
 }
+.mf-score__baki > * { min-width: 0; }
 .mf-score__baki-label {
   display: flex;
   flex-direction: column;
@@ -321,14 +368,19 @@
 .mf-score__baki-label b { font-size: var(--mf-fs-md); letter-spacing: .04em; color: #FFFFFF; }
 .mf-score__baki-value {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: .4rem;
+  min-width: 0;
   font-family: var(--rep-mono);
   font-variant-numeric: tabular-nums;
+  /* 6vw tracks the viewport, not this card — the clamp ceiling is what keeps
+     a 16-glyph balance inside the panel on a wide screen */
   font-size: clamp(1.9rem, 6vw, 3rem);
   font-weight: var(--mf-fw-head);
-  line-height: 1;
+  line-height: 1.05;
   letter-spacing: -.03em;
+  overflow-wrap: anywhere;
 }
 .mf-score__baki-value small { font-size: .3em; font-weight: var(--mf-fw-medium); color: rgba(255, 255, 255, .5); }
 .mf-score__baki.is-positive .mf-score__baki-value { color: #3DD68C; }
@@ -341,7 +393,15 @@
 }
 
 /* collapsed ledger panel */
-.mf-fold { border-radius: var(--rep-radius); background: var(--rep-panel); box-shadow: var(--mf-elev-1); overflow: hidden; }
+.mf-fold {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border-radius: var(--rep-radius);
+  background: var(--rep-panel);
+  box-shadow: var(--mf-elev-1);
+  overflow: hidden;
+}
 .mf-fold__toggle {
   display: flex;
   align-items: center;
@@ -366,7 +426,23 @@
   font-weight: var(--mf-fw-medium);
   color: var(--mf-ink-500);
 }
-.mf-fold__body { border-top: 1px solid var(--rep-line); }
+.mf-fold__body { min-width: 0; border-top: 1px solid var(--rep-line); }
+
+/*
+ * The ledger is eight columns of dates, references and figures — too many to
+ * fit a laptop without crushing them. It is given a comfortable minimum and
+ * allowed to scroll horizontally INSIDE the card: `.mf-grid__scroll` is the
+ * scroll container and `.mf-fold` clips, so the page itself never moves.
+ */
+.mf-fold .mf-grid__scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior-x: contain;
+}
+.mf-fold .mf-grid { min-width: 48rem; }
+@media (max-width: 640px) {
+  .mf-fold .mf-grid { min-width: 42rem; }
+}
 
 .mf-ledger__bar {
   display: flex;
@@ -438,6 +514,27 @@
   line-height: 1.5;
   color: var(--mf-ink-500);
 }
+
+/* "the server could not supply this" — deliberately not the RBAC mask glyph,
+   so a missing figure is never mistaken for a hidden one */
+.mf-kpi__na {
+  font-family: var(--mf-font-sans);
+  font-size: .42em;
+  font-weight: var(--mf-fw-medium);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--mf-ink-400);
+}
+.mf-rep-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.mf-rep-notice span { flex: 1 1 16rem; min-width: 0; }
 
 /* ═══════════════════════════════════════════════════════════════════════
    PERFORATED THERMAL TICKET — 80mm roll, screen-hidden, print only

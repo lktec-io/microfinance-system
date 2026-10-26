@@ -19,6 +19,98 @@ import { fmt, fmt0, fmtDay } from '../../utils/format';
 
 const SHORT = { day: '2-digit', month: 'short' };
 const clientCode = id => `CL-${String(id ?? 0).padStart(5, '0')}`;
+const n = v => Number(v || 0);
+const round = v => Math.round(n(v) * 100) / 100;
+const share = (part, whole) => (n(whole) > 0 ? Math.round((n(part) / n(whole)) * 1000) / 10 : 0);
+
+/*
+ * The directory endpoints return { metrics, rows }. An older build of the API
+ * returned the bare list instead, and a degraded response carries the shape
+ * with zeros — so read the list defensively rather than trusting one shape.
+ * Without this, `data.clients` is undefined against an out-of-date server and
+ * every figure on the page silently reads zero.
+ */
+function listOf(data, key) {
+  if (Array.isArray(data)) return data;
+  const rows = data?.[key];
+  return Array.isArray(rows) ? rows : [];
+}
+
+/* Totals computed from the rows we did receive, so the KPIs are never a lie
+   of omission when the server could not send its own aggregates. */
+function deriveIndividualMetrics(clients) {
+  const t = clients.reduce((a, c) => ({
+    capital_disbursed: a.capital_disbursed + n(c.principal),
+    outstanding: a.outstanding + n(c.outstanding),
+    total_repaid: a.total_repaid + n(c.repaid),
+    loans: a.loans + n(c.loans),
+    active_borrowers: a.active_borrowers + (n(c.active_loans) > 0 ? 1 : 0),
+  }), { capital_disbursed: 0, outstanding: 0, total_repaid: 0, loans: 0, active_borrowers: 0 });
+  return {
+    ...t,
+    capital_disbursed: round(t.capital_disbursed),
+    outstanding: round(t.outstanding),
+    total_repaid: round(t.total_repaid),
+    /* these need history the row payload does not carry */
+    collected_this_month: null,
+    expected_this_month: null,
+    repayment_rate: null,
+    par30_balance: null,
+    par30_pct: null,
+  };
+}
+
+function deriveGroupMetrics(groups) {
+  const t = groups.reduce((a, g) => ({
+    groups_registered: a.groups_registered + 1,
+    members: a.members + n(g.members),
+    capital_disbursed: a.capital_disbursed + n(g.principal),
+    active_portfolio: a.active_portfolio + n(g.outstanding),
+    total_repaid: a.total_repaid + n(g.repaid),
+    fees: a.fees + n(g.fees),
+    loans: a.loans + n(g.loans),
+  }), {
+    groups_registered: 0, members: 0, capital_disbursed: 0,
+    active_portfolio: 0, total_repaid: 0, fees: 0, loans: 0,
+  });
+  return {
+    ...t,
+    capital_disbursed: round(t.capital_disbursed),
+    active_portfolio: round(t.active_portfolio),
+    total_repaid: round(t.total_repaid),
+    fees: round(t.fees),
+    active_loans: null,
+    liability_accrued: null,
+    liability_earned: null,
+    liability_paid: null,
+    allocations: null,
+  };
+}
+
+/**
+ * Says plainly why a figure is missing. A reporting screen that renders a
+ * failed query as "TZS 0" is worse than one that renders nothing, so the
+ * views announce the gap instead of letting a zero pass as a balance.
+ */
+/* "not supplied" — visually distinct from the RBAC mask, which means "hidden" */
+const NA = <span className="mf-kpi__na" title="Not supplied by the reporting service">n/a</span>;
+
+function DataNotice({ degraded, derived, onRetry }) {
+  if (!degraded && !derived) return null;
+  return (
+    <div className="mf-alert mf-alert--warning mf-rep-notice" role="status">
+      <FiAlertCircle size={15} />
+      <span>
+        {degraded
+          ? 'The reporting service could not read the ledger, so these figures are not current.'
+          : 'This server is running an older reporting API: totals below are summed from the rows on screen, and the rate and PAR figures are unavailable until it is restarted.'}
+      </span>
+      {onRetry && (
+        <button type="button" className="mf-btn mf-btn--sm mf-alert__action" onClick={onRetry}>Retry</button>
+      )}
+    </div>
+  );
+}
 
 function Kpi({ label, Icon, value, meta, money = true, bar, tone }) {
   return (
@@ -40,41 +132,48 @@ function Kpi({ label, Icon, value, meta, money = true, bar, tone }) {
 /* ════════════════════════════════════════════════════════════════════
    VIEW 1 · Individual loans directory
    ════════════════════════════════════════════════════════════════════ */
-export function IndividualView({ data, showTotals, query, onOpenClient }) {
-  const m = data?.metrics;
-  const rows = (data?.clients || []).filter(c => {
+export function IndividualView({ data, showTotals, query, onOpenClient, onRetry }) {
+  const clients = listOf(data, 'clients');
+  const derived = !data?.metrics && clients.length > 0;
+  const m = data?.metrics || deriveIndividualMetrics(clients);
+  const rows = clients.filter(c => {
     const q = query.trim().toLowerCase();
     return !q || [c.full_name, c.phone, c.id_number, clientCode(c.id)].some(v => String(v || '').toLowerCase().includes(q));
   });
-  const show = v => (showTotals ? fmt(v) : null);
+  /* null means the server could not supply it — never render that as zero */
+  const show = v => (!showTotals ? null : v == null ? NA : fmt(v));
+  const pctValue = v => (!showTotals ? null : v == null ? NA : <>{v}<small>%</small></>);
   const totals = rows.reduce((t, c) => ({
-    principal: t.principal + c.principal, repaid: t.repaid + c.repaid, outstanding: t.outstanding + c.outstanding,
+    principal: t.principal + n(c.principal), repaid: t.repaid + n(c.repaid), outstanding: t.outstanding + n(c.outstanding),
   }), { principal: 0, repaid: 0, outstanding: 0 });
 
   return (
     <>
+      <DataNotice degraded={data?.degraded} derived={derived} onRetry={onRetry} />
       <section className="mf-kpi" aria-label="Individual lending metrics">
-        <Kpi label="Individual capital disbursed" Icon={FiTrendingUp} value={show(m?.capital_disbursed)}
-          meta={`${m?.loans || 0} loans · ${fmt0(m?.outstanding || 0)} outstanding`} />
-        <Kpi label="Active single borrowers" Icon={FiUser} value={fmt0(m?.active_borrowers || 0)} money={false}
-          meta={`${(data?.clients || []).length} clients on file`} />
+        <Kpi label="Individual capital disbursed" Icon={FiTrendingUp} value={show(m.capital_disbursed)}
+          meta={`${n(m.loans)} loans · ${fmt0(n(m.outstanding))} outstanding`} />
+        <Kpi label="Active single borrowers" Icon={FiUser} value={fmt0(n(m.active_borrowers))} money={false}
+          meta={`${clients.length} clients on file`} />
         <Kpi label="Monthly repayment rate" Icon={FiPercent}
-          value={showTotals ? <>{m?.repayment_rate ?? 0}<small>%</small></> : null} money={false}
-          bar={m?.repayment_rate ?? 0}
-          tone={(m?.repayment_rate ?? 0) >= 80 ? 'good' : undefined}
-          meta={showTotals
-            ? `collected ${fmt0(m?.collected_this_month || 0)} of ${fmt0(m?.expected_this_month || 0)} scheduled`
-            : 'this month against schedule'} />
+          value={pctValue(m.repayment_rate)} money={false}
+          bar={m.repayment_rate ?? 0}
+          tone={n(m.repayment_rate) >= 80 ? 'good' : undefined}
+          meta={!showTotals ? 'this month against schedule'
+            : m.collected_this_month == null ? 'unavailable from this server'
+              : `collected ${fmt0(n(m.collected_this_month))} of ${fmt0(n(m.expected_this_month))} scheduled`} />
         <Kpi label="PAR 30 · non-performing" Icon={FiAlertTriangle}
-          value={showTotals ? <>{m?.par30_pct ?? 0}<small>%</small></> : null} money={false}
-          bar={m?.par30_pct ?? 0} tone="risk"
-          meta={showTotals ? `${fmt0(m?.par30_balance || 0)} over 30 days past due` : 'over 30 days past due'} />
+          value={pctValue(m.par30_pct)} money={false}
+          bar={m.par30_pct ?? 0} tone="risk"
+          meta={!showTotals ? 'over 30 days past due'
+            : m.par30_balance == null ? 'unavailable from this server'
+              : `${fmt0(n(m.par30_balance))} over 30 days past due`} />
       </section>
 
       <section className="mf-dl-card" aria-label="Individual client ledger">
         <header className="mf-dl-card__head">
           <h2 className="mf-dl-card__title"><FiBookOpen size={14} /> Individual client ledger</h2>
-          <span className="mf-dl-card__note">{rows.length} of {(data?.clients || []).length} clients</span>
+          <span className="mf-dl-card__note">{rows.length} of {clients.length} clients</span>
         </header>
         {rows.length === 0 ? (
           <Empty Icon={FiUser} title="No individual clients" message="Clients with loans appear here." />
@@ -135,12 +234,14 @@ const BONUS_LABEL = {
   pending: 'In progress',
 };
 
-export function GroupView({ data, showTotals, query }) {
-  const m = data?.metrics;
+export function GroupView({ data, showTotals, query, onRetry }) {
+  const all = listOf(data, 'groups');
+  const derived = !data?.metrics && all.length > 0;
+  const m = data?.metrics || deriveGroupMetrics(all);
   const [open, setOpen] = useState(null);
   const [members, setMembers] = useState({});
 
-  const groups = (data?.groups || []).filter(g => {
+  const groups = all.filter(g => {
     const q = query.trim().toLowerCase();
     return !q || [g.group_name, g.market_name, g.leader_name].some(v => String(v || '').toLowerCase().includes(q));
   });
@@ -157,21 +258,24 @@ export function GroupView({ data, showTotals, query }) {
     }
   }, [open, members]);
 
-  const show = v => (showTotals ? fmt(v) : null);
+  const show = v => (!showTotals ? null : v == null ? NA : fmt(v));
 
   return (
     <>
+      <DataNotice degraded={data?.degraded} derived={derived} onRetry={onRetry} />
       <section className="mf-kpi" aria-label="Group lending metrics">
-        <Kpi label="Groups registered" Icon={FiUsers} value={fmt0(m?.groups_registered || 0)} money={false}
-          meta={`${m?.members || 0} members on file`} />
-        <Kpi label="Active group portfolio" Icon={FiLayers} value={show(m?.active_portfolio)}
-          meta={`${m?.active_loans || 0} of ${m?.loans || 0} group loans open`} />
-        <Kpi label="Group capital disbursed" Icon={FiTrendingUp} value={show(m?.capital_disbursed)}
-          meta={showTotals ? `${fmt0(m?.total_repaid || 0)} recovered` : 'principal advanced to groups'} />
-        <Kpi label="Accrued liabilities · 5% refundable" Icon={FiGift} value={show(m?.liability_accrued)} tone="risk"
-          meta={showTotals
-            ? `${fmt0(m?.liability_earned || 0)} earned · ${fmt0(m?.liability_paid || 0)} paid out`
-            : `${m?.allocations || 0} member allocations`} />
+        <Kpi label="Groups registered" Icon={FiUsers} value={fmt0(n(m.groups_registered))} money={false}
+          meta={`${n(m.members)} members on file`} />
+        <Kpi label="Active group portfolio" Icon={FiLayers} value={show(m.active_portfolio)}
+          meta={m.active_loans == null
+            ? `${n(m.loans)} group loans on file`
+            : `${n(m.active_loans)} of ${n(m.loans)} group loans open`} />
+        <Kpi label="Group capital disbursed" Icon={FiTrendingUp} value={show(m.capital_disbursed)}
+          meta={showTotals ? `${fmt0(n(m.total_repaid))} recovered` : 'principal advanced to groups'} />
+        <Kpi label="Accrued liabilities · 5% refundable" Icon={FiGift} value={show(m.liability_accrued)} tone="risk"
+          meta={!showTotals ? `${n(m.allocations)} member allocations`
+            : m.liability_earned == null ? 'unavailable from this server'
+              : `${fmt0(n(m.liability_earned))} earned · ${fmt0(n(m.liability_paid))} paid out`} />
       </section>
 
       <section className="mf-dl-card" aria-label="Group performance">
@@ -278,33 +382,63 @@ export function GroupView({ data, showTotals, query }) {
 /* ════════════════════════════════════════════════════════════════════
    VIEW 3 · The grand executive financial sheet
    ════════════════════════════════════════════════════════════════════ */
-export function ExecutiveView({ statement, showTotals, onVoucher }) {
-  const cash = statement.cash || {};
-  const p = statement.portfolio;
-  const baki = cash.net_system_balance ?? 0;
-  const positive = baki >= 0;
-  const show = v => (showTotals ? fmt(v) : null);
+export function ExecutiveView({ statement, showTotals, onVoucher, onRetry }) {
+  /*
+   * Every branch here is read defensively. A statement that arrives without
+   * `portfolio` or `income` — an older API, or a degraded response — used to
+   * throw on `p.loans` and take the whole terminal down with a blank screen.
+   */
+  const p = statement?.portfolio || {};
+  const income = statement?.income || {};
+  const cash = statement?.cash || null;
+  /* BAKI is only meaningful if the server computed the cash block; otherwise
+     fall back to the income identity rather than asserting a balance of 0. */
+  const baki = cash?.net_system_balance ?? (
+    statement?.portfolio
+      ? round(n(p.total_repaid) + n(income.processing_fees) - n(p.principal_disbursed) - n(income.expenses))
+      : null
+  );
+  const positive = n(baki) >= 0;
+  const flow = {
+    gross_outbound: cash?.gross_outbound ?? p.principal_disbursed,
+    gross_recovered: cash?.gross_recovered ?? p.total_repaid,
+    immediate_revenue: cash?.immediate_revenue ?? income.processing_fees,
+    operating_expenses: cash?.operating_expenses ?? income.expenses,
+  };
+  const show = v => (!showTotals ? null : v == null ? NA : fmt(v));
+
+  if (!statement?.portfolio && !cash) {
+    return (
+      <div className="mf-alert mf-alert--error" role="alert">
+        <FiAlertCircle size={15} /> The executive sheet is unavailable — the reporting service returned no figures.
+        {onRetry && (
+          <button type="button" className="mf-btn mf-btn--sm mf-alert__action" onClick={onRetry}>Retry</button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="mf-score">
+      <DataNotice degraded={statement?.degraded} derived={!cash} onRetry={onRetry} />
       {/* Tier 1 — what went out against what came back */}
       <section className="mf-score__row" aria-label="Portfolio flow">
         <div className="mf-score__cell mf-score__cell--out">
           <span className="mf-score__tier">Tier 1 · outbound</span>
           <span className="mf-score__label">Gross outbound portfolio</span>
           <span className="mf-score__value">
-            {showTotals ? <><small>TZS</small>{fmt(cash.gross_outbound)}</> : <Mask />}
+            {showTotals ? <><small>TZS</small>{show(flow.gross_outbound)}</> : <Mask />}
           </span>
-          <span className="mf-score__meta">{p.loans} loans advanced</span>
+          <span className="mf-score__meta">{n(p.loans)} loans advanced</span>
         </div>
         <div className="mf-score__cell mf-score__cell--in">
           <span className="mf-score__tier">Tier 1 · recovered</span>
           <span className="mf-score__label">Gross recovered funds</span>
           <span className="mf-score__value">
-            {showTotals ? <><small>TZS</small>{fmt(cash.gross_recovered)}</> : <Mask />}
+            {showTotals ? <><small>TZS</small>{show(flow.gross_recovered)}</> : <Mask />}
           </span>
           <span className="mf-score__meta">
-            {showTotals ? `${fmt0(p.outstanding)} still outstanding` : `${p.active_loans} loans open`}
+            {showTotals ? `${fmt0(n(p.outstanding))} still outstanding` : `${n(p.active_loans)} loans open`}
           </span>
         </div>
       </section>
@@ -315,7 +449,7 @@ export function ExecutiveView({ statement, showTotals, onVoucher }) {
           <span className="mf-score__tier">Tier 2 · revenue</span>
           <span className="mf-score__label">Total immediate revenue · 10% processing form fees</span>
           <span className="mf-score__value">
-            {showTotals ? <><small>TZS</small>{fmt(cash.immediate_revenue)}</> : <Mask />}
+            {showTotals ? <><small>TZS</small>{show(flow.immediate_revenue)}</> : <Mask />}
           </span>
           <span className="mf-score__meta">collected upfront across every category</span>
         </div>
@@ -323,24 +457,26 @@ export function ExecutiveView({ statement, showTotals, onVoucher }) {
           <span className="mf-score__tier">Tier 2 · outgoings</span>
           <span className="mf-score__label">Operating expenses</span>
           <span className="mf-score__value">
-            {showTotals ? <><small>TZS</small>{fmt(cash.operating_expenses)}</> : <Mask />}
+            {showTotals ? <><small>TZS</small>{show(flow.operating_expenses)}</> : <Mask />}
           </span>
-          <span className="mf-score__meta">{statement.income.expense_count} records</span>
+          <span className="mf-score__meta">{n(income.expense_count)} records</span>
         </div>
       </section>
 
       {/* Tier 3 — BAKI */}
-      <section className={`mf-score__baki ${positive ? 'is-positive' : 'is-negative'}`} aria-label="Net system balance">
+      <section className={`mf-score__baki ${baki == null ? '' : positive ? 'is-positive' : 'is-negative'}`}
+        aria-label="Net system balance">
         <span className="mf-score__baki-label">
           Tier 3 · net system balance
           <b>BAKI</b>
         </span>
         <span className="mf-score__baki-value">
-          {showTotals ? <><small>TZS</small>{fmt(baki)}</> : <Mask />}
-          {showTotals && (positive ? <FiTrendingUp size={22} /> : <FiTrendingDown size={22} />)}
+          {showTotals ? <><small>TZS</small>{show(baki)}</> : <Mask />}
+          {showTotals && baki != null && (positive ? <FiTrendingUp size={22} /> : <FiTrendingDown size={22} />)}
         </span>
         <span className="mf-score__baki-note">
-          recovered + fees − disbursed − expenses · {positive ? 'surplus in the system' : 'capital still out in the field'}
+          recovered + fees − disbursed − expenses
+          {baki == null ? '' : ` · ${positive ? 'surplus in the system' : 'capital still out in the field'}`}
         </span>
       </section>
 
@@ -356,15 +492,30 @@ export function LedgerPanel({ showTotals, onVoucher }) {
   const [state, setState] = useState({ status: 'idle', data: null });
 
   const load = useCallback(async () => {
-    setState(s => ({ status: s.data ? 'ready' : 'loading', data: s.data }));
+    setState({ status: 'loading', data: null });
     try {
       const params = {};
       if (range.from) params.from = range.from;
       if (range.to) params.to = range.to;
       const { data } = await api.get('/reports/ledger', { params });
-      setState({ status: 'ready', data });
-    } catch {
-      setState({ status: 'error', data: null });
+      /* An empty window is a valid answer; a payload without `entries` is not */
+      setState({ status: 'ready', data: { ...data, entries: Array.isArray(data?.entries) ? data.entries : [] } });
+    } catch (err) {
+      /*
+       * 404 means this build of the API has no ledger route — the server is
+       * running an older release. Saying so beats "could not be loaded",
+       * which sends the operator looking for a data problem that isn't there.
+       */
+      const code = err?.response?.status;
+      setState({
+        status: 'error',
+        data: null,
+        reason: code === 404
+          ? 'This server has no ledger endpoint yet — it is running an older build of the reporting API and needs to be restarted on the current release.'
+          : code === 403
+            ? 'Your account is not permitted to view the transaction ledger.'
+            : err?.response?.data?.error || 'The ledger could not be loaded.',
+      });
     }
   }, [range.from, range.to]);
 
@@ -391,6 +542,7 @@ export function LedgerPanel({ showTotals, onVoucher }) {
             style={{ overflow: 'hidden' }}
           >
             <div className="mf-fold__body">
+              <DataNotice degraded={d?.degraded} onRetry={load} />
               <div className="mf-ledger__bar no-print">
                 <div className="mf-ledger__range">
                   <label htmlFor="led-from">From</label>
@@ -418,7 +570,7 @@ export function LedgerPanel({ showTotals, onVoucher }) {
                 <TableSkeleton rows={5} cols={7} />
               ) : state.status === 'error' ? (
                 <div className="mf-alert mf-alert--error" role="alert">
-                  <FiAlertCircle size={15} /> The ledger could not be loaded.
+                  <FiAlertCircle size={15} /> {state.reason || 'The ledger could not be loaded.'}
                   <button type="button" className="mf-btn mf-btn--sm mf-alert__action" onClick={load}>Retry</button>
                 </div>
               ) : !d || d.entries.length === 0 ? (

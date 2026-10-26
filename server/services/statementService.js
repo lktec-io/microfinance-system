@@ -27,6 +27,21 @@ async function safeQuery(sql, params = [], fallback = []) {
   }
 }
 
+/**
+ * The same tolerance for the single-row aggregate reads. A bare
+ * `SELECT SUM(...)` always returns exactly one row, but it returns none if the
+ * table is missing — and every caller here destructures the first row, so the
+ * fallback has to be an object rather than an empty list. Every figure below
+ * is COALESCEd in SQL, so an empty table yields exact zeros, not nulls.
+ */
+async function safeRow(sql, params = []) {
+  const rows = await safeQuery(sql, params, []);
+  return rows[0] || {};
+}
+
+/** Only accept a YYYY-MM-DD filter; anything else is no filter at all. */
+const isoDate = v => (/^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? String(v) : null);
+
 const INTEREST_SHARE = `CASE WHEN l.total_payable > 0
   THEN (l.total_payable - l.loan_amount) / l.total_payable ELSE 0 END`;
 
@@ -105,7 +120,7 @@ async function getIndividuals() {
   }));
 
   /* Sector metrics — individual (non-group) lending only */
-  const [[totals = {}]] = await pool.query(`
+  const totals = await safeRow(`
     SELECT COALESCE(SUM(l.loan_amount), 0) AS capital,
            COALESCE(SUM(CASE WHEN l.status <> 'paid' THEN l.balance ELSE 0 END), 0) AS outstanding,
            COALESCE(SUM(l.total_payable), 0) AS payable,
@@ -122,7 +137,7 @@ async function getIndividuals() {
   const monthStart = new Date();
   monthStart.setDate(1);
   const since = monthStart.toISOString().slice(0, 10);
-  const [[collectedRow = {}]] = await pool.query(`
+  const collectedRow = await safeRow(`
     SELECT COALESCE(SUM(r.amount), 0) AS collected
       FROM repayments r
       JOIN loans l ON l.id = r.loan_id
@@ -162,8 +177,8 @@ async function getIndividuals() {
 async function getGroups() {
   const groups = await safeQuery(`
     SELECT g.id, g.group_name, g.market_name, g.business_location, g.customer_id,
-           leader.full_name    AS leader_name,
-           leader.phone_number AS leader_phone,
+           MAX(leader.full_name)    AS leader_name,
+           MAX(leader.phone_number) AS leader_phone,
            (SELECT COUNT(*) FROM group_members m WHERE m.group_id = g.id) AS members,
            COUNT(l.id)                                        AS loans,
            COALESCE(SUM(l.loan_amount), 0)                    AS principal,
@@ -196,9 +211,8 @@ async function getGroups() {
     overdue_loans: num(r.overdue_loans),
   }));
 
-  const [[reg = {}]] = await pool.query('SELECT COUNT(*) AS groups_registered FROM client_groups')
-    .catch(() => [[{ groups_registered: 0 }]]);
-  const [[portfolio = {}]] = await pool.query(`
+  const reg = await safeRow('SELECT COUNT(*) AS groups_registered FROM client_groups');
+  const portfolio = await safeRow(`
     SELECT COALESCE(SUM(loan_amount), 0) AS capital,
            COALESCE(SUM(CASE WHEN status <> 'paid' THEN balance ELSE 0 END), 0) AS outstanding,
            COALESCE(SUM(amount_paid), 0) AS repaid,
@@ -241,7 +255,8 @@ async function getGroups() {
 async function getGroupMembers(groupId) {
   const rows = await safeQuery(`
     SELECT m.id, m.full_name, m.phone_number, m.identity_type, m.identity_number,
-           b.business_name, b.business_type,
+           MAX(b.business_name)                                AS business_name,
+           MAX(b.business_type)                                AS business_type,
            COUNT(DISTINCT glm.loan_id)                        AS loans,
            COALESCE(SUM(glm.agreed_share), 0)                  AS target,
            COALESCE(SUM(glm.refund_amount), 0)                 AS refund_total,
@@ -296,7 +311,7 @@ async function getGroupMembers(groupId) {
 
 /* ── The full financial statement ─────────────────────────────────────── */
 async function getStatement() {
-  const [[portfolio = {}]] = await pool.query(`
+  const portfolio = await safeRow(`
     SELECT COUNT(*)                                    AS loans,
            COALESCE(SUM(loan_amount), 0)               AS principal,
            COALESCE(SUM(total_payable), 0)             AS payable,
@@ -336,7 +351,7 @@ async function getStatement() {
    *                   PAR30 = outstanding on loans more than 30 days past due.
    * Both are expressed against the gross outstanding portfolio.
    */
-  const [[risk = {}]] = await pool.query(`
+  const risk = await safeRow(`
     SELECT COALESCE(SUM(CASE WHEN status <> 'paid' AND due_date < CURDATE() THEN balance ELSE 0 END), 0) AS par_balance,
            COALESCE(SUM(CASE WHEN status <> 'paid' AND due_date < DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN balance ELSE 0 END), 0) AS par30_balance,
            COALESCE(SUM(CASE WHEN status <> 'paid' AND due_date < CURDATE() THEN 1 ELSE 0 END), 0) AS par_loans
@@ -508,8 +523,8 @@ async function getStatement() {
    the column reconciles like a bank statement instead of starting at zero. */
 async function getLedger({ from, to, limit = 200 } = {}) {
   const cap = Math.min(Math.max(parseInt(limit, 10) || 200, 1), 500);
-  const since = from || null;
-  const until = to || null;
+  const since = isoDate(from);
+  const until = isoDate(to);
 
   const inflow = await safeQuery(`
     SELECT r.id, r.payment_date AS date, r.created_at, r.amount, r.receipt_number AS reference,
@@ -560,7 +575,7 @@ async function getLedger({ from, to, limit = 200 } = {}) {
    * Opening balance = gross outstanding today, unwound back over the window.
    * Walking oldest → newest then re-reversing keeps the arithmetic honest.
    */
-  const [[current = {}]] = await pool.query(
+  const current = await safeRow(
     "SELECT COALESCE(SUM(CASE WHEN status <> 'paid' THEN balance ELSE 0 END), 0) AS outstanding FROM loans");
   const closing = num(current.outstanding);
   const net = entries.reduce((s, e) => s + e.outflow - e.inflow, 0);

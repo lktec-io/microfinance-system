@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -14,6 +14,11 @@ import TicketSheet from '../components/reports/TicketSheet';
 import { downloadStatementTicket, downloadTransactionTicket } from '../utils/voucher';
 import { runPrint } from '../utils/print';
 import '../styles/app/ledger.css';
+
+/* The directories return { metrics, rows }; an older API returned a bare list */
+const countOf = (data, key) =>
+  (Array.isArray(data) ? data.length
+    : Array.isArray(data?.[key]) ? data[key].length : undefined);
 
 const TABS = [
   { value: 'individuals', label: 'Individual Loans', Icon: FiUser },
@@ -43,18 +48,47 @@ export default function Reports() {
   const [error, setError] = useState('');
   const [ticket, setTicket] = useState(null);
 
+  /*
+   * One fetch pass over the three read-only endpoints.
+   *
+   * allSettled rather than all: one failing endpoint must not blank the other
+   * two views. Each view is handed whatever its own endpoint returned and
+   * reports its own gap, so a partial outage degrades per tab instead of
+   * presenting zeros as real balances.
+   */
+  const loadingRef = useRef(false);
+
   const load = useCallback(async () => {
+    if (loadingRef.current) return;          // the Refresh button is not a queue
+    loadingRef.current = true;
+    setLoading(true);
     setError('');
-    const [i, g, s] = await Promise.allSettled([
-      api.get('/reports/individuals'), api.get('/reports/groups'), api.get('/reports/statement'),
-    ]);
-    if (i.status === 'fulfilled') setIndividuals(i.value.data || null);
-    if (g.status === 'fulfilled') setGroups(g.value.data || null);
-    if (s.status === 'fulfilled') setStatement(s.value.data || null);
-    if ([i, g, s].every(x => x.status === 'rejected')) {
-      setError(i.reason?.response?.data?.message || 'Reports could not be loaded.');
+    try {
+      const [i, g, s] = await Promise.allSettled([
+        api.get('/reports/individuals'), api.get('/reports/groups'), api.get('/reports/statement'),
+      ]);
+      if (i.status === 'fulfilled') setIndividuals(i.value.data ?? null);
+      if (g.status === 'fulfilled') setGroups(g.value.data ?? null);
+      if (s.status === 'fulfilled') setStatement(s.value.data ?? null);
+
+      const failed = [i, g, s].filter(x => x.status === 'rejected');
+      if (failed.length) {
+        const first = failed[0].reason;
+        const status = first?.response?.status;
+        setError(
+          status === 403 ? 'Reporting is restricted to administrators.'
+            : status === 404 ? 'This server is running an older build of the reporting API — restart it on the current release.'
+              : first?.response?.data?.message
+                || first?.response?.data?.error
+                || (failed.length === 3
+                  ? 'Reports could not be loaded. The reporting service is not responding.'
+                  : 'Part of the reporting data could not be loaded.'),
+        );
+      }
+    } finally {
+      loadingRef.current = false;
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -113,8 +147,8 @@ export default function Reports() {
         onChange={t => { setTab(t); setQuery(''); }}
         tabs={TABS.map(t => ({
           ...t,
-          count: t.value === 'individuals' ? individuals?.clients?.length
-            : t.value === 'groups' ? groups?.groups?.length : undefined,
+          count: t.value === 'individuals' ? countOf(individuals, 'clients')
+            : t.value === 'groups' ? countOf(groups, 'groups') : undefined,
         }))}
       />
 
@@ -143,17 +177,20 @@ export default function Reports() {
           data={individuals}
           showTotals={showTotals}
           query={query}
+          onRetry={load}
           onOpenClient={c => navigate(`/customers?client=${c.id}`)}
         />
       ) : tab === 'groups' ? (
-        <GroupView data={groups} showTotals={showTotals} query={query} />
-      ) : statement ? (
-        <ExecutiveView statement={statement} showTotals={showTotals} onVoucher={downloadEntryTicket} />
+        <GroupView data={groups} showTotals={showTotals} query={query} onRetry={load} />
       ) : (
-        <div className="mf-alert mf-alert--error" role="alert">
-          <FiAlertCircle size={15} /> The executive sheet is unavailable.
-          <button type="button" className="mf-btn mf-btn--sm mf-alert__action" onClick={load}>Retry</button>
-        </div>
+        /* ExecutiveView carries its own guarded fallback for a missing or
+           partial statement, so it renders whatever the server did send */
+        <ExecutiveView
+          statement={statement}
+          showTotals={showTotals}
+          onVoucher={downloadEntryTicket}
+          onRetry={load}
+        />
       )}
 
       {/* The thermal ticket lives off-screen; print CSS reveals it */}
