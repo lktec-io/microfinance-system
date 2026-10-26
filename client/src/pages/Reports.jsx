@@ -2,20 +2,24 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FiUser, FiUsers, FiFileText, FiDownload, FiPrinter, FiSearch, FiChevronRight,
-  FiAlertCircle, FiRefreshCw, FiTrendingUp, FiTrendingDown, FiArrowUpRight, FiCheckCircle,
+  FiAlertCircle, FiRefreshCw, FiTrendingUp, FiArrowUpRight, FiCheckCircle,
 } from 'react-icons/fi';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { createPortal } from 'react-dom';
 import api from '../api';
 import { PageHeader, Tabs, SearchField, Empty, TableSkeleton, ProgressBar } from '../components/ui';
 import { useCanSeeTotals, Mask } from '../components/common/MoneyGuard';
 import { MASK } from '../utils/rbac';
 import { BarTrend } from '../components/dashboard/charts';
-import { savePdf } from '../utils/download';
+import { BalanceSheetTier, IncomeMatrixTier, LedgerTier } from '../components/reports/tiers';
+import TicketSheet from '../components/reports/TicketSheet';
+import { downloadStatementVoucher, downloadTransactionVoucher } from '../utils/voucher';
 import { runPrint } from '../utils/print';
-import { fmt, fmt0, fmtShort, fmtDay } from '../utils/format';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { fmt, fmt0, fmtShort } from '../utils/format';
 import { monthLabel } from '../utils/finance';
 import '../styles/app/reports.css';
+import '../styles/app/ledger.css';
 
 const LONG_DATE = { day: '2-digit', month: 'short', year: 'numeric' };
 const ISSUER = 'RAMOS MICRO-CREDIT';
@@ -47,6 +51,11 @@ function Figure({ label, value, sub, tone = 'slate', masked, count }) {
 export default function Reports() {
   const navigate = useNavigate();
   const showTotals = useCanSeeTotals();
+  const { user } = useAuth();
+  const { showToast } = useToast();
+  const operator = user?.name || null;
+  /* what the perforated print surface is currently holding */
+  const [ticket, setTicket] = useState(null);
 
   const [tab, setTab] = useState('individuals');
   const [individuals, setIndividuals] = useState([]);
@@ -87,7 +96,6 @@ export default function Reports() {
     }
   }, [openGroup, members]);
 
-  const money = v => (showTotals ? `TZS ${fmt(v)}` : MASK);
 
   const visibleIndividuals = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -99,81 +107,23 @@ export default function Reports() {
     return q ? groups.filter(r => [r.group_name, r.market_name, r.leader_name].some(v => String(v || '').toLowerCase().includes(q))) : groups;
   }, [groups, query]);
 
-  /* ── The downloadable statement ── */
+  /* ── Downloads: both leave as perforated dual-stub tickets ── */
   function downloadStatement() {
-    if (!statement) return;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const pageW = doc.internal.pageSize.getWidth();
-    const p = statement.portfolio;
-    const inc = statement.income;
+    const saved = downloadStatementVoucher(statement, { showTotals, operator });
+    showToast(saved ? 'Full_Financial_Statement.pdf saved to your device' : 'The browser blocked the download',
+      saved ? 'success' : 'error');
+  }
 
-    doc.setFillColor(30, 30, 36);
-    doc.rect(0, 0, pageW, 30, 'F');
-    doc.setFillColor(255, 107, 0);
-    doc.rect(0, 28, pageW, 2, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(15); doc.setFont('helvetica', 'bold');
-    doc.text(ISSUER, 14, 13);
-    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-    doc.text(`Full financial statement · generated ${fmtDay(new Date().toISOString(), LONG_DATE)}`, 14, 22);
+  function downloadVoucher(entry) {
+    const saved = downloadTransactionVoucher(entry, { showTotals, operator });
+    showToast(saved ? `Voucher_${entry.reference}.pdf saved to your device` : 'The browser blocked the download',
+      saved ? 'success' : 'error');
+  }
 
-    autoTable(doc, {
-      startY: 38,
-      head: [['Portfolio', 'Value']],
-      body: [
-        ['Loans on book', String(p.loans)],
-        ['Total principal disbursed', money(p.principal_disbursed)],
-        ['— individual lending', money(p.individual_principal)],
-        ['— group lending', money(p.group_principal)],
-        ['Total payable (principal + interest)', money(p.total_payable)],
-        ['Total repaid', money(p.total_repaid)],
-        ['Active outstanding balance', money(p.outstanding)],
-        ['Active / overdue / closed', `${p.active_loans} / ${p.overdue_loans} / ${p.closed_loans}`],
-      ],
-      theme: 'grid',
-      headStyles: { fillColor: [30, 30, 36], textColor: 255, fontStyle: 'bold' },
-      columnStyles: { 1: { halign: 'right' } },
-      styles: { fontSize: 9.5, cellPadding: 2.4 },
-    });
-
-    autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 6,
-      head: [['Revenue & fees', 'Value']],
-      body: [
-        [`Processing fees collected (10% upfront)`, money(inc.processing_fees)],
-        ['Interest recognised on collections', money(inc.interest_recognised)],
-        ['Gross revenue', money(inc.revenue)],
-        [`Operating expenses (${inc.expense_count})`, money(inc.expenses)],
-        ['Net revenue', money(inc.net)],
-        ['Member incentives due / paid', `${money(statement.refunds.member_due)} / ${money(statement.refunds.member_paid)}`],
-      ],
-      theme: 'grid',
-      headStyles: { fillColor: [255, 107, 0], textColor: 255, fontStyle: 'bold' },
-      columnStyles: { 1: { halign: 'right' } },
-      styles: { fontSize: 9.5, cellPadding: 2.4 },
-    });
-
-    if (statement.trend.length) {
-      autoTable(doc, {
-        startY: doc.lastAutoTable.finalY + 6,
-        head: [['Month', 'Disbursed', 'Collected', 'Revenue', 'Net']],
-        body: statement.trend.map(m => [
-          m.month, money(m.disbursed), money(m.collected), money(m.revenue), money(m.net),
-        ]),
-        theme: 'striped',
-        headStyles: { fillColor: [60, 60, 71], textColor: 255 },
-        columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' } },
-        styles: { fontSize: 9, cellPadding: 2.2 },
-      });
-    }
-
-    const y = doc.lastAutoTable.finalY + 8;
-    doc.setTextColor(74, 74, 85); doc.setFontSize(7.6);
-    doc.text(doc.splitTextToSize(
-      'Interest is recognised pro-rata on money actually collected; processing fees are recognised in the month the loan was booked. '
-      + 'Figures reflect the ledger at the time of generation.', pageW - 28), 14, y);
-
-    savePdf(doc, 'Full_Financial_Statement.pdf');
+  /* Print the same ticket through the app's print surface */
+  function printTicket(kind, entry) {
+    setTicket({ kind, entry });
+    runPrint({ receipt: true, onDone: () => setTicket(null) });
   }
 
   const header = (
@@ -186,8 +136,8 @@ export default function Reports() {
           <button type="button" className="mf-btn mf-btn--ghost" onClick={load} disabled={loading}>
             <FiRefreshCw size={14} className={loading ? 'mf-spin' : undefined} /> Refresh
           </button>
-          <button type="button" className="mf-btn mf-btn--ghost" onClick={() => runPrint()}>
-            <FiPrinter size={15} /> Print
+          <button type="button" className="mf-btn mf-btn--ghost" onClick={() => printTicket('statement')} disabled={!statement}>
+            <FiPrinter size={15} /> Print ticket
           </button>
           <button type="button" className="mf-btn mf-btn--primary" onClick={downloadStatement} disabled={!statement}>
             <FiDownload size={15} /> Generate Full Financial Statement
@@ -381,61 +331,22 @@ export default function Reports() {
           <div className="mf-card"><Empty Icon={FiFileText} title="Statement unavailable" message="Retry once the reports load." /></div>
         ) : (
           <div className="mf-statement" id="statement-print">
-            <section className="mf-card mf-statement__block">
-              <div className="mf-card__head">
-                <div>
-                  <h2 className="mf-card__title"><FiFileText size={15} /> Portfolio</h2>
-                  <div className="mf-card__sub">Every loan on the book, individual and group</div>
-                </div>
-              </div>
-              <div className="mf-fig-grid">
-                <Figure label="Total principal disbursed" value={statement.portfolio.principal_disbursed} masked={!showTotals}
-                  tone="charcoal" sub={`${statement.portfolio.loans} loans`} />
-                <Figure label="Processing fees collected" value={statement.income.processing_fees} masked={!showTotals}
-                  tone="orange" sub="10% upfront, recognised at booking" />
-                <Figure label="Total repaid" value={statement.portfolio.total_repaid} masked={!showTotals}
-                  tone="emerald" sub="principal + interest banked" />
-                <Figure label="Active outstanding" value={statement.portfolio.outstanding} masked={!showTotals}
-                  tone="crimson" sub={`${statement.portfolio.overdue_loans} overdue`} />
-              </div>
-              <dl className="mf-statement__split">
-                <div>
-                  <dt>Individual lending</dt>
-                  <dd>{showTotals ? `TZS ${fmt(statement.portfolio.individual_principal)}` : <Mask />}
-                    <span>{statement.portfolio.individual_loans} loans</span></dd>
-                </div>
-                <div>
-                  <dt>Group lending</dt>
-                  <dd>{showTotals ? `TZS ${fmt(statement.portfolio.group_principal)}` : <Mask />}
-                    <span>{statement.portfolio.group_loans} loans</span></dd>
-                </div>
-                <div>
-                  <dt>Total payable</dt>
-                  <dd>{showTotals ? `TZS ${fmt(statement.portfolio.total_payable)}` : <Mask />}
-                    <span>interest booked {showTotals ? fmtShort(statement.portfolio.interest_booked) : MASK}</span></dd>
-                </div>
-              </dl>
-            </section>
+            {/* Tier 1 · balance sheet */}
+            <BalanceSheetTier statement={statement} showTotals={showTotals} />
+
+            {/* Tier 2 · income statement */}
+            <IncomeMatrixTier statement={statement} showTotals={showTotals} />
+
+            {/* Tier 3 · transaction ledger */}
+            <LedgerTier showTotals={showTotals} onVoucher={downloadVoucher} />
 
             <section className="mf-card mf-statement__block">
               <div className="mf-card__head">
                 <div>
-                  <h2 className="mf-card__title"><FiTrendingUp size={15} /> Net revenue</h2>
-                  <div className="mf-card__sub">
-                    Interest recognised pro-rata on collections, plus processing fees, less operating expenses
-                  </div>
+                  <h2 className="mf-card__title"><FiTrendingUp size={15} /> Net revenue trend</h2>
+                  <div className="mf-card__sub">Accrued revenue against operating expenses · trailing 12 months</div>
                 </div>
               </div>
-              <div className="mf-fig-grid">
-                <Figure label="Interest recognised" value={statement.income.interest_recognised} masked={!showTotals} tone="slate" />
-                <Figure label="Processing fees" value={statement.income.processing_fees} masked={!showTotals} tone="orange" />
-                <Figure label="Operating expenses" value={statement.income.expenses} masked={!showTotals} tone="crimson"
-                  sub={`${statement.income.expense_count} records`} />
-                <Figure label="Net revenue" value={statement.income.net} masked={!showTotals}
-                  tone={statement.income.net >= 0 ? 'emerald' : 'crimson'}
-                  sub={statement.income.net >= 0 ? 'surplus' : 'deficit'} />
-              </div>
-
               {showTotals ? (
                 <BarTrend
                   label="Net revenue trend"
@@ -453,43 +364,6 @@ export default function Reports() {
               )}
             </section>
 
-            <section className="mf-card mf-card--flush mf-statement__block">
-              <div className="mf-card__head">
-                <div>
-                  <h2 className="mf-card__title"><FiTrendingDown size={15} /> Month by month</h2>
-                  <div className="mf-card__sub">Trailing 12 months</div>
-                </div>
-              </div>
-              <div className="mf-table-wrap">
-                <table className="mf-table mf-table--stack">
-                  <thead>
-                    <tr>
-                      <th>Month</th>
-                      <th className="is-num">Disbursed (TZS)</th>
-                      <th className="is-num">Collected (TZS)</th>
-                      <th className="is-num">Fees (TZS)</th>
-                      <th className="is-num">Revenue (TZS)</th>
-                      <th className="is-num">Net (TZS)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {statement.trend.map(m => (
-                      <tr key={m.month}>
-                        <td data-label="Month">{monthLabel(m.month)} {m.month.slice(0, 4)}</td>
-                        <td className="is-num" data-label="Disbursed (TZS)">{showTotals ? fmt(m.disbursed) : <Mask />}</td>
-                        <td className="is-num" data-label="Collected (TZS)">{showTotals ? fmt(m.collected) : <Mask />}</td>
-                        <td className="is-num" data-label="Fees (TZS)">{showTotals ? fmt(m.fees) : <Mask />}</td>
-                        <td className="is-num" data-label="Revenue (TZS)">{showTotals ? fmt(m.revenue) : <Mask />}</td>
-                        <td className={`is-num ${m.net >= 0 ? 'mf-tone--emerald' : 'mf-tone--crimson'}`} data-label="Net (TZS)">
-                          <strong>{showTotals ? fmt(m.net) : <Mask />}</strong>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-
             <p className="mf-statement__note">
               Interest is recognised pro-rata on money actually collected; processing fees are recognised in the month the
               loan was booked. Member incentives due {showTotals ? `TZS ${fmt(statement.refunds.member_due)}` : MASK},
@@ -497,6 +371,20 @@ export default function Reports() {
             </p>
           </div>
         )
+      )}
+
+      {/* The perforated ticket lives off-screen; print CSS reveals it */}
+      {ticket && createPortal(
+        <div className="mf-print-surface" aria-hidden="true">
+          <TicketSheet
+            kind={ticket.kind}
+            entry={ticket.entry}
+            statement={statement}
+            operator={operator}
+            showTotals={showTotals}
+          />
+        </div>,
+        document.body,
       )}
     </div>
   );

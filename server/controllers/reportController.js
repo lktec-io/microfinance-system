@@ -91,9 +91,13 @@ const getGroupMembers = asyncHandler(async (req, res) => {
   res.json(await statement.getGroupMembers(req.params.id));
 });
 
+const getLedger = asyncHandler(async (req, res) => {
+  res.json(await statement.getLedger({ from: req.query.from, to: req.query.to, limit: req.query.limit }));
+});
+
 const getStatement = asyncHandler(async (_req, res) => {
   res.json(await statement.getStatement());
 });
 
 module.exports = {
-  getIndividuals, getGroups, getGroupMembers, getStatement, getSummary, getRecent, getDaily, getMonthly, getOverdue, getCommissions };
+  getIndividuals, getGroups, getGroupMembers, getStatement, getLedger, getSummary, getRecent, getDaily, getMonthly, getOverdue, getCommissions };

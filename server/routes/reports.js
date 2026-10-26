@@ -35,6 +35,7 @@ router.get('/individuals',      ctrl.getIndividuals);
 router.get('/groups',           ctrl.getGroups);
 router.get('/groups/:id/members', ctrl.getGroupMembers);
 router.get('/statement',        ctrl.getStatement);
+router.get('/ledger',           ctrl.getLedger);
 
 module.exports = router;
 module.exports.requireReportAccess = requireReportAccess;

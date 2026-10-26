@@ -161,7 +161,7 @@ async function getGroupMembers(groupId) {
 
 /* ── The full financial statement ─────────────────────────────────────── */
 async function getStatement() {
-  const [[portfolio]] = await pool.query(`
+  const [[portfolio = {}]] = await pool.query(`
     SELECT COUNT(*)                                    AS loans,
            COALESCE(SUM(loan_amount), 0)               AS principal,
            COALESCE(SUM(total_payable), 0)             AS payable,
@@ -195,6 +195,61 @@ async function getStatement() {
   `, [], [{}]);
   const expenseRows = await safeQuery(
     'SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count FROM expenses', [], [{ total: 0, count: 0 }]);
+
+  /*
+   * Portfolio at risk. PAR  = outstanding on loans already past their due date.
+   *                   PAR30 = outstanding on loans more than 30 days past due.
+   * Both are expressed against the gross outstanding portfolio.
+   */
+  const [[risk = {}]] = await pool.query(`
+    SELECT COALESCE(SUM(CASE WHEN status <> 'paid' AND due_date < CURDATE() THEN balance ELSE 0 END), 0) AS par_balance,
+           COALESCE(SUM(CASE WHEN status <> 'paid' AND due_date < DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN balance ELSE 0 END), 0) AS par30_balance,
+           COALESCE(SUM(CASE WHEN status <> 'paid' AND due_date < CURDATE() THEN 1 ELSE 0 END), 0) AS par_loans
+      FROM loans
+  `);
+
+  /* The accrued refundable liability: everything promised and not yet paid out */
+  const liabilityRows = await safeQuery(`
+    SELECT COALESCE(SUM(CASE WHEN refund_status IN ('pending', 'eligible') THEN refund_amount ELSE 0 END), 0) AS accrued,
+           COALESCE(SUM(CASE WHEN refund_status = 'pending'   THEN refund_amount ELSE 0 END), 0) AS pending,
+           COALESCE(SUM(CASE WHEN refund_status = 'forfeited' THEN refund_amount ELSE 0 END), 0) AS forfeited,
+           COUNT(*)                                                                              AS allocations
+      FROM group_loan_members
+  `, [], [{}]);
+  const loanLiabilityRows = await safeQuery(`
+    SELECT COALESCE(SUM(CASE WHEN refund_status IN ('pending', 'eligible') THEN refund_incentive_amount ELSE 0 END), 0) AS accrued
+      FROM loans WHERE loan_type = 'group'
+  `, [], [{}]);
+
+  /* Fees and interest by sector — the income statement matrix */
+  const sectorFees = await safeQuery(`
+    SELECT CASE WHEN loan_type = 'group' THEN 'group' ELSE 'individual' END AS sector,
+           COALESCE(SUM(processing_fee), 0) AS fees,
+           COUNT(*)                         AS loans
+      FROM loans GROUP BY sector
+  `);
+  const sectorInterest = await safeQuery(`
+    SELECT CASE WHEN l.loan_type = 'group' THEN 'group' ELSE 'individual' END AS sector,
+           COALESCE(SUM(r.amount * (${INTEREST_SHARE})), 0) AS interest,
+           COALESCE(SUM(r.amount), 0)                       AS collected,
+           COUNT(*)                                          AS payments
+      FROM repayments r JOIN loans l ON l.id = r.loan_id
+     GROUP BY sector
+  `);
+  const sector = key => {
+    const f = sectorFees.find(x => x.sector === key) || {};
+    const i = sectorInterest.find(x => x.sector === key) || {};
+    const fees$ = num(f.fees);
+    const interest$ = Math.round(num(i.interest) * 100) / 100;
+    return {
+      loans: num(f.loans),
+      fees: fees$,
+      interest: interest$,
+      collected: num(i.collected),
+      payments: num(i.payments),
+      revenue: Math.round((fees$ + interest$) * 100) / 100,
+    };
+  };
 
   /* Monthly trend: collections split into interest and principal, fees by booking month */
   const collected = await safeQuery(`
@@ -267,6 +322,24 @@ async function getStatement() {
       individual_principal: num(splitRows[0]?.individual_principal),
       group_loans: num(splitRows[0]?.group_loans),
       group_principal: num(splitRows[0]?.group_principal),
+      par_balance: num(risk.par_balance),
+      par30_balance: num(risk.par30_balance),
+      par_loans: num(risk.par_loans),
+      par_pct: num(portfolio.outstanding) > 0
+        ? Math.round((num(risk.par_balance) / num(portfolio.outstanding)) * 1000) / 10 : 0,
+      par30_pct: num(portfolio.outstanding) > 0
+        ? Math.round((num(risk.par30_balance) / num(portfolio.outstanding)) * 1000) / 10 : 0,
+    },
+    sectors: {
+      individual: sector('individual'),
+      group: sector('group'),
+    },
+    liabilities: {
+      /* 5% refundable incentives promised to group members and not yet paid */
+      refundable_accrued: Math.round((num(liabilityRows[0]?.accrued) + num(loanLiabilityRows[0]?.accrued)) * 100) / 100,
+      refundable_pending: num(liabilityRows[0]?.pending),
+      refundable_forfeited: num(liabilityRows[0]?.forfeited),
+      allocations: num(liabilityRows[0]?.allocations),
     },
     income: {
       processing_fees: fees,
@@ -286,4 +359,85 @@ async function getStatement() {
   };
 }
 
-module.exports = { getIndividuals, getGroups, getGroupMembers, getStatement };
+/* ── Tier 3 · debit/credit transaction ledger ─────────────────────────────
+   Inflow  = repayments banked.  Outflow = principal disbursed.
+   The running balance walks the window forward from an opening balance, so
+   the column reconciles like a bank statement instead of starting at zero. */
+async function getLedger({ from, to, limit = 200 } = {}) {
+  const cap = Math.min(Math.max(parseInt(limit, 10) || 200, 1), 500);
+  const since = from || null;
+  const until = to || null;
+
+  const inflow = await safeQuery(`
+    SELECT r.id, r.payment_date AS date, r.created_at, r.amount, r.receipt_number AS reference,
+           c.full_name AS entity, l.id AS loan_id, l.loan_type,
+           g.group_name, m.full_name AS member_name
+      FROM repayments r
+      JOIN loans l     ON l.id = r.loan_id
+      JOIN customers c ON c.id = l.customer_id
+      LEFT JOIN client_groups g ON g.id = l.group_id
+      LEFT JOIN group_members m ON m.id = r.group_member_id
+     WHERE (? IS NULL OR r.payment_date >= ?) AND (? IS NULL OR r.payment_date <= ?)
+     ORDER BY r.payment_date DESC, r.id DESC
+     LIMIT ?
+  `, [since, since, until, until, cap]);
+
+  const outflow = await safeQuery(`
+    SELECT l.id, DATE(l.created_at) AS date, l.created_at, l.loan_amount AS amount,
+           CONCAT('LN-', LPAD(l.id, 6, '0')) AS reference,
+           c.full_name AS entity, l.id AS loan_id, l.loan_type, g.group_name, NULL AS member_name
+      FROM loans l
+      JOIN customers c ON c.id = l.customer_id
+      LEFT JOIN client_groups g ON g.id = l.group_id
+     WHERE (? IS NULL OR DATE(l.created_at) >= ?) AND (? IS NULL OR DATE(l.created_at) <= ?)
+     ORDER BY l.created_at DESC, l.id DESC
+     LIMIT ?
+  `, [since, since, until, until, cap]);
+
+  const entries = [
+    ...inflow.map(r => ({
+      id: `in-${r.id}`, date: r.date, reference: r.reference,
+      entity: r.member_name ? `${r.member_name} · ${r.group_name || r.entity}` : r.entity,
+      account_type: r.loan_type === 'group' ? 'group' : 'individual',
+      loan_id: r.loan_id, member: r.member_name || null,
+      inflow: num(r.amount), outflow: 0, kind: 'repayment',
+    })),
+    ...outflow.map(r => ({
+      id: `out-${r.id}`, date: r.date, reference: r.reference,
+      entity: r.group_name || r.entity,
+      account_type: r.loan_type === 'group' ? 'group' : 'individual',
+      loan_id: r.loan_id, member: null,
+      inflow: 0, outflow: num(r.amount), kind: 'disbursement',
+    })),
+  ]
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.id).localeCompare(String(a.id)))
+    .slice(0, cap);
+
+  /*
+   * Opening balance = gross outstanding today, unwound back over the window.
+   * Walking oldest → newest then re-reversing keeps the arithmetic honest.
+   */
+  const [[current = {}]] = await pool.query(
+    "SELECT COALESCE(SUM(CASE WHEN status <> 'paid' THEN balance ELSE 0 END), 0) AS outstanding FROM loans");
+  const closing = num(current.outstanding);
+  const net = entries.reduce((s, e) => s + e.outflow - e.inflow, 0);
+  const opening = Math.round((closing - net) * 100) / 100;
+
+  let running = opening;
+  const oldestFirst = [...entries].reverse().map(e => {
+    running = Math.round((running + e.outflow - e.inflow) * 100) / 100;
+    return { ...e, balance: running };
+  });
+
+  return {
+    from: since, to: until, limit: cap,
+    opening_balance: opening,
+    closing_balance: closing,
+    total_inflow: Math.round(entries.reduce((s, e) => s + e.inflow, 0) * 100) / 100,
+    total_outflow: Math.round(entries.reduce((s, e) => s + e.outflow, 0) * 100) / 100,
+    count: entries.length,
+    entries: oldestFirst.reverse(),
+  };
+}
+
+module.exports = { getIndividuals, getGroups, getGroupMembers, getStatement, getLedger };

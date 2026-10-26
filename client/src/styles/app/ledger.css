@@ -1,0 +1,413 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   EXECUTIVE BANKING TERMINAL — scoped to the Reports module only
+   Deep slate chrome, pristine panels, tabular monospace figures so digits
+   stack down the column like a real accounting ledger. The rest of the
+   application keeps the orange/charcoal system untouched.
+   ═══════════════════════════════════════════════════════════════════════ */
+.mf-reports {
+  --bank-ink:      #0F172A;   /* executive slate */
+  --bank-ink-2:    #1E293B;
+  --bank-ink-3:    #334155;
+  --bank-muted:    #64748B;
+  --bank-line:     #E2E8F0;
+  --bank-line-2:   #CBD5E1;
+  --bank-panel:    #FFFFFF;
+  --bank-panel-2:  #F8FAFC;
+  --bank-credit:   #0B7A55;   /* inflow  */
+  --bank-debit:    #B03A48;   /* outflow */
+  --bank-accent:   var(--mf-orange-500);
+  --bank-radius:   5px;
+  --bank-mono:     var(--mf-font-mono);
+}
+
+.mf-reports .mf-tabs { --mf-orange-500: var(--bank-ink); }
+
+/* ── Shared ledger figure ──────────────────────────────────────────── */
+.mf-bank-num {
+  font-family: var(--bank-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+  letter-spacing: -.01em;
+}
+
+/* ── Tier 1 · balance sheet block ──────────────────────────────────── */
+.mf-tier {
+  margin-bottom: 1rem;
+  border-radius: var(--bank-radius);
+  background: var(--bank-panel);
+  box-shadow: var(--mf-elev-1);
+  overflow: hidden;
+}
+.mf-tier__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .7rem 1.1rem;
+  background: var(--bank-ink);
+  color: #FFFFFF;
+}
+.mf-tier__label {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: var(--mf-fs-xs);
+  font-weight: var(--mf-fw-strong);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.mf-tier__label span { color: var(--bank-accent); }
+.mf-tier__note {
+  font-family: var(--bank-mono);
+  font-size: var(--mf-fs-2xs);
+  font-weight: var(--mf-fw-medium);
+  color: rgba(255, 255, 255, .62);
+}
+
+.mf-bs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 1px;
+  background: var(--bank-line);
+}
+.mf-bs__cell {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  padding: 1.15rem 1.1rem;
+  background: var(--bank-panel);
+}
+.mf-bs__label {
+  font-size: var(--mf-fs-2xs);
+  font-weight: var(--mf-fw-strong);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--bank-muted);
+}
+.mf-bs__value {
+  display: flex;
+  align-items: baseline;
+  gap: .3rem;
+  font-family: var(--bank-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--mf-fs-2xl);
+  font-weight: var(--mf-fw-strong);
+  line-height: 1.05;
+  color: var(--bank-ink);
+  overflow-wrap: anywhere;
+}
+.mf-bs__value small { font-size: .42em; font-weight: var(--mf-fw-medium); color: var(--bank-muted); }
+.mf-bs__meta {
+  font-family: var(--bank-mono);
+  font-size: var(--mf-fs-2xs);
+  font-weight: var(--mf-fw-medium);
+  color: var(--bank-muted);
+}
+.mf-bs__cell--liability .mf-bs__value { color: var(--bank-debit); }
+.mf-bs__cell--risk .mf-bs__value { color: var(--bank-ink); }
+.mf-bs__gauge { height: 4px; border-radius: 2px; background: var(--bank-line); overflow: hidden; }
+.mf-bs__gauge span { display: block; height: 100%; background: var(--bank-debit); }
+.mf-bs__gauge.is-healthy span { background: var(--bank-credit); }
+
+/* ── Tier 2 · income statement matrix ──────────────────────────────── */
+.mf-matrix { width: 100%; border-collapse: collapse; }
+.mf-matrix thead th {
+  padding: .6rem 1.1rem;
+  background: var(--bank-panel-2);
+  font-size: var(--mf-fs-2xs);
+  font-weight: var(--mf-fw-strong);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--bank-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+.mf-matrix thead th:first-child { text-align: left; }
+.mf-matrix tbody td {
+  padding: .65rem 1.1rem;
+  border-top: 1px solid var(--bank-line);
+  font-size: var(--mf-fs-sm);
+  font-weight: var(--mf-fw-medium);
+  color: var(--bank-ink-2);
+  text-align: right;
+  white-space: nowrap;
+}
+.mf-matrix tbody td:first-child {
+  text-align: left;
+  font-weight: var(--mf-fw-medium);
+  color: var(--bank-ink);
+  white-space: normal;
+}
+.mf-matrix .is-fig {
+  font-family: var(--bank-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--mf-fw-strong);
+  color: var(--bank-ink);
+}
+.mf-matrix tbody tr.is-total td {
+  border-top: 2px solid var(--bank-ink);
+  background: var(--bank-panel-2);
+  font-weight: var(--mf-fw-head);
+  color: var(--bank-ink);
+}
+.mf-matrix__hint {
+  margin: 0;
+  padding: .6rem 1.1rem .8rem;
+  font-size: var(--mf-fs-2xs);
+  font-weight: var(--mf-fw-body);
+  line-height: 1.5;
+  color: var(--bank-muted);
+}
+
+/* ── Tier 3 · transaction ledger ───────────────────────────────────── */
+.mf-ledger__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  padding: .7rem 1.1rem;
+  background: var(--bank-panel-2);
+  border-bottom: 1px solid var(--bank-line);
+}
+.mf-ledger__range { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.mf-ledger__range input {
+  padding: .35rem .5rem;
+  border: 1px solid var(--bank-line-2);
+  border-radius: var(--bank-radius);
+  background: var(--bank-panel);
+  font-family: var(--bank-mono);
+  font-size: var(--mf-fs-xs);
+  font-weight: var(--mf-fw-medium);
+  color: var(--bank-ink);
+}
+.mf-ledger__range label {
+  font-size: var(--mf-fs-2xs);
+  font-weight: var(--mf-fw-strong);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--bank-muted);
+}
+.mf-ledger__totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem 1rem;
+  font-family: var(--bank-mono);
+  font-size: var(--mf-fs-xs);
+  font-weight: var(--mf-fw-medium);
+  color: var(--bank-ink-3);
+}
+.mf-ledger__totals b { color: var(--bank-ink); }
+.mf-ledger__totals .is-credit { color: var(--bank-credit); }
+.mf-ledger__totals .is-debit { color: var(--bank-debit); }
+
+.mf-ledger-table { width: 100%; border-collapse: collapse; }
+.mf-ledger-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: .55rem .9rem;
+  background: var(--bank-ink);
+  color: rgba(255, 255, 255, .86);
+  font-size: var(--mf-fs-2xs);
+  font-weight: var(--mf-fw-strong);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+}
+.mf-ledger-table thead th.is-fig { text-align: right; }
+.mf-ledger-table tbody td {
+  padding: .5rem .9rem;
+  border-bottom: 1px solid var(--bank-line);
+  font-size: var(--mf-fs-sm);
+  font-weight: var(--mf-fw-body);
+  color: var(--bank-ink-2);
+  vertical-align: middle;
+}
+.mf-ledger-table tbody tr:nth-child(even) { background: var(--bank-panel-2); }
+.mf-ledger-table tbody tr:hover { background: #F1F5F9; }
+.mf-ledger-table td.is-fig {
+  font-family: var(--bank-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--mf-fw-medium);
+  text-align: right;
+  white-space: nowrap;
+}
+.mf-ledger-table td.is-credit { color: var(--bank-credit); font-weight: var(--mf-fw-strong); }
+.mf-ledger-table td.is-debit  { color: var(--bank-debit);  font-weight: var(--mf-fw-strong); }
+.mf-ledger-table td.is-balance { color: var(--bank-ink); font-weight: var(--mf-fw-strong); }
+.mf-ledger-table .mf-ledger__ref {
+  font-family: var(--bank-mono);
+  font-size: var(--mf-fs-xs);
+  letter-spacing: .02em;
+  color: var(--bank-ink-3);
+}
+.mf-ledger__entity { display: flex; flex-direction: column; min-width: 0; }
+.mf-ledger__entity b { font-weight: var(--mf-fw-medium); color: var(--bank-ink); }
+.mf-ledger__entity span { font-size: var(--mf-fs-2xs); color: var(--bank-muted); }
+.mf-ledger__type {
+  display: inline-block;
+  padding: .1rem .4rem;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: var(--mf-fw-strong);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.mf-ledger__type.is-individual { background: var(--bank-line); color: var(--bank-ink-3); }
+.mf-ledger__type.is-group { background: #FFF1E6; color: #9A4A00; }
+.mf-ledger__voucher {
+  padding: .25rem .5rem;
+  border: 1px solid var(--bank-line-2);
+  border-radius: var(--bank-radius);
+  background: var(--bank-panel);
+  font-size: var(--mf-fs-2xs);
+  font-weight: var(--mf-fw-strong);
+  color: var(--bank-ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mf-ledger__voucher:hover { background: var(--bank-ink); color: #FFFFFF; border-color: var(--bank-ink); }
+.mf-ledger-table tfoot td {
+  padding: .6rem .9rem;
+  background: var(--bank-ink);
+  color: #FFFFFF;
+  font-family: var(--bank-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--mf-fw-strong);
+  text-align: right;
+}
+.mf-ledger-table tfoot td:first-child { text-align: left; font-family: var(--mf-font-sans); letter-spacing: .08em; text-transform: uppercase; font-size: var(--mf-fs-2xs); }
+.mf-ledger__scroll { max-height: 32rem; overflow: auto; }
+
+@media (max-width: 760px) {
+  .mf-ledger__scroll { max-height: none; }
+  .mf-bs__value { font-size: var(--mf-fs-xl); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PERFORATED BANK TICKET — screen-hidden, print/PDF only
+   Two stubs separated by a dashed perforation and a scissors marker.
+   ═══════════════════════════════════════════════════════════════════════ */
+.mf-ticket { display: none; }
+
+.mf-print-surface .mf-ticket {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 186mm;
+  margin: 0 auto;
+  color: #0F172A;
+  font-family: var(--mf-font-sans);
+  font-size: 10.5pt;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.mf-ticket * { box-sizing: border-box; }
+.mf-ticket__stub { padding: 0 0 6mm; }
+.mf-ticket__masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 5px 5px 0 0;
+  background: #0F172A;
+  color: #FFFFFF;
+}
+.mf-ticket__brand { margin: 0; font-size: 15pt; font-weight: 700; letter-spacing: .04em; }
+.mf-ticket__kind {
+  font-size: 7.5pt;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #F97316;
+}
+.mf-ticket__refs { text-align: right; font-family: var(--mf-font-mono); font-size: 8pt; line-height: 1.5; }
+.mf-ticket__refs b { color: #F97316; }
+.mf-ticket__body { border: 1px solid #CBD5E1; border-top: 0; border-radius: 0 0 5px 5px; padding: 10px 12px; }
+.mf-ticket__grid { width: 100%; border-collapse: collapse; }
+.mf-ticket__grid th,
+.mf-ticket__grid td {
+  padding: 4px 0;
+  border-bottom: 1px dotted #CBD5E1;
+  font-size: 9.5pt;
+  text-align: left;
+}
+.mf-ticket__grid th { font-weight: 600; color: #475569; width: 58%; }
+.mf-ticket__grid td {
+  text-align: right;
+  font-family: var(--mf-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #0F172A;
+}
+.mf-ticket__grid tr.is-total th,
+.mf-ticket__grid tr.is-total td { border-top: 2px solid #0F172A; border-bottom: 0; padding-top: 6px; font-size: 11pt; }
+.mf-ticket__stamp {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 8pt;
+  color: #475569;
+}
+.mf-ticket__auth { display: flex; gap: 14px; margin-top: 12px; }
+.mf-ticket__auth > div { flex: 1; }
+.mf-ticket__auth-line { height: 0; margin-top: 18px; border-top: 1px solid #94A3B8; }
+.mf-ticket__auth-label {
+  display: block;
+  margin-top: 3px;
+  font-size: 7.5pt;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #64748B;
+}
+
+/* the perforation */
+.mf-ticket__perf {
+  position: relative;
+  margin: 4mm 0 5mm;
+  border-top: 2px dashed #CBD5E1;
+  text-align: center;
+}
+.mf-ticket__scissors {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transform: translateY(-50%);
+  padding: 0 8px;
+  background: #FFFFFF;
+  font-size: 7.5pt;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #94A3B8;
+}
+.mf-ticket__scissors svg { display: block; }
+
+.mf-ticket__disclaimer {
+  margin: 8px 0 0;
+  font-size: 7.4pt;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #475569;
+  text-align: justify;
+}
+.mf-ticket__foot {
+  margin: 6px 0 0;
+  padding-top: 5px;
+  border-top: 1px solid #E2E8F0;
+  font-family: var(--mf-font-mono);
+  font-size: 7.2pt;
+  color: #94A3B8;
+  text-align: center;
+}
+
+@media print {
+  .mf-ticket { page-break-inside: avoid; }
+  .mf-ticket__stub { break-inside: avoid; }
+}
