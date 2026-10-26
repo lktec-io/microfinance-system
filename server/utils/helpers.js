@@ -123,7 +123,7 @@ function serverError(res, err, label = 'Server error') {
 module.exports = {
   calcDueDate, today, isoDate, nowLocal, isValidTimestamp,
   generateReceiptNumber, calcTotalPayable, MAX_MONEY,
-  PROCESSING_FEE_RATE, GROUP_REFUND_RATE, calcProcessingFee, calcGroupRefund,
+  PROCESSING_FEE_RATE, GROUP_REFUND_RATE, calcProcessingFee, calcGroupRefund, percentOf,
   FREQUENCIES, countInstallments, calcInstallmentAmount,
   ok, fail, serverError,
 };

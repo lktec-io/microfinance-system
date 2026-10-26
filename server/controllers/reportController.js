@@ -1,4 +1,5 @@
 const svc    = require('../services/reportService');
+const statement = require('../services/statementService');
 const logger = require('../utils/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
 
@@ -76,4 +77,23 @@ const getCommissions = asyncHandler(async (_req, res) => {
   }
 });
 
-module.exports = { getSummary, getRecent, getDaily, getMonthly, getOverdue, getCommissions };
+
+/* ── Reporting directories & the full financial statement (admin only) ── */
+const getIndividuals = asyncHandler(async (_req, res) => {
+  res.json(await statement.getIndividuals());
+});
+
+const getGroups = asyncHandler(async (_req, res) => {
+  res.json(await statement.getGroups());
+});
+
+const getGroupMembers = asyncHandler(async (req, res) => {
+  res.json(await statement.getGroupMembers(req.params.id));
+});
+
+const getStatement = asyncHandler(async (_req, res) => {
+  res.json(await statement.getStatement());
+});
+
+module.exports = {
+  getIndividuals, getGroups, getGroupMembers, getStatement, getSummary, getRecent, getDaily, getMonthly, getOverdue, getCommissions };

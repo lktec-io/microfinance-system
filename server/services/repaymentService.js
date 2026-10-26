@@ -1,4 +1,5 @@
 const { pool } = require('../config/database');
+const memberLoans = require('./memberLoanService');
 const { generateReceiptNumber, nowLocal, isoDate } = require('../utils/helpers');
 
 const PAYMENT_MODES   = ['cash', 'mobile_money', 'bank'];
@@ -57,7 +58,7 @@ async function findById(id) {
  */
 async function create({
   loan_id, amount, payment_date, paid_at, notes, created_by,
-  payment_mode, mobile_provider, amount_sent, agent_fee,
+  payment_mode, mobile_provider, amount_sent, agent_fee, group_member_id = null,
 }) {
   const mode      = PAYMENT_MODES.includes(payment_mode) ? payment_mode : 'cash';
   const isMobile  = mode === 'mobile_money';
@@ -86,6 +87,22 @@ async function create({
       );
     }
 
+    /*
+     * Member-level payment inside a group loan: the member must hold an agreed
+     * share on THIS loan. The loan itself is credited exactly as before.
+     */
+    let memberId = null;
+    if (group_member_id != null && String(group_member_id) !== '') {
+      if (loan.loan_type !== 'group') {
+        throw Object.assign(new Error('Only group loans accept member payments'), { status: 400 });
+      }
+      const alloc = await memberLoans.findAllocation(conn, loan_id, Number(group_member_id));
+      if (!alloc) {
+        throw Object.assign(new Error('That member has no agreed share on this loan'), { status: 404 });
+      }
+      memberId = Number(group_member_id);
+    }
+
     const receiptNumber  = generateReceiptNumber();
     const newAmountPaid  = parseFloat(loan.amount_paid) + payAmount;
     const newBalance     = Math.max(
@@ -97,10 +114,10 @@ async function create({
     const [repResult] = await conn.query(
       `INSERT INTO repayments
          (loan_id, amount, payment_date, paid_at, receipt_number, notes, created_by,
-          payment_mode, mobile_provider, amount_sent, agent_fee)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          payment_mode, mobile_provider, amount_sent, agent_fee, group_member_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [loan_id, payAmount, pDate, paidAt, receiptNumber, notes || null, created_by,
-       mode, provider, sent, fee]
+       mode, provider, sent, fee, memberId]
     );
     await conn.query(
       'UPDATE loans SET amount_paid=?, balance=?, status=? WHERE id=?',
@@ -114,10 +131,24 @@ async function create({
       refundStatus = due && pDate <= due ? 'eligible' : 'forfeited';
       await conn.query('UPDATE loans SET refund_status = ? WHERE id = ?', [refundStatus, loan_id]);
     }
+    /* Per-member incentive: decided from that member's own target */
+    let memberRefund = null;
+    if (memberId != null) {
+      memberRefund = await memberLoans.settleMemberRefund(conn, {
+        loanId: loan_id, memberId, dueDate: loan.due_date, paymentDate: pDate,
+      });
+    }
+
     await conn.commit();
 
     const [[repayment]] = await conn.query('SELECT * FROM repayments WHERE id = ?', [repResult.insertId]);
-    return { ...repayment, new_balance: newBalance, loan_status: newStatus, refund_status: refundStatus };
+    return {
+      ...repayment,
+      new_balance: newBalance,
+      loan_status: newStatus,
+      refund_status: refundStatus,
+      member_refund_status: memberRefund,
+    };
   } catch (err) {
     await conn.rollback();
     throw err;

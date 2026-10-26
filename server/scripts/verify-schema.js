@@ -69,6 +69,17 @@ const EXPECTED = {
     mobile_provider: 'varchar',
     amount_sent:     'decimal',
     agent_fee:       'decimal',
+    group_member_id: 'int',
+  },
+  group_loan_members: {
+    id:              'int',
+    loan_id:         'int',
+    group_member_id: 'int',
+    agreed_share:    'decimal',
+    refund_amount:   'decimal',
+    refund_status:   'varchar',
+    refund_paid_at:  'datetime',
+    created_at:      'timestamp',
   },
   loan_guarantors: {
     id:           'int',
@@ -99,6 +110,9 @@ const FOREIGN_KEYS = [
   ['group_members', 'group_id', 'client_groups'],
   ['member_businesses', 'member_id', 'group_members'],
   ['loans', 'group_id', 'client_groups'],
+  ['group_loan_members', 'loan_id', 'loans'],
+  ['group_loan_members', 'group_member_id', 'group_members'],
+  ['repayments', 'group_member_id', 'group_members'],
 ];
 
 async function verify(pool) {

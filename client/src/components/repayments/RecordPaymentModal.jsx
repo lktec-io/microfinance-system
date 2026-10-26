@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useState } from 'react';
 import {
   FiAlertCircle, FiAlertTriangle, FiCheckCircle, FiExternalLink, FiSearch, FiInfo, FiRotateCcw,
-  FiDollarSign, FiSmartphone, FiCreditCard, FiClock,
+  FiDollarSign, FiSmartphone, FiCreditCard, FiClock, FiUser,
 } from 'react-icons/fi';
 import api from '../../api';
 import { Modal, SearchField, Avatar, DueChip, Empty, Field, Bi } from '../ui';
@@ -40,7 +40,7 @@ function ErrorAlert({ error }) {
  * payment time, which runs live until the agent edits it.
  * The server remains authoritative.
  */
-export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRecorded, onViewLoan }) {
+export default function RecordPaymentModal({ loans, initialLoanId, member, onClose, onRecorded, onViewLoan }) {
   const timeId = useId();
   const openLoans = useMemo(() => loans
     .filter(l => l.status !== 'paid' && Number(l.balance) > 0)
@@ -138,6 +138,9 @@ export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRe
 
     const payload = {
       loan_id:      Number(loan.id),
+      /* Member-level group payment: credits the group loan AND is filed
+         against this member's own target (see group_loan_members). */
+      ...(member ? { group_member_id: Number(member.group_member_id ?? member.id) } : {}),
       payment_mode: form.payment_mode,
       paid_at:      stamp,
       payment_date: stamp.slice(0, 10),
@@ -238,8 +241,10 @@ export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRe
     <Modal
       size="xl"
       eyebrow="Collections"
-      title="Record repayment"
-      subtitle="Select the loan, choose how the client paid, and post it to the ledger."
+      title={member ? `Record repayment · ${member.full_name}` : 'Record repayment'}
+      subtitle={member
+        ? 'This payment is filed against this member’s own target and credits the group loan.'
+        : 'Select the loan, choose how the client paid, and post it to the ledger.'}
       onClose={onClose}
       footer={
         <>
@@ -251,6 +256,19 @@ export default function RecordPaymentModal({ loans, initialLoanId, onClose, onRe
       }
     >
       <div className="mf-pay">
+        {member && (
+          <div className="mf-pay__member" role="note">
+            <span className="mf-pay__member-who">
+              <FiUser size={14} aria-hidden="true" />
+              <b>{member.full_name}</b>
+              {member.phone_number && <span className="mf-mono">{member.phone_number}</span>}
+            </span>
+            <span className="mf-pay__member-target">
+              Target <b>TZS {fmt(member.agreed_share)}</b> · paid <b>TZS {fmt(member.paid)}</b> · remaining <b>TZS {fmt(member.balance)}</b>
+            </span>
+          </div>
+        )}
+
         {/* Loan picker */}
         <div className="mf-picker">
           <div className="mf-section-label" style={{ marginBottom: 0 }}>1 · Select open loan</div>

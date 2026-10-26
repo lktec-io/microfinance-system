@@ -19,7 +19,7 @@ const getOne = asyncHandler(async (req, res) => {
 });
 
 const create = asyncHandler(async (req, res) => {
-  const { loan_id, amount, payment_mode, mobile_provider, amount_sent, agent_fee, paid_at } = req.body;
+  const { loan_id, amount, payment_mode, mobile_provider, amount_sent, agent_fee, paid_at, group_member_id } = req.body;
   if (!loan_id) return fail(res, 'Loan ID and amount are required');
 
   if (payment_mode != null && payment_mode !== '' && !svc.PAYMENT_MODES.includes(payment_mode)) {
@@ -38,6 +38,11 @@ const create = asyncHandler(async (req, res) => {
     if (!amount)                 return fail(res, 'Loan ID and amount are required');
     if (parseFloat(amount) <= 0) return fail(res, 'Amount must be greater than zero');
     if (parseFloat(amount) > MAX_MONEY) return fail(res, 'Amount is too large');
+  }
+
+  if (group_member_id != null && group_member_id !== '') {
+    const id = Number(group_member_id);
+    if (!Number.isInteger(id) || id < 1) return fail(res, 'Invalid group member');
   }
 
   if (paid_at != null && paid_at !== '') {

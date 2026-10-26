@@ -10,6 +10,7 @@ import api          from '../api';
 import { useToast }  from '../context/ToastContext';
 import { useAuth }   from '../context/AuthContext';
 import { usePrintReceipt } from '../context/ReceiptContext';
+import GroupMemberPanel from '../components/repayments/GroupMemberPanel';
 import { fmt, fmtTimestamp } from '../utils/format';
 import { isoDate, GROUP_REFUND_RATE } from '../utils/finance';
 import { frequencyLabel, money, paymentModeLabel, perInterval } from '../utils/labels';
@@ -48,6 +49,7 @@ export default function LoanDetail() {
   const [editSaving, setEditSaving]= useState(false);
   const [editErr,    setEditErr]   = useState('');
   const [refundSaving, setRefundSaving] = useState(false);
+  const [memberReload, setMemberReload] = useState(0);
 
   async function fetchLoan() {
     if (!id || id === 'undefined') {
@@ -136,6 +138,8 @@ export default function LoanDetail() {
   const securities = securitiesFromLoan(loan);
 
   const isGroupLoan  = loan.loan_type === 'group';
+  /* 'member' means the 5% incentive is tracked per member, not on the loan */
+  const perMember    = isGroupLoan && loan.refund_status === 'member';
   const refundStatus = loan.refund_status || 'pending';
   const refundTitle  = t('fee.refundTitle', { rate: Number(loan.refund_incentive_rate) || GROUP_REFUND_RATE });
   const refundState  = t(`fee.refundStatus.${refundStatus}`);
@@ -255,8 +259,20 @@ export default function LoanDetail() {
               <PlanStatus loan={loan} />
             </div>
 
-            {/* Group refundable incentive tracker */}
-            {isGroupLoan && (
+            {/* Group loan with agreed member shares: per-member collections + incentives */}
+            {isGroupLoan && perMember && (
+              <div className="info-section">
+                <div className="info-section-title">Member Shares &amp; Incentives</div>
+                <GroupMemberPanel
+                  loan={loan}
+                  reloadKey={memberReload}
+                  onRecord={() => { setPayModal(true); }}
+                />
+              </div>
+            )}
+
+            {/* Group refundable incentive tracker — loans booked without member shares */}
+            {isGroupLoan && !perMember && (
               <div className="info-section">
                 <div className="info-section-title">Group Refund Incentive</div>
                 <div className={`mf-refund mf-refund--${refundStatus}`}>
@@ -411,7 +427,7 @@ export default function LoanDetail() {
           loans={[loan]}
           initialLoanId={loan.id}
           onClose={() => setPayModal(false)}
-          onRecorded={data => { showToast(`Payment ${data.receipt_number} recorded`, 'success'); fetchLoan(); }}
+          onRecorded={data => { showToast(`Payment ${data.receipt_number} recorded`, 'success'); fetchLoan(); setMemberReload(n => n + 1); }}
           onViewLoan={() => setPayModal(false)}
         />
       )}

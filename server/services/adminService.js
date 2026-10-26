@@ -6,7 +6,7 @@ const { pool } = require('../config/database');
  * staff and admin account survives the reset.
  */
 const RESET_TABLES = [
-  'sms_logs', 'repayments', 'loan_guarantors', 'loan_collaterals', 'loans',
+  'sms_logs', 'repayments', 'loan_guarantors', 'loan_collaterals', 'group_loan_members', 'loans',
   'member_businesses', 'group_members', 'client_groups',
   'customers', 'expenses',
 ];

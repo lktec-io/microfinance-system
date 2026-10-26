@@ -30,5 +30,11 @@ router.get('/monthly',     ctrl.getMonthly);
 router.get('/overdue',     ctrl.getOverdue);
 router.get('/commissions', ctrl.getCommissions);
 
+/* Reporting directories + the executive statement */
+router.get('/individuals',      ctrl.getIndividuals);
+router.get('/groups',           ctrl.getGroups);
+router.get('/groups/:id/members', ctrl.getGroupMembers);
+router.get('/statement',        ctrl.getStatement);
+
 module.exports = router;
 module.exports.requireReportAccess = requireReportAccess;

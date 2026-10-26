@@ -1,0 +1,150 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   GROUP MEMBER COLLECTIONS
+   One row per member of a group loan: own target, own progress, own
+   repayment action. Orange marks what needs attention, emerald what is done.
+   ═══════════════════════════════════════════════════════════════════════ */
+.mf-members {
+  border-radius: var(--mf-radius-lg);
+  background: var(--mf-surface);
+  box-shadow: var(--mf-elev-1);
+  overflow: hidden;
+}
+.mf-members__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  padding: 1rem 1.1rem;
+  background: var(--mf-surface-2);
+}
+.mf-members__title {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  margin: 0;
+  font-size: var(--mf-fs-md);
+  font-weight: var(--mf-fw-strong);
+  color: var(--mf-ink-900);
+}
+.mf-members__title > svg { color: var(--mf-orange-500); }
+.mf-members__sub {
+  margin: .2rem 0 0;
+  font-size: var(--mf-fs-xs);
+  font-weight: var(--mf-fw-body);
+  color: var(--mf-ink-500);
+}
+
+.mf-members__table tbody tr.is-settled { background: var(--mf-emerald-50); }
+.mf-members__table tfoot td {
+  background: var(--mf-charcoal-900);
+  color: #FFFFFF;
+  font-weight: var(--mf-fw-strong);
+}
+.mf-members__table tfoot .is-num { color: var(--mf-orange-400); font-variant-numeric: tabular-nums; }
+
+.mf-members__progress { display: flex; align-items: center; gap: .5rem; min-width: 7rem; }
+.mf-members__progress .mf-progress { flex: 1; }
+.mf-members__pct {
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+  min-width: 3.6rem;
+  font-family: var(--mf-font-mono);
+  font-size: var(--mf-fs-xs);
+  font-weight: var(--mf-fw-strong);
+  font-variant-numeric: tabular-nums;
+  color: var(--mf-ink-600);
+}
+tr.is-settled .mf-members__pct { color: var(--mf-emerald-700); }
+
+.mf-members__refund { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; }
+.mf-members__refund-state {
+  font-size: var(--mf-fs-2xs);
+  font-weight: var(--mf-fw-medium);
+  color: var(--mf-ink-500);
+}
+.mf-members__foot-note {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: var(--mf-fs-2xs);
+  font-weight: var(--mf-fw-medium);
+  color: rgba(255, 255, 255, .6);
+}
+
+/* ── The member share step in the loan wizard ──────────────────────── */
+.mf-shares { display: flex; flex-direction: column; gap: .75rem; }
+.mf-shares__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 10rem;
+  align-items: center;
+  gap: .75rem;
+  padding: .7rem .8rem;
+  border-radius: var(--mf-radius);
+  background: var(--mf-surface-2);
+}
+.mf-shares__who { display: flex; flex-direction: column; min-width: 0; }
+.mf-shares__name { font-size: var(--mf-fs-sm); font-weight: var(--mf-fw-strong); color: var(--mf-ink-900); }
+.mf-shares__meta {
+  font-family: var(--mf-font-mono);
+  font-size: var(--mf-fs-xs);
+  font-weight: var(--mf-fw-body);
+  color: var(--mf-ink-500);
+}
+.mf-shares__input {
+  width: 100%;
+  padding: .5rem .6rem;
+  border: 1px solid var(--mf-border-strong);
+  border-radius: var(--mf-radius);
+  background: var(--mf-surface);
+  font-family: var(--mf-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--mf-fs-sm);
+  font-weight: var(--mf-fw-strong);
+  text-align: right;
+  color: var(--mf-ink-900);
+}
+.mf-shares__input:focus-visible { outline: 2px solid var(--mf-orange-500); outline-offset: 1px; border-color: var(--mf-orange-500); }
+.mf-shares__tally {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .8rem .9rem;
+  border-radius: var(--mf-radius);
+  background: var(--mf-charcoal-900);
+  color: #FFFFFF;
+  font-size: var(--mf-fs-sm);
+  font-weight: var(--mf-fw-medium);
+}
+.mf-shares__tally b { font-family: var(--mf-font-mono); font-variant-numeric: tabular-nums; color: var(--mf-orange-400); }
+.mf-shares__tally.is-balanced b { color: #3DD68C; }
+.mf-shares__hint { font-size: var(--mf-fs-xs); font-weight: var(--mf-fw-body); color: var(--mf-ink-500); }
+.mf-shares__split { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+/* member banner inside the Record Payment modal */
+.mf-pay__member {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .7rem .85rem;
+  border-radius: var(--mf-radius);
+  background: var(--mf-orange-50);
+}
+.mf-pay__member-who { display: inline-flex; align-items: center; gap: .4rem; font-size: var(--mf-fs-sm); color: var(--mf-ink-800); }
+.mf-pay__member-who > svg { color: var(--mf-orange-600); }
+.mf-pay__member-target {
+  font-size: var(--mf-fs-xs);
+  font-weight: var(--mf-fw-body);
+  color: var(--mf-ink-600);
+}
+.mf-pay__member-target b { font-family: var(--mf-font-mono); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 720px) {
+  .mf-shares__row { grid-template-columns: minmax(0, 1fr); }
+  .mf-shares__input { text-align: left; }
+}

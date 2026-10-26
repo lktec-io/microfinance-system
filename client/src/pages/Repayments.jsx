@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FiPlus, FiBookOpen, FiInbox, FiArrowUpRight, FiAlertCircle, FiRefreshCw,
-  FiDollarSign, FiCalendar, FiPieChart, FiAlertTriangle, FiSearch, FiCreditCard,
+  FiDollarSign, FiCalendar, FiPieChart, FiAlertTriangle, FiSearch, FiCreditCard, FiUsers, FiX,
 } from 'react-icons/fi';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
@@ -17,6 +17,7 @@ import StatusBadge        from '../components/common/StatusBadge';
 import { useCanSeeTotals, Mask, maskedFormat } from '../components/common/MoneyGuard';
 import { MASK } from '../utils/rbac';
 import RecordPaymentModal from '../components/repayments/RecordPaymentModal';
+import GroupMemberPanel   from '../components/repayments/GroupMemberPanel';
 import '../styles/app/lending.css';
 import '../styles/app/directory.css';
 
@@ -67,7 +68,9 @@ export default function Repayments() {
   const [bucket, setBucket] = useState('all');
   const [cQuery, setCQuery] = useState('');
 
-  const [record, setRecord] = useState(null);   // { loanId }
+  const [record, setRecord] = useState(null);   // { loanId, member }
+  const [groupLoan, setGroupLoan] = useState(null);   // group loan opened for member-level collection
+  const [memberReload, setMemberReload] = useState(0);
 
   const load = useCallback(async () => {
     const [r, l] = await Promise.allSettled([api.get('/repayments'), api.get('/loans')]);
@@ -223,6 +226,24 @@ export default function Repayments() {
           <button type="button" className="mf-btn mf-btn--sm mf-alert__action" onClick={() => { setLoading(true); load(); }}>
             <FiRefreshCw size={14} /> Retry
           </button>
+        </div>
+      )}
+
+      {tab === 'collections' && groupLoan && (
+        <div className="mf-members__wrap">
+          <div className="mf-toolbar__group no-print" style={{ justifyContent: 'space-between', width: '100%' }}>
+            <span className="mf-toolbar__meta">
+              Member collections · <strong>{groupLoan.group_name || groupLoan.customer_name}</strong>
+            </span>
+            <button type="button" className="mf-link-btn" onClick={() => setGroupLoan(null)}>
+              <FiX size={13} /> Close member view
+            </button>
+          </div>
+          <GroupMemberPanel
+            loan={groupLoan}
+            reloadKey={memberReload}
+            onRecord={member => setRecord({ loanId: groupLoan.id, member })}
+          />
         </div>
       )}
 
@@ -414,9 +435,15 @@ export default function Repayments() {
                           <td data-label="Status"><StatusBadge status={l.status} /></td>
                           <td className="is-actions" onClick={e => e.stopPropagation()}>
                             <div className="mf-actions">
-                              <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setRecord({ loanId: l.id })}>
-                                <FiCreditCard size={15} /> Collect
-                              </button>
+                              {l.loan_type === 'group' ? (
+                                <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setGroupLoan(l)}>
+                                  <FiUsers size={15} /> Members
+                                </button>
+                              ) : (
+                                <button type="button" className="mf-btn mf-btn--primary mf-btn--sm" onClick={() => setRecord({ loanId: l.id })}>
+                                  <FiCreditCard size={15} /> Collect
+                                </button>
+                              )}
                               <button type="button" className="mf-icon-btn" onClick={() => navigate(`/loans/${l.id}`)}
                                 title="Open loan" aria-label={`Open loan #${l.id}`}>
                                 <FiArrowUpRight size={16} />
@@ -438,8 +465,13 @@ export default function Repayments() {
         <RecordPaymentModal
           loans={loans}
           initialLoanId={record.loanId}
+          member={record.member}
           onClose={() => setRecord(null)}
-          onRecorded={data => { showToast(`Payment ${data.receipt_number} posted`, 'success'); load(); }}
+          onRecorded={data => {
+            showToast(`Payment ${data.receipt_number} posted`, 'success');
+            setMemberReload(n => n + 1);
+            load();
+          }}
           onViewLoan={loan => { setRecord(null); navigate(`/loans/${loan.id}`); }}
         />
       )}

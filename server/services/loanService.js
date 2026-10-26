@@ -1,4 +1,5 @@
 const { pool } = require('../config/database');
+const memberLoans = require('./memberLoanService');
 const {
   calcDueDate, today, calcTotalPayable, nowLocal,
   FREQUENCIES, countInstallments, calcInstallmentAmount,
@@ -117,6 +118,7 @@ async function hasRepayments(loanId) {
 async function create({
   customer_id, loan_amount, interest_rate, duration_value, duration_unit,
   start_date, purpose, repayment_frequency, securities = [], loan_type = 'individual', group_id = null,
+  member_shares = null,
 }) {
   const amount   = parseFloat(loan_amount);
   const rate     = parseFloat(interest_rate);
@@ -130,6 +132,14 @@ async function create({
   const isGroup = loan_type === 'group';
   const fee     = calcProcessingFee(amount);
   const refund  = isGroup ? calcGroupRefund(amount) : null;
+  /*
+   * A group loan with agreed member shares tracks its 5% incentive per member
+   * (group_loan_members), so the loan-level status is parked as 'member': the
+   * repayment hook and the loan-level payout both ignore that value. Group
+   * loans without shares keep the original loan-level behaviour.
+   */
+  const perMember   = isGroup && Array.isArray(member_shares) && member_shares.length > 0;
+  const refundState = isGroup ? (perMember ? 'member' : 'pending') : null;
 
   const conn = await pool.getConnection();
   try {
@@ -147,7 +157,7 @@ async function create({
        total, total, sDate, dueDate, purpose || null,
        plan.frequency, plan.count, plan.amount,
        isGroup ? 'group' : 'individual', isGroup ? group_id : null, fee, PROCESSING_FEE_RATE,
-       isGroup ? GROUP_REFUND_RATE : null, refund, isGroup ? 'pending' : null]
+       isGroup ? GROUP_REFUND_RATE : null, refund, refundState]
     );
     const loanId = result.insertId;
 
@@ -164,6 +174,10 @@ async function create({
            parseFloat(parseFloat(item.estimated_value || 0).toFixed(2)) || 0]
         );
       }
+    }
+
+    if (perMember) {
+      await memberLoans.allocate(conn, { loanId, shares: member_shares, principal: amount, totalPayable: total });
     }
 
     await conn.commit();

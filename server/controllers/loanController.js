@@ -1,6 +1,8 @@
 const svc    = require('../services/loanService');
+const groupSvc    = require('../services/groupService');
+const memberLoans = require('../services/memberLoanService');
 const { asyncHandler } = require('../middleware/errorHandler');
-const { fail, FREQUENCIES, MAX_MONEY } = require('../utils/helpers');
+const { fail, FREQUENCIES, MAX_MONEY, calcTotalPayable } = require('../utils/helpers');
 
 const MAX_SECURITIES = 20;
 
@@ -75,6 +77,37 @@ const getByCustomer = asyncHandler(async (req, res) => {
 });
 
 const LOAN_TYPES = ['individual', 'group'];
+const SHARE_TOLERANCE = 1;          // allow a 1 TZS rounding gap on the split
+
+/**
+ * Agreed member shares for a group loan: [{ group_member_id, agreed_share }].
+ * Optional — without them the loan keeps the loan-level incentive. When given,
+ * every member must belong to the group and the shares must add up to the
+ * total payable, so a member's target can never be invented later.
+ */
+function memberSharesError(shares, { groupMemberIds, totalPayable }) {
+  if (shares == null) return null;
+  if (!Array.isArray(shares) || shares.length === 0) return 'Member shares must be a list';
+  const seen = new Set();
+  let sum = 0;
+  for (const [i, s] of shares.entries()) {
+    const who = `Member ${i + 1}`;
+    if (!s || typeof s !== 'object') return `${who}: share details are missing`;
+    const id = Number(s.group_member_id);
+    if (!Number.isInteger(id) || id < 1) return `${who}: invalid member`;
+    if (!groupMemberIds.has(id)) return `${who} does not belong to this group`;
+    if (seen.has(id)) return `${who} is listed twice`;
+    seen.add(id);
+    const share = Number(s.agreed_share);
+    if (!Number.isFinite(share) || share <= 0) return `${who}: enter a share greater than zero`;
+    if (share > MAX_MONEY) return `${who}: share is too large`;
+    sum += share;
+  }
+  if (Math.abs(sum - totalPayable) > SHARE_TOLERANCE) {
+    return `Member shares must add up to the total payable (${totalPayable.toFixed(2)}), not ${sum.toFixed(2)}`;
+  }
+  return null;
+}
 
 const create = asyncHandler(async (req, res) => {
   const loanType = req.body.loan_type == null || req.body.loan_type === '' ? 'individual' : req.body.loan_type;
@@ -100,12 +133,48 @@ const create = asyncHandler(async (req, res) => {
   if (!(await svc.customerExists(customer_id))) {
     return fail(res, 'Customer not found', 404);
   }
+
+  let memberShares = null;
+  if (group && req.body.member_shares != null) {
+    const members = await groupSvc.findById(group.id);
+    const ids = new Set((members?.members || []).map(m => Number(m.id)));
+    const totalPayable = calcTotalPayable(parseFloat(loan_amount), parseFloat(interest_rate));
+    const shareError = memberSharesError(req.body.member_shares, { groupMemberIds: ids, totalPayable });
+    if (shareError) return fail(res, shareError);
+    memberShares = req.body.member_shares;
+  }
+
   res.status(201).json(await svc.create({
     ...req.body,
     customer_id,
     loan_type: group ? 'group' : 'individual',
     group_id:  group ? group.id : null,
+    member_shares: memberShares,
   }));
+});
+
+/** GET /api/loans/:id/members — agreed shares and live progress per member. */
+const getMembers = asyncHandler(async (req, res) => {
+  const loan = await svc.findById(req.params.id);
+  if (!loan) return fail(res, 'Loan not found', 404);
+  res.json(await memberLoans.findForLoan(req.params.id));
+});
+
+/** PATCH /api/loans/:id/members/:memberId/refund — admin pays one member out. */
+const markMemberRefundPaid = asyncHandler(async (req, res) => {
+  const loan = await svc.findById(req.params.id);
+  if (!loan) return fail(res, 'Loan not found', 404);
+  if (loan.loan_type !== 'group') return fail(res, 'Only group loans carry a refundable incentive');
+
+  const rows = await memberLoans.findForLoan(req.params.id);
+  const row = rows.find(r => Number(r.group_member_id) === Number(req.params.memberId));
+  if (!row) return fail(res, 'That member has no agreed share on this loan', 404);
+  if (row.refund_status !== 'eligible') {
+    return fail(res, `${row.full_name}'s refund is not due (status: ${row.refund_status || 'none'})`);
+  }
+  const updated = await memberLoans.markRefundPaid(req.params.id, req.params.memberId);
+  if (!updated) return fail(res, 'The refund was already processed', 409);
+  res.json(updated);
 });
 
 const markRefundPaid = asyncHandler(async (req, res) => {
@@ -140,4 +209,5 @@ const remove = asyncHandler(async (req, res) => {
   res.json({ message: 'Loan deleted' });
 });
 
-module.exports = { getAll, getOne, getByCustomer, create, update, remove, markRefundPaid };
+module.exports = {
+  getMembers, markMemberRefundPaid, getAll, getOne, getByCustomer, create, update, remove, markRefundPaid };

@@ -13,6 +13,7 @@ import LoanTermsFields, { EMPTY_TERMS, validateTerms } from './LoanTermsFields';
 import QuotePanel from './QuotePanel';
 import SecurityFields, { EMPTY_SECURITY_DRAFTS, securitiesPayload, securityDraftsDirty } from './SecurityFields';
 import SecurityList from './SecurityList';
+import MemberShares, { equalSplit, sharesError, sharesPayload } from './MemberShares';
 import {
   clientStanding, loanQuote, indicativeSchedule, todayISO, GROUP_REFUND_RATE, PROCESSING_FEE_RATE,
 } from '../../utils/finance';
@@ -200,6 +201,13 @@ export default function LoanApplicationWizard({
   const [securityAttempted, setSecurityAttempted] = useState(false);
   const securityDirty = securityDraftsDirty(securityDrafts);
 
+  /* Group loans: the agreed share per member, typed on the terms step */
+  const [memberRows, setMemberRows]   = useState([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [shares, setShares]           = useState({});
+  const [sharesTouched, setSharesTouched] = useState(false);
+  const [sharesAttempted, setSharesAttempted] = useState(false);
+
   const [ack, setAck]         = useState(false);
   const [saving, setSaving]   = useState(false);
   const [error, setError]     = useState('');
@@ -237,6 +245,19 @@ export default function LoanApplicationWizard({
       }) : null)
     : (selectedCustomer && !selectedCustomer.group_id ? selectedCustomer : null);
 
+  /* Load the chosen group's members so their shares can be agreed up front */
+  useEffect(() => {
+    if (loanType !== 'group' || !group?.id) { setMemberRows([]); setShares({}); setSharesTouched(false); return undefined; }
+    let alive = true;
+    setMembersLoading(true);
+    api.get(`/groups/${group.id}`)
+      .then(({ data }) => { if (alive) setMemberRows(Array.isArray(data?.members) ? data.members : []); })
+      .catch(() => { if (alive) setMemberRows([]); })
+      .finally(() => { if (alive) setMembersLoading(false); });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loanType, group?.id]);
+
   const standing = useMemo(
     () => clientStanding(applicant ? loansByCustomer[applicant.id] || [] : []),
     [applicant, loansByCustomer],
@@ -259,6 +280,33 @@ export default function LoanApplicationWizard({
     return groups.filter(g => !q || [g.group_name, g.market_name, g.leader_name, g.leader_phone, clientCode(g.customer_id)]
       .some(v => String(v || '').toLowerCase().includes(q)));
   }, [groups, query]);
+
+  const totalPayable = useMemo(() => {
+    const amount = parseFloat(terms.loan_amount);
+    const rate = parseFloat(terms.interest_rate);
+    return Number.isFinite(amount) && Number.isFinite(rate) ? Math.round(amount * (1 + rate / 100) * 100) / 100 : 0;
+  }, [terms.loan_amount, terms.interest_rate]);
+
+  useEffect(() => {
+    if (sharesTouched || !memberRows.length || !totalPayable) return;
+    const split = equalSplit(totalPayable, memberRows.length);
+    setShares(Object.fromEntries(memberRows.map((m, i) => [m.id, String(split[i])])));
+  }, [memberRows, totalPayable, sharesTouched]);
+
+  const shareError = loanType === 'group' && memberRows.length
+    ? sharesError(shares, memberRows, totalPayable)
+    : null;
+
+  const onShareChange = (memberId, value) => {
+    setSharesTouched(true);
+    if (memberId === '__equal__') {
+      const split = equalSplit(totalPayable, memberRows.length);
+      setShares(Object.fromEntries(memberRows.map((m, i) => [m.id, String(split[i])])));
+      return;
+    }
+    if (memberId === '__clear__') { setShares({}); return; }
+    setShares(prev => ({ ...prev, [memberId]: value }));
+  };
 
   const termErrors = validateTerms(terms);
   const termsValid = Object.keys(termErrors).length === 0;
@@ -301,6 +349,7 @@ export default function LoanApplicationWizard({
     if (step === STEP.terms) {
       setTouched(true);
       if (!termsValid) return;
+      if (shareError) { setSharesAttempted(true); return; }
     }
     if (step === STEP.security && securityDirty) {
       setSecurityAttempted(true);
@@ -326,6 +375,9 @@ export default function LoanApplicationWizard({
         start_date:          terms.start_date,
         purpose:             terms.purpose,
         securities:          securitiesPayload(securities),
+        ...(loanType === 'group' && memberRows.length && !shareError
+          ? { member_shares: sharesPayload(shares, memberRows) }
+          : {}),
       });
       const loan = { ...data, customer_name: applicant.full_name, customer_phone: applicant.phone };
       setCreated({ ...loan, securityCount: securities.length });
@@ -562,6 +614,17 @@ export default function LoanApplicationWizard({
                   <p>{typeLabel.en} loan · flat interest on principal. The installment and fees update as you type.</p>
                 </div>
                 <LoanTermsFields form={terms} setForm={setTerms} errors={touched ? termErrors : {}} loanType={loanType} />
+                {loanType === 'group' && group && (
+                  <MemberShares
+                    members={memberRows}
+                    shares={shares}
+                    onChange={onShareChange}
+                    total={totalPayable}
+                    loading={membersLoading}
+                    error={shareError}
+                    show={sharesAttempted}
+                  />
+                )}
               </div>
               <QuotePanel quote={quote}>
                 <p className="mf-quote__foot">
@@ -655,6 +718,23 @@ export default function LoanApplicationWizard({
                     <FiEdit2 size={11} /> Edit terms
                   </button>
                 </section>
+
+                {loanType === 'group' && memberRows.length > 0 && !shareError && (
+                  <section>
+                    <div className="mf-section-label">Agreed member shares</div>
+                    <dl className="mf-dl">
+                      {memberRows.map(m => (
+                        <div className="mf-dl__item" key={m.id}>
+                          <dt>{m.full_name}</dt>
+                          <dd className="mf-num">TZS {fmt(Number(shares[m.id]) || 0)}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                    <p className="mf-shares__hint" style={{ marginTop: '.4rem' }}>
+                      Each member repays their own share and earns their own {GROUP_REFUND_RATE}% incentive on time.
+                    </p>
+                  </section>
+                )}
 
                 <section>
                   <div className="mf-section-label">Guarantors &amp; collateral</div>

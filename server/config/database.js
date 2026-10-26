@@ -271,6 +271,41 @@ async function runMigrations() {
   await safe('loans.refund_paid_at', () =>
     pool.query('ALTER TABLE loans ADD COLUMN refund_paid_at DATETIME NULL DEFAULT NULL')
   );
+
+  /* ── Member-level repayments inside group loans (005) ────────────────
+     Each group loan can carry an agreed share per member. Repayments are
+     then attributed to one member while still crediting the group loan,
+     and the 5% incentive is tracked per member. Both changes are additive:
+     group loans booked before this migration keep the loan-level refund. */
+  await safe('create group_loan_members table', () =>
+    pool.query(`
+      CREATE TABLE IF NOT EXISTS group_loan_members (
+        id               INT           PRIMARY KEY AUTO_INCREMENT,
+        loan_id          INT           NOT NULL,
+        group_member_id  INT           NOT NULL,
+        agreed_share     DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+        refund_amount    DECIMAL(12,2) NULL DEFAULT NULL,
+        refund_status    VARCHAR(12)   NULL DEFAULT NULL,
+        refund_paid_at   DATETIME      NULL DEFAULT NULL,
+        created_at       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_loan_member (loan_id, group_member_id),
+        INDEX idx_glm_loan (loan_id),
+        INDEX idx_glm_member (group_member_id),
+        CONSTRAINT fk_glm_loan FOREIGN KEY (loan_id)
+          REFERENCES loans(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT fk_glm_member FOREIGN KEY (group_member_id)
+          REFERENCES group_members(id) ON DELETE RESTRICT ON UPDATE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
+  );
+
+  await safe('repayments.group_member_id', () =>
+    pool.query('ALTER TABLE repayments ADD COLUMN group_member_id INT NULL DEFAULT NULL')
+  );
+  await safe('repayments.fk_repayment_member', () =>
+    pool.query(`ALTER TABLE repayments ADD CONSTRAINT fk_repayment_member FOREIGN KEY (group_member_id)
+                REFERENCES group_members(id) ON DELETE SET NULL ON UPDATE CASCADE`)
+  );
 }
 
 module.exports = { pool, testConnection, runMigrations };
