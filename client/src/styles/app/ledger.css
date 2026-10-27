@@ -63,11 +63,14 @@
   font-family: var(--rep-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  font-size: var(--mf-fs-xl);
+  /* a figure is one unbreakable unit — it shrinks, it never wraps mid-digit.
+     The viewport clamp is the floor-level fallback; the container-relative
+     override further down is what actually fits it to this cell. */
+  font-size: clamp(15px, 2.2vw, var(--mf-fs-xl));
   font-weight: var(--mf-fw-strong);
   line-height: 1.08;
   color: var(--mf-ink-900);
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 .mf-kpi__value small { font-size: .5em; font-weight: var(--mf-fw-medium); color: var(--mf-ink-400); }
 .mf-kpi__meta {
@@ -251,8 +254,27 @@
 
 @media (max-width: 900px) {
   .mf-master__row { grid-template-columns: 18px minmax(0, 1fr); }
-  .mf-master__figs { grid-column: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem .8rem; margin-top: .45rem; }
+  /*
+   * `!important` is load-bearing here, not laziness: the element carries an
+   * inline `display: contents` so that on desktop its four figures become
+   * direct grid items of the row. An inline style outranks any normal
+   * declaration, so without this the figures stayed un-grouped below 900px
+   * and were auto-placed into the row's 18px chevron track — which is what
+   * pushed each figure ~43px outside its own column.
+   */
+  .mf-master__figs {
+    display: grid !important;
+    grid-column: 2;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .4rem .8rem;
+    margin-top: .45rem;
+    min-width: 0;
+  }
   .mf-master__fig { align-items: flex-start; }
+}
+@media (max-width: 420px) {
+  /* two columns of figures stop fitting a phone once the digits grow */
+  .mf-master__figs { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ── View 3 · the executive scorecard ──────────────────────────────────
@@ -325,12 +347,12 @@
   font-family: var(--rep-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  font-size: var(--mf-fs-3xl);
+  font-size: clamp(17px, 2.6vw, var(--mf-fs-3xl));
   font-weight: var(--mf-fw-strong);
   line-height: 1;
   letter-spacing: -.02em;
   color: var(--mf-ink-900);
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 .mf-score__value small { font-size: .34em; font-weight: var(--mf-fw-medium); color: var(--mf-ink-400); }
 .mf-score__meta { font-family: var(--rep-mono); font-size: var(--mf-fs-2xs); color: var(--mf-ink-500); }
@@ -374,13 +396,13 @@
   min-width: 0;
   font-family: var(--rep-mono);
   font-variant-numeric: tabular-nums;
-  /* 6vw tracks the viewport, not this card — the clamp ceiling is what keeps
-     a 16-glyph balance inside the panel on a wide screen */
-  font-size: clamp(1.9rem, 6vw, 3rem);
+  /* the old floor was 1.9rem, which overflowed a 360px phone: a 17-glyph
+     balance needs ~10.7× its font size and only ~283px was available */
+  font-size: clamp(15px, 4.4vw, 3rem);
   font-weight: var(--mf-fw-head);
   line-height: 1.05;
   letter-spacing: -.03em;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 .mf-score__baki-value small { font-size: .3em; font-weight: var(--mf-fw-medium); color: rgba(255, 255, 255, .5); }
 .mf-score__baki.is-positive .mf-score__baki-value { color: #3DD68C; }
@@ -535,6 +557,125 @@
   box-sizing: border-box;
 }
 .mf-rep-notice span { flex: 1 1 16rem; min-width: 0; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE FIGURE TYPOGRAPHY & TABLE CONTAINMENT
+   Scoped to .mf-reports — every override below stays inside this module.
+
+   The rule for a money figure: it is ONE unbreakable unit. It must never
+   wrap, never break mid-digit, and never overlap its neighbour. Since it
+   cannot wrap, the only way to keep it inside a narrow card is to scale it,
+   and it has to scale to the CARD rather than the window: a 260px KPI cell
+   is just as narrow on a 1920px monitor as on a tablet, so a `vw` clamp
+   reads the wrong box. Container query units measure the cell itself.
+
+   Layering: the base `clamp(..., vw, ...)` on each figure rule above ships
+   everywhere; the `cqi` override here replaces it wherever container
+   queries exist (Chrome 105+, Safari 16+, Firefox 110+). Both are capped
+   by the same design ceiling, so the type scale never grows past spec.
+
+   Sizing maths, with JetBrains Mono at ~0.6em per glyph. The design target
+   is the system's realistic ceiling — a figure up to 999,999,999.99 — since
+   nowrap text cannot be made to fit a box by any amount of wrapping:
+     KPI   "TZS 999,999,999.99"  ≈ 10.5 × font-size + 4px gap
+     Tier  "TZS 999,999,999.99"  ≈ 10.2 × font-size + 5px gap
+     BAKI  "TZS -999,999,999.99" ≈ 10.7 × font-size + 6px gap
+   Each coefficient is set so coefficient × ratio stays under 100% of the
+   container, which makes the fit hold at EVERY container width rather than
+   only at the breakpoints that happen to be tested.
+   ═══════════════════════════════════════════════════════════════════════ */
+@supports (container-type: inline-size) {
+  /* each figure's own box becomes the reference for its type size */
+  .mf-reports .mf-kpi__cell,
+  .mf-reports .mf-score__cell,
+  .mf-reports .mf-score__baki,
+  .mf-reports .mf-master__fig { container-type: inline-size; }
+
+  /* 9cqi × 10.5 = 95% of the cell */
+  .mf-reports .mf-kpi__value { font-size: clamp(13px, 9cqi, var(--mf-fs-xl)); }
+  /* 8.5cqi × 10.2 = 87% of the cell */
+  .mf-reports .mf-score__value { font-size: clamp(15px, 8.5cqi, var(--mf-fs-3xl)); }
+  /* 8cqi × 10.7 = 86% of the panel, which also clears the BAKI label */
+  .mf-reports .mf-score__baki-value { font-size: clamp(15px, 8cqi, 3rem); }
+  /* the master row's four figure columns are the narrowest boxes of all */
+  .mf-reports .mf-master__fig b { font-size: clamp(10px, 11cqi, var(--mf-fs-sm)); }
+}
+
+/* ── Out-of-range safety valve ─────────────────────────────────────────
+   The scales above fit every figure the system can hold. Should a figure
+   ever exceed them anyway, it must not wrap (unreadable), must not be
+   clipped (a truncated balance is a lie) and must not paint over the tile
+   beside it — so the value box itself scrolls. At in-range magnitudes
+   there is no overflow, so no scrollbar is ever drawn; when one does
+   appear it is the honest signal that the figure outgrew its tile. */
+.mf-reports .mf-kpi__value,
+.mf-reports .mf-score__value,
+.mf-reports .mf-score__baki-value {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* ── Every digit holder is nowrap ──────────────────────────────────────
+   The figure cells (`.is-fig`), the thead labels and the bonus pills were
+   already nowrap; these are the remaining places a number is rendered. */
+.mf-reports .mf-grid__id,
+.mf-reports .mf-grid tfoot td,
+.mf-reports .mf-master__fig b,
+.mf-reports .mf-ledger__totals span,
+.mf-reports .mf-score__meta,
+.mf-reports .mf-score__baki-label b {
+  white-space: nowrap;
+}
+/* the mono sub-line under a name is identity data, not a figure: it may
+   wrap, but only between its parts, never through an account code */
+.mf-reports .mf-grid__who span { overflow-wrap: normal; word-break: keep-all; }
+
+/* ── Tabular containers scroll; they never squeeze the digits ───────────
+   A table given `width: 100%` inside a narrow card does not scroll — it
+   crushes its columns until the figures collide. Each grid gets a minimum
+   comfortable width and a scroll container that owns the overflow, so the
+   columns keep their alignment and the page itself never moves. */
+.mf-reports .mf-grid__scroll {
+  max-height: 30rem;
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+/* View 1 · client ledger — 5 columns */
+.mf-reports .mf-dl-card > .mf-grid__scroll > .mf-grid { min-width: 32rem; }
+/* View 2 · member drill-down — 6 columns, and it had no scroll parent at all */
+.mf-reports .mf-master__detail-inner {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+.mf-reports .mf-master__detail-inner .mf-grid { min-width: 40rem; }
+
+/* ── Padding gives way before the numbers do ───────────────────────────
+   Below these widths the gutters are what push figures into each other,
+   so the padding yields first and the type scale is left intact. */
+@media (max-width: 640px) {
+  .mf-reports .mf-kpi__cell { padding: .9rem .95rem; }
+  .mf-reports .mf-score__cell { padding: 1.15rem 1rem; }
+  .mf-reports .mf-score__baki { padding: 1.25rem 1.05rem; }
+  .mf-reports .mf-grid thead th,
+  .mf-reports .mf-grid tbody td { padding: .45rem .65rem; }
+  .mf-reports .mf-grid tfoot td { padding: .5rem .65rem; }
+  .mf-reports .mf-master__row { padding: .7rem .85rem; }
+  .mf-reports .mf-ledger__bar { padding: .6rem .85rem; }
+  .mf-reports .mf-dl-card__head { padding: .7rem .85rem; }
+  .mf-reports .mf-master__detail-label { padding: .5rem .85rem .35rem; }
+}
+@media (max-width: 400px) {
+  .mf-reports .mf-kpi__cell { padding: .8rem .8rem; }
+  .mf-reports .mf-score__cell { padding: 1rem .85rem; }
+  .mf-reports .mf-score__baki { padding: 1.1rem .9rem; }
+  .mf-reports .mf-grid thead th,
+  .mf-reports .mf-grid tbody td,
+  .mf-reports .mf-grid tfoot td { padding: .4rem .55rem; }
+}
 
 /* ═══════════════════════════════════════════════════════════════════════
    PERFORATED THERMAL TICKET — 80mm roll, screen-hidden, print only
